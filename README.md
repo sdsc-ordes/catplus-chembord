@@ -1,4 +1,7 @@
-# sv
+# Catplus Chemboard
+
+[!WARNING]
+ > This is a WIP repository, it is not yet stable.
 
 Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
 
