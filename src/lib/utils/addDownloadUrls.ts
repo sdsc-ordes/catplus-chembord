@@ -40,7 +40,7 @@ export async function addPresignedUrlsToFiles(
 		return []; // Return empty array if input is empty
 	}
 
-	console.log(`Generating pre-signed URLs for ${fileObjects.length} files...`);
+	//console.log(`Generating pre-signed URLs for ${fileObjects.length} files...`);
 
 	// Use Promise.all to generate URLs concurrently for better performance
 	const filesWithUrlsPromises = fileObjects.map(async (file): Promise<S3FileObjectWithUrl> => {
@@ -58,7 +58,7 @@ export async function addPresignedUrlsToFiles(
 			const url = await getSignedUrl(s3Client, command, {
 				expiresIn: expiresInSeconds,
 			});
-            console.log(url);
+            //console.log(url);
 			// Return a new object combining original properties and the URL
 			return {
 				...file,
@@ -76,6 +76,6 @@ export async function addPresignedUrlsToFiles(
 
 	// Wait for all promises to resolve
 	const results = await Promise.all(filesWithUrlsPromises);
-	console.log('Finished generating pre-signed URLs.');
+	//console.log('Finished generating pre-signed URLs.');
 	return results;
 }

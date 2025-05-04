@@ -7,7 +7,7 @@
 	import FolderDown from '@lucide/svelte/icons/folder-down';
 	const files = data.files;
     const prefix = data.prefix;
-	console.log('data', data);
+	//console.log('data', data);
 	import { formatBytes, formatDate} from '$lib/utils/displayFile';
 	import { getZipFileName } from '$lib/utils/zipFileName';
 </script>

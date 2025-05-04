@@ -17,7 +17,7 @@ export const load: PageServerLoad = async ({ url }) => {
 	// Get initial results (could use initialFilters here for real query)
 	const initialResults = getMockSparqlResults(initialFilters);
 
-	console.log('Load: Providing initial results and picklists.');
+	//console.log('Load: Providing initial results and picklists.');
 
 	// Return initial results AND the picklists
 	return {
