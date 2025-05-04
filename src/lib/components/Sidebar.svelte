@@ -24,7 +24,7 @@
 		<Navigation.Tile labelExpanded="Home" href="/">
 			<House />
 		</Navigation.Tile>
-		<Navigation.Tile labelExpanded="Explore Database" href="/explorer">
+		<Navigation.Tile labelExpanded="Explore Database" href="/explore">
 			<Database />
 		</Navigation.Tile>
 		<Navigation.Tile labelExpanded="Search Metadata" href="/search">
