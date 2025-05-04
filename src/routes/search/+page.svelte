@@ -31,13 +31,19 @@
 	interface SelectionState {
 		selected: Set<string>;
 		display: string; // Store the display string directly in the state
+		active: boolean;
+	}
+
+	interface AccordionValueChangeEventDetail {
+        accordionValue: string[]; // Adjust the type based on your actual data
 	}
 
 	function initializeCategoryState(categoryKey: FilterCategory): SelectionState {
 		const initialValues = data.initialFilters?.[categoryKey] ?? [];
 		const initialSet = new Set(initialValues);
 		const initialDisplay = initialValues.length > 0 ? initialValues.join(', ') : 'Any';
-		return { selected: initialSet, display: initialDisplay };
+		const initialActive = initialSet.size > 0;
+		return { selected: initialSet, display: initialDisplay, active: initialActive };
 	}
 
 	// --- Generic Toggle Function (updates Set and display string) ---
@@ -67,6 +73,7 @@
 		// Update the display string directly within the state object
 		const selectedArray = [...updatedSet];
 		selectionsState[category].display = selectedArray.length > 0 ? selectedArray.join(', ') : 'Any';
+		selectionsState[category].active = updatedSet.size > 0;
 
 		// Svelte 5 reactivity should detect the change to the property
 		// console.log(`Updated ${category}:`, selectionsState[category]);
@@ -81,7 +88,7 @@
 		reactionName: initializeCategoryState('reactionName'),
 	});
 	$inspect(selections);
-	let accordionValue = $state<string[]>([]);
+	let value = $state<string[]>([]);
 </script>
 
 <div class="container mx-auto p-4 font-sans md:p-8">
@@ -89,11 +96,11 @@
 	<p class="mb-4 text-gray-600">Search in Metadata</p>
 	<div class="card preset-filled-surface-100-800 p-6">
 		<form method="POST" action="?/search" class="mx-auto w-full max-w-md space-y-4">
-			<Accordion {accordionValue} onValueChange={(e: Event) => (accordionValue = e.accordionValue)} multiple>
+			<Accordion {value} onValueChange={(e: Event) => (value = e.value)} multiple >
 				{#snippet iconOpen()}<Plus size={16} />{/snippet}
                 {#snippet iconClosed()}<Minus size={16} />{/snippet}
 				{#each accordionItemsConfig as item}
-				<Accordion.Item value={item.value}>
+				<Accordion.Item value="{item.value}" controlClasses={selections[item.value].active ? 'bg-secondary-100' : ''}>
 					<!-- Control -->
 					{#snippet lead()}<item.icon size={24} />{/snippet}
 					{#snippet control()}{item.label}: {selections[item.value].display}{/snippet}
