@@ -13,7 +13,7 @@
 		<Header />
 	</header>
 	<!-- Grid Columns -->
-	<div class="grid grid-cols-1 md:grid-cols-[auto_1fr]">
+	<div class="grid grid-cols-1 md:grid-cols-[auto_1fr] items-start">
 	  <!-- Left Sidebar. -->
 	  <aside class="p-4">
 		<Sidebar />
