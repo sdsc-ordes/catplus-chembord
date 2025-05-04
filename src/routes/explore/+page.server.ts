@@ -1,4 +1,3 @@
-// Example in src/routes/some-route/+page.server.ts
 import type { PageServerLoad, Actions } from '../$types';
 
 import { redirect, fail } from '@sveltejs/kit';
