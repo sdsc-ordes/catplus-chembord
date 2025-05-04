@@ -16,18 +16,12 @@
 	<div class="card preset-filled-surface-100-800 p-6">
 
 		<form method="POST" action="?/filter" class="mx-auto w-full max-w-md space-y-4">
-            <label class="flex items-center space-x-2">
-                <input class="checkbox" type="checkbox" checked />
-                <p>Option 1</p>
-                </label>
+            {#each data.picklists.chemicalName as chemicalName}
                 <label class="flex items-center space-x-2">
-                <input class="checkbox" type="checkbox" />
-                <p>Option 2</p>
+                    <input class="checkbox" type="checkbox" />
+                    <p>{chemicalName}</p>
                 </label>
-                <label class="flex items-center space-x-2">
-                <input class="checkbox" type="checkbox" />
-                <p>Option 3</p>
-            </label>
+            {/each}
 			<div class="flex justify-start">
 				<button type="submit" class="btn preset-filled-primary-500">
 					<span>Search</span>
