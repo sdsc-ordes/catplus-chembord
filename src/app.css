@@ -3,6 +3,6 @@
 
 @import '@skeletonlabs/skeleton';
 @import '@skeletonlabs/skeleton/optional/presets';
-@import '@skeletonlabs/skeleton/themes/mint';
+@import '@skeletonlabs/skeleton/themes/nosh';
 
 @source '../node_modules/@skeletonlabs/skeleton-svelte/dist';
