@@ -23,28 +23,24 @@
 			>{data.bucket}</code
 		>
 	</p>
-	<div class="card preset-filled-surface-100-800 p-6">
 
-		<form method="POST" action="?/filter" class="space-y-4 card p-4 variant-ghost-surface">
-			<div class="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
-				<label class="label">
-					<span>Prefix</span>
-					<input
-						name="prefix"
-						class="input"
-						type="string"
-						value={prefix}
-						required
-					/>
-				</label>
-			</div>
-			<div class="flex justify-start">
-				<button type="submit" class="btn preset-filled-primary-500">
-					<span>Filter by Prefix</span>
-				</button>
-			</div>
-		</form>
-    </div>
+	<form method="POST" action="?/filter" class="space-y-4 card p-4 variant-ghost-surface">
+		<label class="label">
+			<span>Prefix</span>
+			<input
+				name="prefix"
+				class="input"
+				type="string"
+				value={prefix}
+				required
+			/>
+		</label>
+		<div class="flex justify-start">
+			<button type="submit" class="btn preset-filled-primary-500">
+				<span>Filter by Prefix</span>
+			</button>
+		</div>
+	</form>
 
 	  <Accordion {value} onValueChange={(e) => (value = e.value)} multiple>
 		{#each foldersWithFiles as folder}
