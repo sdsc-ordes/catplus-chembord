@@ -2,7 +2,7 @@
 	// The 'data' prop is automatically populated by SvelteKit
 	// with the return value from the load function in +page.server.ts
 	let { data } = $props();
-	console.log(data);
+	//console.log(data);
 	import { Accordion } from '@skeletonlabs/skeleton-svelte';
 	import Atom from '@lucide/svelte/icons/atom';
 	import FlaskConical from '@lucide/svelte/icons/flask-conical';
@@ -19,7 +19,7 @@
 			updatedSet.delete(name);
 		}
 		selectedCampaignNames = updatedSet; // Assign back to update state
-		console.log('Selected CampaignNames:', selectedCampaignNames); // For debugging
+		//console.log('Selected CampaignNames:', selectedCampaignNames); // For debugging
 	}
 	let selectedReactionNames = $state(new Set<string>());
 	const selectedReactionNamesDisplay = $derived([...selectedReactionNames].join(', ') || 'Any');
@@ -31,7 +31,7 @@
 			updatedSet.delete(name);
 		}
 		selectedReactionNames = updatedSet; // Assign back to update state
-		console.log('Selected ReactionNames:', selectedReactionNames); // For debugging
+		//console.log('Selected ReactionNames:', selectedReactionNames); // For debugging
 	}
 	let selectedReactionTypes = $state(new Set<string>());
 	const selectedReactionTypesDisplay = $derived([...selectedReactionTypes].join(', ') || 'Any');
@@ -43,7 +43,7 @@
 			updatedSet.delete(type);
 		}
 		selectedReactionTypes = updatedSet; // Assign back to update state
-		console.log('Selected ReactionTypes:', selectedReactionTypes); // For debugging
+		//console.log('Selected ReactionTypes:', selectedReactionTypes); // For debugging
 	}
 	let selectedChemicals = $state(new Set<string>());
 	const selectedChemicalsDisplay = $derived([...selectedChemicals].join(', ') || 'Any');
@@ -55,7 +55,7 @@
 			updatedSet.delete(name);
 		}
 		selectedChemicals = updatedSet; // Assign back to update state
-		console.log('Selected Chemicals:', selectedChemicals); // For debugging
+		//console.log('Selected Chemicals:', selectedChemicals); // For debugging
 	}
 	let selectedCas = $state(new Set<string>());
 	const selectedCasDisplay = $derived([...selectedCas].join(', ') || 'Any');
@@ -67,7 +67,7 @@
 			updatedSet.delete(cas);
 		}
 		selectedCas = updatedSet; // Assign back to update state
-		console.log('Selected Cas:', selectedCas); // For debugging
+		//console.log('Selected Cas:', selectedCas); // For debugging
 	}
 	let selectedSmiles = $state(new Set<string>());
 	const selectedSmilesDisplay = $derived([...selectedSmiles].join(', ') || 'Any');
@@ -79,7 +79,7 @@
 			updatedSet.delete(smiles);
 		}
 		selectedSmiles = updatedSet; // Assign back to update state
-		console.log('Selected Smiles:', selectedSmiles); // For debugging
+		//console.log('Selected Smiles:', selectedSmiles); // For debugging
 	}
 	let accordionValue = $state(['chemicals']);
 </script>
@@ -89,6 +89,7 @@
 	<p class="mb-4 text-gray-600">Search in Metadata</p>
 	<div class="card preset-filled-surface-100-800 p-6">
 		<form method="POST" action="?/search" class="mx-auto w-full max-w-md space-y-4">
+			<input name="hello" />
 			<Accordion {value} onValueChange={(e) => (value = e.value)} multiple>
 				<Accordion.Item value="campaignName">
 					<!-- Control -->
