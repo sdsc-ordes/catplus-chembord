@@ -6,6 +6,8 @@
 	import Atom from '@lucide/svelte/icons/atom';
 	import FlaskConical from '@lucide/svelte/icons/flask-conical';
 	import TestTubes from '@lucide/svelte/icons/test-tubes';
+	import Plus from '@lucide/svelte/icons/plus';
+    import Minus from '@lucide/svelte/icons/minus';
 	type FilterCategory = 'chemicalName' | 'campaignName' | 'smiles' | 'cas' | 'reactionType' | 'reactionName';
 	const accordionItemsConfig: {
 		value: FilterCategory;
@@ -79,8 +81,7 @@
 		reactionName: initializeCategoryState('reactionName'),
 	});
 	$inspect(selections);
-	let value = $state(['campaignName']);
-	let accordionValue = $state(['campaignName']);
+	let accordionValue = $state<string[]>([]);
 </script>
 
 <div class="container mx-auto p-4 font-sans md:p-8">
@@ -88,7 +89,9 @@
 	<p class="mb-4 text-gray-600">Search in Metadata</p>
 	<div class="card preset-filled-surface-100-800 p-6">
 		<form method="POST" action="?/search" class="mx-auto w-full max-w-md space-y-4">
-			<Accordion {value} onValueChange={(e) => (value = e.value)} multiple>
+			<Accordion {accordionValue} onValueChange={(e: Event) => (accordionValue = e.accordionValue)} multiple>
+				{#snippet iconOpen()}<Plus size={16} />{/snippet}
+                {#snippet iconClosed()}<Minus size={16} />{/snippet}
 				{#each accordionItemsConfig as item}
 				<Accordion.Item value={item.value}>
 					<!-- Control -->
