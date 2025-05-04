@@ -1,87 +1,86 @@
 <script lang="ts">
 	// The 'data' prop is automatically populated by SvelteKit
 	// with the return value from the load function in +page.server.ts
-	let { data } = $props();
-	//console.log(data);
+	let { data, form } = $props();
 	import { Accordion } from '@skeletonlabs/skeleton-svelte';
 	import Atom from '@lucide/svelte/icons/atom';
 	import FlaskConical from '@lucide/svelte/icons/flask-conical';
 	import TestTubes from '@lucide/svelte/icons/test-tubes';
+	type FilterCategory = 'chemicalName' | 'campaignName' | 'smiles' | 'cas' | 'reactionType' | 'reactionName';
+	const accordionItemsConfig: {
+		value: FilterCategory;
+		label: string;
+		icon: typeof Atom;
+		list: string[];
+		nameAttr: string; // Name attribute for form submission
+	}[] = $derived([ // Ensure this updates if data.picklists changes
+		{ value: 'campaignName', label: 'Campaign Name', icon: TestTubes, list: data.picklists?.campaignName ?? [], nameAttr: 'selected_campaign_names'},
+		{ value: 'reactionType', label: 'Reaction Type', icon: FlaskConical, list: data.picklists?.reactionType ?? [], nameAttr: 'selected_reaction_types'},
+		{ value: 'reactionName', label: 'Reaction Name', icon: FlaskConical, list: data.picklists?.reactionName ?? [], nameAttr: 'selected_reaction_names'},
+		{ value: 'chemicalName', label: 'Chemical Name', icon: Atom, list: data.picklists?.chemicalName ?? [], nameAttr: 'selected_chemicals'},
+		{ value: 'cas', label: 'CAS Number', icon: Atom, list: data.picklists?.cas ?? [], nameAttr: 'selected_cas'},
+		{ value: 'smiles', label: 'SMILES', icon: Atom, list: data.picklists?.smiles ?? [], nameAttr: 'selected_smiles'},
+	]);
+	$inspect(accordionItemsConfig);
+	$inspect(form);
+	$inspect(data);
 
-	let value = $state(['chemicalName']);
-	let selectedCampaignNames = $state(new Set<string>());
-	const selectedCampaignNamesDisplay = $derived([...selectedCampaignNames].join(', ') || 'Any');
-	function toggleCampaignNames(name: string, isChecked: boolean) {
-		const updatedSet = new Set(selectedCampaignNames); // Create mutable copy for reactivity
-		if (isChecked) {
-			updatedSet.add(name);
-		} else {
-			updatedSet.delete(name);
-		}
-		selectedCampaignNames = updatedSet; // Assign back to update state
-		//console.log('Selected CampaignNames:', selectedCampaignNames); // For debugging
+	// Define the structure for the state of each filter category
+	interface SelectionState {
+		selected: Set<string>;
+		display: string; // Store the display string directly in the state
 	}
-	let selectedReactionNames = $state(new Set<string>());
-	const selectedReactionNamesDisplay = $derived([...selectedReactionNames].join(', ') || 'Any');
-	function toggleReactionNames(name: string, isChecked: boolean) {
-		const updatedSet = new Set(selectedReactionNames); // Create mutable copy for reactivity
-		if (isChecked) {
-			updatedSet.add(name);
-		} else {
-			updatedSet.delete(name);
-		}
-		selectedReactionNames = updatedSet; // Assign back to update state
-		//console.log('Selected ReactionNames:', selectedReactionNames); // For debugging
+
+	function initializeCategoryState(categoryKey: FilterCategory): SelectionState {
+		const initialValues = data.initialFilters?.[categoryKey] ?? [];
+		const initialSet = new Set(initialValues);
+		const initialDisplay = initialValues.length > 0 ? initialValues.join(', ') : 'Any';
+		return { selected: initialSet, display: initialDisplay };
 	}
-	let selectedReactionTypes = $state(new Set<string>());
-	const selectedReactionTypesDisplay = $derived([...selectedReactionTypes].join(', ') || 'Any');
-	function toggleReactionTypes(type: string, isChecked: boolean) {
-		const updatedSet = new Set(selectedReactionTypes); // Create mutable copy for reactivity
-		if (isChecked) {
-			updatedSet.add(type);
-		} else {
-			updatedSet.delete(type);
+
+	// --- Generic Toggle Function (updates Set and display string) ---
+	function toggleGenericSelection<T extends FilterCategory>( // Use FilterCategory for better type safety
+		selectionsState: Record<T, SelectionState>,
+		category: T,
+		value: string,
+		isChecked: boolean
+	): void {
+		const currentCategoryState = selectionsState[category];
+		if (!currentCategoryState) {
+			console.warn(`Category "${category}" not found in selections state.`);
+			return;
 		}
-		selectedReactionTypes = updatedSet; // Assign back to update state
-		//console.log('Selected ReactionTypes:', selectedReactionTypes); // For debugging
-	}
-	let selectedChemicals = $state(new Set<string>());
-	const selectedChemicalsDisplay = $derived([...selectedChemicals].join(', ') || 'Any');
-	function toggleChemical(name: string, isChecked: boolean) {
-		const updatedSet = new Set(selectedChemicals); // Create mutable copy for reactivity
+
+		// Create a new Set based on the current one
+		const updatedSet = new Set(currentCategoryState.selected);
 		if (isChecked) {
-			updatedSet.add(name);
+			updatedSet.add(value);
 		} else {
-			updatedSet.delete(name);
+			updatedSet.delete(value);
 		}
-		selectedChemicals = updatedSet; // Assign back to update state
-		//console.log('Selected Chemicals:', selectedChemicals); // For debugging
+
+		// Update the Set within the state object
+		selectionsState[category].selected = updatedSet;
+
+		// Update the display string directly within the state object
+		const selectedArray = [...updatedSet];
+		selectionsState[category].display = selectedArray.length > 0 ? selectedArray.join(', ') : 'Any';
+
+		// Svelte 5 reactivity should detect the change to the property
+		// console.log(`Updated ${category}:`, selectionsState[category]);
 	}
-	let selectedCas = $state(new Set<string>());
-	const selectedCasDisplay = $derived([...selectedCas].join(', ') || 'Any');
-	function toggleCas(cas: string, isChecked: boolean) {
-		const updatedSet = new Set(selectedCas); // Create mutable copy for reactivity
-		if (isChecked) {
-			updatedSet.add(cas);
-		} else {
-			updatedSet.delete(cas);
-		}
-		selectedCas = updatedSet; // Assign back to update state
-		//console.log('Selected Cas:', selectedCas); // For debugging
-	}
-	let selectedSmiles = $state(new Set<string>());
-	const selectedSmilesDisplay = $derived([...selectedSmiles].join(', ') || 'Any');
-	function toggleSmiles(smiles: string, isChecked: boolean) {
-		const updatedSet = new Set(selectedSmiles); // Create mutable copy for reactivity
-		if (isChecked) {
-			updatedSet.add(smiles);
-		} else {
-			updatedSet.delete(smiles);
-		}
-		selectedSmiles = updatedSet; // Assign back to update state
-		//console.log('Selected Smiles:', selectedSmiles); // For debugging
-	}
-	let accordionValue = $state(['chemicals']);
+
+	let selections = $state<Record<FilterCategory, SelectionState>>({
+		chemicalName: initializeCategoryState('chemicalName'),
+		campaignName: initializeCategoryState('campaignName'),
+		smiles: initializeCategoryState('smiles'),
+		cas: initializeCategoryState('cas'),
+		reactionType: initializeCategoryState('reactionType'),
+		reactionName: initializeCategoryState('reactionName'),
+	});
+	$inspect(selections);
+	let value = $state(['campaignName']);
+	let accordionValue = $state(['campaignName']);
 </script>
 
 <div class="container mx-auto p-4 font-sans md:p-8">
@@ -89,134 +88,30 @@
 	<p class="mb-4 text-gray-600">Search in Metadata</p>
 	<div class="card preset-filled-surface-100-800 p-6">
 		<form method="POST" action="?/search" class="mx-auto w-full max-w-md space-y-4">
-			<input name="hello" />
 			<Accordion {value} onValueChange={(e) => (value = e.value)} multiple>
-				<Accordion.Item value="campaignName">
+				{#each accordionItemsConfig as item}
+				<Accordion.Item value={item.value}>
 					<!-- Control -->
-					{#snippet lead()}<TestTubes size={24} />{/snippet}
-					{#snippet control()}Campaign Name: {selectedCampaignNamesDisplay}{/snippet}
+					{#snippet lead()}<item.icon size={24} />{/snippet}
+					{#snippet control()}{item.label}: {selections[item.value].display}{/snippet}
 					<!-- Panel -->
 					{#snippet panel()}
-						{#each data.picklists.campaignName as campaignName (campaignName)}
+						{#each item.list as optionValue (optionValue)}
 							<label class="flex cursor-pointer items-center space-x-2">
 								<input
 									class="checkbox"
 									type="checkbox"
-									value={campaignName}
-									name="selected_campaign_names"
-									checked={selectedCampaignNames.has(campaignName)}
-									onchange={(e) => toggleCampaignNames(campaignName, e.currentTarget.checked)}
+									value={optionValue}
+									name={item.nameAttr}
+									checked={selections[item.value].selected.has(optionValue)}
+									onchange={(e) => toggleGenericSelection(selections, item.value, optionValue, e.currentTarget.checked)}
 								/>
-								<p>{campaignName}</p>
+								<p>{optionValue}</p>
 							</label>
 						{/each}
 					{/snippet}
 				</Accordion.Item>
-				<Accordion.Item value="reactionType">
-					<!-- Control -->
-					{#snippet lead()}<FlaskConical size={24} />{/snippet}
-					{#snippet control()}Reaction Type: {selectedReactionTypesDisplay}{/snippet}
-					<!-- Panel -->
-					{#snippet panel()}
-						{#each data.picklists.reactionType as reactionType (reactionType)}
-							<label class="flex cursor-pointer items-center space-x-2">
-								<input
-									class="checkbox"
-									type="checkbox"
-									value={reactionType}
-									name="selected_reaction_types"
-									checked={selectedReactionTypes.has(reactionType)}
-									onchange={(e) => toggleReactionTypes(reactionType, e.currentTarget.checked)}
-								/>
-								<p>{reactionType}</p>
-							</label>
-						{/each}
-					{/snippet}
-				</Accordion.Item>
-				<Accordion.Item value="reactionName">
-					<!-- Control -->
-					{#snippet lead()}<FlaskConical size={24} />{/snippet}
-					{#snippet control()}Reaction Name: {selectedReactionNamesDisplay}{/snippet}
-					<!-- Panel -->
-					{#snippet panel()}
-						{#each data.picklists.reactionName as reactionName (reactionName)}
-							<label class="flex cursor-pointer items-center space-x-2">
-								<input
-									class="checkbox"
-									type="checkbox"
-									value={reactionName}
-									name="selected_reaction_names"
-									checked={selectedReactionNames.has(reactionName)}
-									onchange={(e) => toggleReactionNames(reactionName, e.currentTarget.checked)}
-								/>
-								<p>{reactionName}</p>
-							</label>
-						{/each}
-					{/snippet}
-				</Accordion.Item>
-				<Accordion.Item value="chemicalName">
-					<!-- Control -->
-					{#snippet lead()}<Atom size={24} />{/snippet}
-					{#snippet control()}Chemical Name: {selectedChemicalsDisplay}{/snippet}
-					<!-- Panel -->
-					{#snippet panel()}
-						{#each data.picklists.chemicalName as chemicalName (chemicalName)}
-							<label class="flex cursor-pointer items-center space-x-2">
-								<input
-									class="checkbox"
-									type="checkbox"
-									value={chemicalName}
-									name="selected_chemicals"
-									checked={selectedChemicals.has(chemicalName)}
-									onchange={(e) => toggleChemical(chemicalName, e.currentTarget.checked)}
-								/>
-								<p>{chemicalName}</p>
-							</label>
-						{/each}
-					{/snippet}
-				</Accordion.Item>
-				<Accordion.Item value="cas">
-					<!-- Control -->
-					{#snippet lead()}<Atom size={24} />{/snippet}
-					{#snippet control()}Cas: {selectedCasDisplay}{/snippet}
-					<!-- Panel -->
-					{#snippet panel()}
-						{#each data.picklists.cas as cas (cas)}
-							<label class="flex cursor-pointer items-center space-x-2">
-								<input
-									class="checkbox"
-									type="checkbox"
-									value={cas}
-									name="selected_cas"
-									checked={selectedCas.has(cas)}
-									onchange={(e) => toggleCas(cas, e.currentTarget.checked)}
-								/>
-								<p>{cas}</p>
-							</label>
-						{/each}
-					{/snippet}
-				</Accordion.Item>
-				<Accordion.Item value="smiles">
-					<!-- Control -->
-					{#snippet lead()}<Atom size={24} />{/snippet}
-					{#snippet control()}Smiles: {selectedSmilesDisplay}{/snippet}
-					<!-- Panel -->
-					{#snippet panel()}
-						{#each data.picklists.smiles as smiles (smiles)}
-							<label class="flex cursor-pointer items-center space-x-2">
-								<input
-									class="checkbox"
-									type="checkbox"
-									value={smiles}
-									name="selected_smiles"
-									checked={selectedSmiles.has(smiles)}
-									onchange={(e) => toggleSmiles(smiles, e.currentTarget.checked)}
-								/>
-								<p>{smiles}</p>
-							</label>
-						{/each}
-					{/snippet}
-				</Accordion.Item>
+				{/each}
 			</Accordion>
 			<div class="flex justify-start">
 				<button type="submit" class="btn preset-filled-primary-500">
