@@ -24,7 +24,7 @@
 		>
 	</p>
 
-	<form method="POST" action="?/filter" class="space-y-4 card p-4 variant-ghost-surface">
+	<form method="POST" action="?/filter" class="space-y-4 card p-4 bg-surface-50">
 		<label class="label">
 			<span>Prefix</span>
 			<input
