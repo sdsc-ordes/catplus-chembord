@@ -10,7 +10,7 @@
 
 	let value = $state(['chemicalName']);
 	let selectedCampaignNames = $state(new Set<string>());
-	const selectedCampaignNamesDisplay = $derived([...selectedCampaignNames].join(', '));
+	const selectedCampaignNamesDisplay = $derived([...selectedCampaignNames].join(', ') || 'Any');
 	function toggleCampaignNames(name: string, isChecked: boolean) {
 		const updatedSet = new Set(selectedCampaignNames); // Create mutable copy for reactivity
 		if (isChecked) {
@@ -22,7 +22,7 @@
 		console.log('Selected CampaignNames:', selectedCampaignNames); // For debugging
 	}
 	let selectedReactionNames = $state(new Set<string>());
-	const selectedReactionNamesDisplay = $derived([...selectedReactionNames].join(', '));
+	const selectedReactionNamesDisplay = $derived([...selectedReactionNames].join(', ') || 'Any');
 	function toggleReactionNames(name: string, isChecked: boolean) {
 		const updatedSet = new Set(selectedReactionNames); // Create mutable copy for reactivity
 		if (isChecked) {
@@ -34,7 +34,7 @@
 		console.log('Selected ReactionNames:', selectedReactionNames); // For debugging
 	}
 	let selectedReactionTypes = $state(new Set<string>());
-	const selectedReactionTypesDisplay = $derived([...selectedReactionTypes].join(', '));
+	const selectedReactionTypesDisplay = $derived([...selectedReactionTypes].join(', ') || 'Any');
 	function toggleReactionTypes(type: string, isChecked: boolean) {
 		const updatedSet = new Set(selectedReactionTypes); // Create mutable copy for reactivity
 		if (isChecked) {
@@ -46,7 +46,7 @@
 		console.log('Selected ReactionTypes:', selectedReactionTypes); // For debugging
 	}
 	let selectedChemicals = $state(new Set<string>());
-	const selectedChemicalsDisplay = $derived([...selectedChemicals].join(', '));
+	const selectedChemicalsDisplay = $derived([...selectedChemicals].join(', ') || 'Any');
 	function toggleChemical(name: string, isChecked: boolean) {
 		const updatedSet = new Set(selectedChemicals); // Create mutable copy for reactivity
 		if (isChecked) {
@@ -58,7 +58,7 @@
 		console.log('Selected Chemicals:', selectedChemicals); // For debugging
 	}
 	let selectedCas = $state(new Set<string>());
-	const selectedCasDisplay = $derived([...selectedCas].join(', '));
+	const selectedCasDisplay = $derived([...selectedCas].join(', ') || 'Any');
 	function toggleCas(cas: string, isChecked: boolean) {
 		const updatedSet = new Set(selectedCas); // Create mutable copy for reactivity
 		if (isChecked) {
@@ -70,7 +70,7 @@
 		console.log('Selected Cas:', selectedCas); // For debugging
 	}
 	let selectedSmiles = $state(new Set<string>());
-	const selectedSmilesDisplay = $derived([...selectedSmiles].join(', '));
+	const selectedSmilesDisplay = $derived([...selectedSmiles].join(', ') || 'Any');
 	function toggleSmiles(smiles: string, isChecked: boolean) {
 		const updatedSet = new Set(selectedSmiles); // Create mutable copy for reactivity
 		if (isChecked) {
