@@ -57,7 +57,7 @@ async function createZipStreamForPrefix(prefix: string): Promise<PassThrough> {
 		// Throw an error that the API route can catch and convert to a 404
 		throw new Error(`No files found under prefix: ${normalizedPrefix}`);
 	}
-	console.log(`S3 Util (Zip Prefix): Found ${objectsToZip.length} objects to zip under ${normalizedPrefix}.`);
+	//console.log(`S3 Util (Zip Prefix): Found ${objectsToZip.length} objects to zip under ${normalizedPrefix}.`);
 
 
 	const archive = archiver('zip', {
@@ -88,7 +88,7 @@ async function createZipStreamForPrefix(prefix: string): Promise<PassThrough> {
 				const relativePath = s3Object.Key.substring(normalizedPrefix.length);
 				// Only append if relativePath is not empty (don't add the folder itself)
 				if (relativePath) {
-					console.log(`S3 Util (Zip Prefix): Appending ${relativePath} to archive...`);
+					//console.log(`S3 Util (Zip Prefix): Appending ${relativePath} to archive...`);
 					archive.append(objectStream, { name: relativePath });
 				}
 			} catch (appendError) {
@@ -108,7 +108,7 @@ async function createZipStreamForPrefix(prefix: string): Promise<PassThrough> {
 
 	// Finalize the archive *after* initiating all appends
 	archive.finalize();
-	console.log(`S3 Util (Zip Prefix): Archive finalized for prefix ${normalizedPrefix}.`);
+	//console.log(`S3 Util (Zip Prefix): Archive finalized for prefix ${normalizedPrefix}.`);
 
 	// Return the stream that the archive is piping to
 	return passThrough;
@@ -197,9 +197,9 @@ async function listFoldersInBucket(prefix: string): Promise<string[]> {
 async function getPresignedDownloadUrl(key: string, expiresInSeconds = 300): Promise<string> {
 	const command = new GetObjectCommand({ Bucket: BUCKET, Key: key });
 	try {
-		console.log(key);
+		//console.log(key);
 		const url = await getSignedUrl(s3Client, command, { expiresIn: expiresInSeconds });
-		console.log(url);
+		//console.log(url);
 		return await getSignedUrl(s3Client, command, { expiresIn: expiresInSeconds });
 	} catch (error: any) {
 		console.error(`S3 Util: Error generating presigned download URL for ${key}:`, error);
