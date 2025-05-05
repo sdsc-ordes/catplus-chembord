@@ -5,6 +5,7 @@
 	import Atom from '@lucide/svelte/icons/atom';
 	import FlaskConical from '@lucide/svelte/icons/flask-conical';
 	import TestTubes from '@lucide/svelte/icons/test-tubes';
+	import { mapSparqlResultsToTableBody } from '$lib/utils/mapSparqlResults';
 	//import { Table } from '@skeletonlabs/skeleton-svelte';
 	import Search from '@lucide/svelte/icons/search';
 	type FilterCategory = 'chemicalName' | 'campaignName' | 'smiles' | 'cas' | 'reactionType' | 'reactionName';
@@ -85,13 +86,11 @@
 
     // --- Results and Table Source ---
     const displayResults = $derived(form?.results ?? data.results ?? []);
+    const tableHead = ['S3 Link', 'Campaign', 'Chemical', 'SMILES', 'CAS', 'Reaction', 'Type'];
+	const tableKeysInOrder = ['s3link', 'campaignName', 'chemicalName', 'smiles', 'cas', 'reactionName', 'reactionType'];
+	const tableBody = $derived(mapSparqlResultsToTableBody(displayResults, tableKeysInOrder));
+	$inspect(tableBody);
 
-	const tableBody = $derived(() => {
-		return displayResults.map(row => [
-			row.s3link?.value ?? '', row.campaignName?.value ?? '', row.chemicalName?.value ?? '',
-			row.smiles?.value ?? '', row.cas?.value ?? '', row.reactionName?.value ?? '', row.reactionType?.value ?? '',
-		]);
-	});
 	const tableSource = $derived({
 		head: ['S3 Link', 'Campaign', 'Chemical', 'SMILES', 'CAS', 'Reaction', 'Type'],
 		body: tableBody,
@@ -169,7 +168,18 @@
                     </header>
 				<div class="p-4">
 					{#if displayResults.length > 0}
-                        <p>results</p>
+						<div class="grid grid-cols-7 gap-x-4 gap-y-2 text-sm">
+							{#each tableHead as header}
+								<div class="font-semibold text-surface-600 dark:text-surface-300 pb-1 border-b border-surface-300 dark:border-surface-700">{header}</div>
+							{/each}
+							{#each tableBody as row, rowIndex (rowIndex)}
+								{#each row as cell, cellIndex (cellIndex)}
+									<div class="text-surface-700 dark:text-surface-200 {cellIndex === 0 || cellIndex === 3 ? 'font-mono truncate' : ''}" title={cell}>
+										{cell || '-'}
+									</div>
+								{/each}
+							{/each}
+						</div>
 					{:else}
 						<p class="text-center text-surface-500 p-4">No results found for the current filters.</p>
 					{/if}
