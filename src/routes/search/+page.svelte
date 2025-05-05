@@ -6,6 +6,8 @@
 	import Atom from '@lucide/svelte/icons/atom';
 	import FlaskConical from '@lucide/svelte/icons/flask-conical';
 	import TestTubes from '@lucide/svelte/icons/test-tubes';
+	import { enhance } from '$app/forms';
+	import type { SubmitFunction } from '@sveltejs/kit';
 	type FilterCategory = 'chemicalName' | 'campaignName' | 'smiles' | 'cas' | 'reactionType' | 'reactionName';
 	const accordionItemsConfig: {
 		value: FilterCategory;
@@ -21,9 +23,9 @@
 		{ value: 'cas', label: 'CAS Number', icon: Atom, list: data.picklists?.cas ?? [], nameAttr: 'selected_cas'},
 		{ value: 'smiles', label: 'SMILES', icon: Atom, list: data.picklists?.smiles ?? [], nameAttr: 'selected_smiles'},
 	]);
-	$inspect(accordionItemsConfig);
-	$inspect(form);
-	$inspect(data);
+	//$inspect(accordionItemsConfig);
+	//$inspect(form);
+	//$inspect(data);
 
 	// Define the structure for the state of each filter category
 	interface SelectionState {
@@ -84,6 +86,39 @@
 	$inspect(selections);
 	let value = $state<string[]>([]);
 
+	const handleFormSubmit: SubmitFunction = ({ formData }) => {
+		// Clear default FormData provided by enhance (which might be empty due to closed accordions)
+		// We will build our own based on the 'selections' state.
+		formData = new FormData(); // Create a fresh FormData
+
+		console.log("Enhance: Building FormData from state:", selections);
+
+		// Iterate through our state object and add selected items to FormData
+		for (const config of accordionItemsConfig) {
+			const category = config.value;
+			const nameAttribute = config.nameAttr;
+			const selectedItems = selections[category].selected;
+
+			// Append each selected item for this category
+			selectedItems.forEach(itemValue => {
+				formData.append(nameAttribute, itemValue);
+			});
+	    }
+		console.log("Enhance: Submitting FormData:", formData); // Log the constructed FormData
+
+		// Optional: Add loading indicator logic here if needed before submission
+		// loading = true;
+
+		// Return an object telling enhance to proceed with the submission
+		// using the modified formData. SvelteKit handles the fetch and result.
+		return async ({ result, update }) => {
+			// This callback runs *after* the action completes
+			console.log("Enhance: Action result received:", result);
+			// loading = false; // Turn off loading indicator
+			await update(); // Update page state based on action result (e.g., handle redirect)
+		};
+	};
+
 	function logCurrentState() {
 		console.log("Current 'selections' state:", selections);
 		// Check a specific category
@@ -99,7 +134,7 @@
 	<h1 class="mb-6 text-2xl font-bold text-gray-800">S3 Bucket Contents</h1>
 	<p class="mb-4 text-gray-600">Search in Metadata</p>
 	<div class="card preset-filled-surface-100-800 p-6">
-		<form method="POST" action="?/search" class="mx-auto w-full max-w-md space-y-4">
+		<form method="POST" use:enhance={handleFormSubmit} class="mx-auto w-full max-w-md space-y-4">
 			<Accordion {value} onValueChange={(e) => (value = e.value)} multiple>
 				{#each accordionItemsConfig as item}
 				<Accordion.Item value={item.value} controlClasses={selections[item.value].active ? 'bg-primary-50' : ''}>

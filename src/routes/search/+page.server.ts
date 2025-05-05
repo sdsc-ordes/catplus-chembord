@@ -40,7 +40,7 @@ export const load: PageServerLoad = async ({ url }) => {
 
 export const actions: Actions = {
 	// Assuming your form action is action="?/search"
-	search: async ({ request, url }) => {
+	default: async ({ request, url }) => {
 		const formData = await request.formData();
 		console.log(formData);
 
