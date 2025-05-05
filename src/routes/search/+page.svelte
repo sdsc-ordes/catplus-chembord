@@ -23,9 +23,13 @@
 		{ value: 'cas', label: 'CAS Number', icon: Atom, list: data.picklists?.cas ?? [], nameAttr: 'selected_cas'},
 		{ value: 'smiles', label: 'SMILES', icon: Atom, list: data.picklists?.smiles ?? [], nameAttr: 'selected_smiles'},
 	]);
-	$inspect(accordionItemsConfig);
-	$inspect(form);
-	$inspect(data);
+	//$inspect(accordionItemsConfig);
+	//console.log("========== next form")
+	//$inspect(form);
+	//console.log("========== end form")
+	//console.log("-------- next data")
+	//$inspect(data);
+	//console.log("-------- end data")
 
 	// Define the structure for the state of each filter category
 	interface SelectionState {
@@ -40,6 +44,7 @@
 
 	function initializeCategoryState(categoryKey: FilterCategory): SelectionState {
 		const initialValues = data.initialFilters?.[categoryKey] ?? [];
+		//console.log("*** initial values", initialValues);
 		const initialSet = new Set(initialValues);
 		const initialDisplay = initialValues.length > 0 ? initialValues.join(', ') : 'Any';
 		const initialActive = initialSet.size > 0;
@@ -87,8 +92,21 @@
 		reactionType: initializeCategoryState('reactionType'),
 		reactionName: initializeCategoryState('reactionName'),
 	});
-	$inspect(selections);
+	//console.log("-------- selections")
+	//$inspect(selections);
+	//console.log("---end----- selections")
 	let value = $state<string[]>([]);
+
+	function logCurrentState() {
+		console.log("Current 'selections' state:", selections);
+		// Check a specific category
+		console.log("Campaign Names Set:", selections.campaignName);
+
+		// Directly check the DOM for a specific checkbox group
+		const checkedCampaigns = document.querySelectorAll('input[name="selected_campaign_names"]:checked');
+		console.log(`DOM Query: Found ${checkedCampaigns.length} checked campaign checkboxes.`);
+		checkedCampaigns.forEach(input => console.log(`  - DOM Value: ${(input as HTMLInputElement).value}, DOM Checked: ${(input as HTMLInputElement).checked}`));
+	}
 </script>
 
 <div class="container mx-auto p-4 font-sans md:p-8">
@@ -100,7 +118,7 @@
 				{#snippet iconOpen()}<Plus size={16} />{/snippet}
                 {#snippet iconClosed()}<Minus size={16} />{/snippet}
 				{#each accordionItemsConfig as item}
-				<Accordion.Item value="{item.value}" controlClasses={selections[item.value].active ? 'bg-secondary-100' : ''}>
+				<Accordion.Item value={item.value} controlClasses={selections[item.value].active ? 'bg-secondary-100' : ''}>
 					<!-- Control -->
 					{#snippet lead()}<item.icon size={24} />{/snippet}
 					{#snippet control()}{item.label}: {selections[item.value].display}{/snippet}
@@ -129,5 +147,8 @@
 				</button>
 			</div>
 		</form>
+		<button type="button" class="btn variant-outline-surface mt-4" onclick={logCurrentState}>
+			Log Current State & DOM Check
+		</button>
 	</div>
 </div>
