@@ -79,8 +79,7 @@
 		reactionName: initializeCategoryState('reactionName'),
 	});
 	$inspect(selections);
-	let value = $state(['campaignName']);
-	let accordionValue = $state(['campaignName']);
+	let value = $state<string[]>([]);
 </script>
 
 <div class="container mx-auto p-4 font-sans md:p-8">
