@@ -42,7 +42,7 @@ export const actions: Actions = {
 	// Assuming your form action is action="?/search"
 	search: async ({ request, url }) => {
 		const formData = await request.formData();
-		console.log(formData);
+		//console.log(formData);
 
 		// --- Use getAll() to retrieve all checked values for each category ---
 		const selectedChemicals = formData.getAll('selected_chemicals') as string[];

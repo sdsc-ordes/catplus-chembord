@@ -81,11 +81,10 @@
 		reactionType: initializeCategoryState('reactionType'),
 		reactionName: initializeCategoryState('reactionName'),
 	});
-	$inspect(selections);
+	//$inspect(selections);
 
     // --- Results and Table Source ---
     const displayResults = $derived(form?.results ?? data.results ?? []);
-    const currentFilters = $derived(form?.filters ?? data.initialFilters ?? {}); // Filters used for display
 
 	const tableBody = $derived(() => {
 		return displayResults.map(row => [
