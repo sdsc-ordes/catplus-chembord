@@ -29,13 +29,15 @@
 	interface SelectionState {
 		selected: Set<string>;
 		display: string; // Store the display string directly in the state
+		active: boolean;
 	}
 
 	function initializeCategoryState(categoryKey: FilterCategory): SelectionState {
 		const initialValues = data.initialFilters?.[categoryKey] ?? [];
 		const initialSet = new Set(initialValues);
 		const initialDisplay = initialValues.length > 0 ? initialValues.join(', ') : 'Any';
-		return { selected: initialSet, display: initialDisplay };
+		const initialActive = initialSet.size > 0;
+		return { selected: initialSet, display: initialDisplay, active: initialActive };
 	}
 
 	// --- Generic Toggle Function (updates Set and display string) ---
@@ -65,6 +67,7 @@
 		// Update the display string directly within the state object
 		const selectedArray = [...updatedSet];
 		selectionsState[category].display = selectedArray.length > 0 ? selectedArray.join(', ') : 'Any';
+		selectionsState[category].active = updatedSet.size > 0;
 
 		// Svelte 5 reactivity should detect the change to the property
 		// console.log(`Updated ${category}:`, selectionsState[category]);
@@ -89,7 +92,7 @@
 		<form method="POST" action="?/search" class="mx-auto w-full max-w-md space-y-4">
 			<Accordion {value} onValueChange={(e) => (value = e.value)} multiple>
 				{#each accordionItemsConfig as item}
-				<Accordion.Item value={item.value}>
+				<Accordion.Item value={item.value} controlClasses={selections[item.value].active ? 'bg-primary-50' : ''}>
 					<!-- Control -->
 					{#snippet lead()}<item.icon size={24} />{/snippet}
 					{#snippet control()}{item.label}: {selections[item.value].display}{/snippet}
