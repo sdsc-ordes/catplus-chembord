@@ -2,44 +2,31 @@ import type { PageServerLoad, Actions } from './$types';
 import { redirect, fail } from '@sveltejs/kit';
 import { mockPicklists, type mockPicklists, type SparqlResultRow, getMockSparqlResults} from '$lib/sparql/+server';
 
-// Load function runs first, provides initial data and picklists
 export const load: PageServerLoad = async ({ url }) => {
-	// --- Extract initial filter values from URL ---
-	// Use getAll() for parameters that can have multiple values
+	// the load function picks up the search filters from the url and loads the data
 	const initialFilters = {
-		// Keep single value retrieval for single-value params if any
-		// prefix: url.searchParams.get('prefix') || '', // Example if you had a prefix filter
-
-		// Use getAll() for potentially multi-valued filters
-		campaignName: url.searchParams.getAll('campaign') || [], // Use key set by action ('campaign')
-		chemicalName: url.searchParams.getAll('chemical') || [], // Use key set by action ('chemical')
+		campaignName: url.searchParams.getAll('campaign') || [],
+		chemicalName: url.searchParams.getAll('chemical') || [],
 		smiles: url.searchParams.getAll('smiles') || [],
 		cas: url.searchParams.getAll('cas') || [],
 		reactionName: url.searchParams.getAll('reaction_name') || [],
 		reactionType: url.searchParams.getAll('reaction_type') || [],
 	};
-	// Note: `getAll()` returns an empty array `[]` if the parameter is not present,
-	// so the `|| []` fallback might be redundant but doesn't hurt.
-
-	//console.log('Load: Initial filters from URL:', initialFilters);
-
-	// Get initial results (pass the filters object to your query function)
-	// Ensure getMockSparqlResults (or your real query function) can handle
-	// filter values being arrays of strings.
+	// the query results are currently mocked and will later be received
+	// from a Qlever backend
 	const initialResults = getMockSparqlResults(initialFilters);
-
-	//console.log('Load: Providing initial results and picklists.');
 
 	// Return initial results, picklists, and the filters used for this load
 	return {
 		results: initialResults,
-		picklists: mockPicklists, // Pass the whole picklist object
-		initialFilters: initialFilters // Pass the filters read from the URL
+		picklists: mockPicklists,
+		initialFilters: initialFilters,
 	};
 };
 
 export const actions: Actions = {
-	// Assuming your form action is action="?/search"
+	// search picks up the filters from a form and reloads the search page with
+	// the selected filters
 	search: async ({ request, url }) => {
 		const formData = await request.formData();
 		console.log("Received FormData:", formData);
@@ -57,7 +44,7 @@ export const actions: Actions = {
 		const targetUrl = new URL(url.origin + url.pathname);
 
 		for (const [formName, urlParamName] of Object.entries(filterMappings)) {
-			// Get potential values using getAll first
+			// Get potential values of the form data
 			const valuesFromForm = formData.getAll(formName);
 			let finalValues: string[] = [];
 
@@ -68,7 +55,7 @@ export const actions: Actions = {
 				finalValues = valuesFromForm.filter(v => typeof v === 'string') as string[];
 			}
 
-			// Append the processed values
+			// Append the processed values to the url as query parameters
 			if (finalValues.length > 0) {
 				console.log(`Appending ${finalValues.length} value(s) for ${urlParamName}`);
 				finalValues.forEach(value => {
@@ -78,11 +65,9 @@ export const actions: Actions = {
 				});
 			}
 		}
-
 		console.log("Target URL for redirect:", targetUrl.toString());
 
-		// --- Redirect ---
-		// Use status 303 (See Other) for POST -> GET redirect pattern
+		// Use status 303 for POST -> GET redirect pattern
 		throw redirect(303, targetUrl.toString());
 	}
 };

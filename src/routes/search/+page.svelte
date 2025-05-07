@@ -67,17 +67,8 @@
 		reactionType: initializeCategoryState('reactionType'),
 		reactionName: initializeCategoryState('reactionName'),
 	});
-	$inspect(selections)
 
 	let value = $state<string[]>([]);
-
-	function logCurrentState() {
-		console.log("Current 'selections' state:", selections);
-		console.log("Campaign Names Set:", selections.campaignName);
-		const checkedCampaigns = document.querySelectorAll('input[name="selected_campaign_names"]:checked');
-		console.log(`DOM Query: Found ${checkedCampaigns.length} checked campaign checkboxes.`);
-		checkedCampaigns.forEach(input => console.log(`  - DOM Value: ${(input as HTMLInputElement).value}, DOM Checked: ${(input as HTMLInputElement).checked}`));
-	}
 </script>
 
 <div class="container mx-auto p-4 font-sans md:p-8">
@@ -117,8 +108,5 @@
 				</button>
 			</div>
 		</form>
-		<button type="button" class="btn variant-outline-surface mt-4" onclick={logCurrentState}>
-			Log Current State & DOM Check
-		</button>
 	</div>
 </div>
