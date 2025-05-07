@@ -6,6 +6,8 @@
 	import TestTubes from '@lucide/svelte/icons/test-tubes';
 	import Search from '@lucide/svelte/icons/search';
 	import Archive from '@lucide/svelte/icons/archive';
+	import IconLink from '@lucide/svelte/icons/link';
+	import { s3LinkToUrlPath } from '$lib/utils/s3LinkParser'
 	import { Pagination } from '@skeletonlabs/skeleton-svelte'
     import { mapSparqlResultsToTableBody } from '$lib/utils/mapSparqlResults';
 
@@ -197,9 +199,13 @@
 			  {#each tableSource.body as row, rowIndex (rowIndex)}
 				<tr>
 					{#each row as cell, index}
-				    <td>
-						{cell}
-					</td>
+					<td>
+					{#if index === 0}
+						<a href={s3LinkToUrlPath(cell)}>campaign-link</a>
+					{:else}
+					    {cell}
+					{/if}
+				    </td>
 					{/each}
 				</tr>
 			  {/each}
