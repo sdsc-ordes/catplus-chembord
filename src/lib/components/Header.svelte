@@ -8,7 +8,7 @@
 
 <AppBar>
 	{#snippet lead()}
-	    <Search size={20} />
+	    <Search size={20} /> Search
 	{/snippet}
 	{#snippet trail()}
 		<Paperclip size={20} />
