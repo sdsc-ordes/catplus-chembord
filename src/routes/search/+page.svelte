@@ -1,19 +1,19 @@
 <script lang="ts">
-	// The 'data' prop is automatically populated by SvelteKit
-	// with the return value from the load function in +page.server.ts
 	let { data, form } = $props();
 	import { Accordion } from '@skeletonlabs/skeleton-svelte';
 	import Atom from '@lucide/svelte/icons/atom';
 	import FlaskConical from '@lucide/svelte/icons/flask-conical';
 	import TestTubes from '@lucide/svelte/icons/test-tubes';
+
 	type FilterCategory = 'chemicalName' | 'campaignName' | 'smiles' | 'cas' | 'reactionType' | 'reactionName';
+
 	const accordionItemsConfig: {
 		value: FilterCategory;
 		label: string;
 		icon: typeof Atom;
 		list: string[];
-		nameAttr: string; // Name attribute for form submission
-	}[] = $derived([ // Ensure this updates if data.picklists changes
+		nameAttr: string;
+	}[] = $derived([
 		{ value: 'campaignName', label: 'Campaign Name', icon: TestTubes, list: data.picklists?.campaignName ?? [], nameAttr: 'selected_campaign_names'},
 		{ value: 'reactionType', label: 'Reaction Type', icon: FlaskConical, list: data.picklists?.reactionType ?? [], nameAttr: 'selected_reaction_types'},
 		{ value: 'reactionName', label: 'Reaction Name', icon: FlaskConical, list: data.picklists?.reactionName ?? [], nameAttr: 'selected_reaction_names'},
@@ -21,14 +21,10 @@
 		{ value: 'cas', label: 'CAS Number', icon: Atom, list: data.picklists?.cas ?? [], nameAttr: 'selected_cas'},
 		{ value: 'smiles', label: 'SMILES', icon: Atom, list: data.picklists?.smiles ?? [], nameAttr: 'selected_smiles'},
 	]);
-	//$inspect(accordionItemsConfig);
-	$inspect("form", form);
-	//$inspect(data);
 
-	// Define the structure for the state of each filter category
 	interface SelectionState {
 		selected: Set<string>;
-		display: string; // Store the display string directly in the state
+		display: string;
 		active: boolean;
 	}
 
@@ -40,8 +36,7 @@
 		return { selected: initialSet, display: initialDisplay, active: initialActive };
 	}
 
-	// --- Generic Toggle Function (updates Set and display string) ---
-	function toggleGenericSelection<T extends FilterCategory>( // Use FilterCategory for better type safety
+	function toggleGenericSelection<T extends FilterCategory>(
 		selectionsState: Record<T, SelectionState>,
 		category: T,
 		value: string,
@@ -52,25 +47,16 @@
 			console.warn(`Category "${category}" not found in selections state.`);
 			return;
 		}
-
-		// Create a new Set based on the current one
 		const updatedSet = new Set(currentCategoryState.selected);
 		if (isChecked) {
 			updatedSet.add(value);
 		} else {
 			updatedSet.delete(value);
 		}
-
-		// Update the Set within the state object
 		selectionsState[category].selected = updatedSet;
-
-		// Update the display string directly within the state object
 		const selectedArray = [...updatedSet];
 		selectionsState[category].display = selectedArray.length > 0 ? selectedArray.join(', ') : 'Any';
 		selectionsState[category].active = updatedSet.size > 0;
-
-		// Svelte 5 reactivity should detect the change to the property
-		// console.log(`Updated ${category}:`, selectionsState[category]);
 	}
 
 	let selections = $state<Record<FilterCategory, SelectionState>>({
@@ -81,14 +67,12 @@
 		reactionType: initializeCategoryState('reactionType'),
 		reactionName: initializeCategoryState('reactionName'),
 	});
-	//$inspect(selections);
+
 	let value = $state<string[]>([]);
 
 	function logCurrentState() {
 		console.log("Current 'selections' state:", selections);
-		// Check a specific category
 		console.log("Campaign Names Set:", selections.campaignName);
-		// Directly check the DOM for a specific checkbox group
 		const checkedCampaigns = document.querySelectorAll('input[name="selected_campaign_names"]:checked');
 		console.log(`DOM Query: Found ${checkedCampaigns.length} checked campaign checkboxes.`);
 		checkedCampaigns.forEach(input => console.log(`  - DOM Value: ${(input as HTMLInputElement).value}, DOM Checked: ${(input as HTMLInputElement).checked}`));
