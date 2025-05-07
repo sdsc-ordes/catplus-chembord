@@ -5,7 +5,9 @@
 	import FlaskConical from '@lucide/svelte/icons/flask-conical';
 	import TestTubes from '@lucide/svelte/icons/test-tubes';
 	import Search from '@lucide/svelte/icons/search';
-	import { mapSparqlResultsToTableBody } from '$lib/utils/mapSparqlResults';
+	import Archive from '@lucide/svelte/icons/archive';
+	import { Pagination } from '@skeletonlabs/skeleton-svelte'
+    import { mapSparqlResultsToTableBody } from '$lib/utils/mapSparqlResults';
 
 	type FilterCategory =
 		| 'chemicalName'
@@ -115,22 +117,20 @@
 	let value = $state<string[]>([]);
 
 	const displayResults = $derived(form?.results ?? data.results ?? []);
+	let page = $state(1);
+	let size = $state(5);
+	const slicedResults = $derived(
+		displayResults.slice((page - 1) * size, page * size)
+	);
+
 	const tableHead = ['S3 Link', 'Campaign', 'Chemical', 'SMILES', 'CAS', 'Reaction', 'Type'];
-	const tableKeysInOrder = [
-		's3link',
-		'campaignName',
-		'chemicalName',
-		'smiles',
-		'cas',
-		'reactionName',
-		'reactionType'
-	];
-	const tableBody = $derived(mapSparqlResultsToTableBody(displayResults, tableKeysInOrder));
-	$inspect(tableBody);
+	const tableKeysInOrder = ['s3link', 'campaignName', 'chemicalName', 'smiles', 'cas', 'reactionName', 'reactionType'];
 	const tableSource = $derived({
-		head: ['S3 Link', 'Campaign', 'Chemical', 'SMILES', 'CAS', 'Reaction', 'Type'],
-		body: tableBody
+		head: tableHead,
+		body: mapSparqlResultsToTableBody(slicedResults, tableKeysInOrder),
 	});
+	$inspect("tableSource", tableSource);
+	$inspect("silcedresuts", slicedResults);
 </script>
 
 <div class="grid grid-cols-1 md:grid-cols-[auto_1fr]">
@@ -182,32 +182,54 @@
 	</aside>
     <main class="space-y-4 p-4">
 	<h1 class="mb-6 text-2xl font-bold text-gray-800">Results ({displayResults.length})</h1>
-	<div class="p-4">
-		{#if displayResults.length > 0}
-			<div class="grid grid-cols-7 gap-x-4 gap-y-2 text-sm">
+	<section class="space-y-4">
+		<!-- Table -->
+		<div class="table-wrap">
+		  <table class="table table-fixed caption-bottom">
+			<thead>
+			  <tr>
 				{#each tableHead as header}
-					<div
-						class="text-surface-600 dark:text-surface-300 border-surface-300 dark:border-surface-700 border-b pb-1 font-semibold"
-					>
-						{header}
-					</div>
+				<th>{header}</th>
 				{/each}
-				{#each tableBody as row, rowIndex (rowIndex)}
-					{#each row as cell, cellIndex (cellIndex)}
-						<div
-							class="text-surface-700 dark:text-surface-200 {cellIndex === 0 || cellIndex === 3
-								? 'truncate font-mono'
-								: ''}"
-							title={cell}
-						>
-							{cell || '-'}
-						</div>
+			  </tr>
+			</thead>
+			<tbody class="[&>tr]:hover:preset-tonal-primary">
+			  {#each tableSource.body as row, rowIndex (rowIndex)}
+				<tr>
+					{#each row as cell, index}
+				    <td>
+						{cell}
+					</td>
 					{/each}
-				{/each}
-			</div>
-		{:else}
-			<p class="text-surface-500 p-4 text-center">No results found for the current filters.</p>
-		{/if}
-    </div>
+				</tr>
+			  {/each}
+			</tbody>
+		  </table>
+		</div>
+		<!-- Footer -->
+		<footer class="flex justify-between">
+		  <select name="size" id="size" class="select max-w-[150px]" value={size} onchange={(e) => (size = Number(e.currentTarget.value))}>
+			{#each [1, 2, 5] as v}
+			  <option value={v}>Items {v}</option>
+			{/each}
+			<option value={slicedResults.length}>Show All</option>
+		  </select>
+		  <!-- Pagination -->
+		  <Pagination
+			data={tableSource}
+			{page}
+			onPageChange={(e) => (page = e.page)}
+			pageSize={size}
+			onPageSizeChange={(e) => (size = e.pageSize)}
+			siblingCount={4}
+		  >
+			{#snippet labelEllipsis()}<IconEllipsis class="size-4" />{/snippet}
+			{#snippet labelNext()}<IconArrowRight class="size-4" />{/snippet}
+			{#snippet labelPrevious()}<IconArrowLeft class="size-4" />{/snippet}
+			{#snippet labelFirst()}<IconFirst class="size-4" />{/snippet}
+			{#snippet labelLast()}<IconLast class="size-4" />{/snippet}
+		  </Pagination>
+		</footer>
+	  </section>
 	</main>
 </div>
