@@ -222,7 +222,7 @@
 		  </select>
 		  <!-- Pagination -->
 		  <Pagination
-			data={tableSource}
+			data={slicedResults}
 			{page}
 			onPageChange={(e) => (page = e.page)}
 			pageSize={size}
