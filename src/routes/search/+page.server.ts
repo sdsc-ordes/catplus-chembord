@@ -40,33 +40,49 @@ export const load: PageServerLoad = async ({ url }) => {
 
 export const actions: Actions = {
 	// Assuming your form action is action="?/search"
-	default: async ({ request, url }) => {
+	search: async ({ request, url }) => {
 		const formData = await request.formData();
-		console.log(formData);
+		console.log("Received FormData:", formData);
 
-		// --- Use getAll() to retrieve all checked values for each category ---
-		const selectedChemicals = formData.getAll('selected_chemicals') as string[];
-		const selectedCampaignNames = formData.getAll('selected_campaign_names') as string[];
-		const selectedReactionTypes = formData.getAll('selected_reaction_types') as string[];
-		const selectedReactionNames = formData.getAll('selected_reaction_names') as string[];
-		const selectedCas = formData.getAll('selected_cas') as string[];
-		const selectedSmiles = formData.getAll('selected_smiles') as string[];
+		// --- Define mapping from form input name to URL parameter name ---
+		const filterMappings: Record<string, string> = {
+			selected_chemicals: 'chemical',
+			selected_campaign_names: 'campaign',
+			selected_reaction_types: 'reaction_type',
+			selected_reaction_names: 'reaction_name',
+			selected_cas: 'cas',
+			selected_smiles: 'smiles',
+		};
 
-		// --- Construct Redirect URL ---
-		// Create a URL object based on the current page's URL (path only, discarding old params)
-		const targetUrl = new URL(url.origin + url.pathname); // Start fresh with path
+		const targetUrl = new URL(url.origin + url.pathname);
 
-		// --- Append parameters for multi-value fields ---
-		selectedChemicals.forEach(value => targetUrl.searchParams.append('chemical', value));
-		selectedCampaignNames.forEach(value => targetUrl.searchParams.append('campaign', value));
-		selectedReactionTypes.forEach(value => targetUrl.searchParams.append('reaction_type', value));
-		selectedReactionNames.forEach(value => targetUrl.searchParams.append('reaction_name', value));
-		selectedCas.forEach(value => targetUrl.searchParams.append('cas', value));
-		selectedSmiles.forEach(value => targetUrl.searchParams.append('smiles', value));
+		for (const [formName, urlParamName] of Object.entries(filterMappings)) {
+			// Get potential values using getAll first
+			const valuesFromForm = formData.getAll(formName);
+			let finalValues: string[] = [];
+
+			if (valuesFromForm.length === 1 && typeof valuesFromForm[0] === 'string' && valuesFromForm[0].includes(',')) {
+				console.warn(`Received comma-separated string for ${formName}. Splitting.`);
+				finalValues = valuesFromForm[0].split(',').map(s => s.trim()).filter(Boolean);
+			} else if (valuesFromForm.length > 0) {
+				finalValues = valuesFromForm.filter(v => typeof v === 'string') as string[];
+			}
+
+			// Append the processed values
+			if (finalValues.length > 0) {
+				console.log(`Appending ${finalValues.length} value(s) for ${urlParamName}`);
+				finalValues.forEach(value => {
+					if (value) {
+						targetUrl.searchParams.append(urlParamName, value);
+					}
+				});
+			}
+		}
+
+		console.log("Target URL for redirect:", targetUrl.toString());
 
 		// --- Redirect ---
 		// Use status 303 (See Other) for POST -> GET redirect pattern
 		throw redirect(303, targetUrl.toString());
 	}
-	// Add other actions if needed
 };

@@ -31,7 +31,7 @@
 	function initializeCategoryState(categoryKey: FilterCategory): SelectionState {
 		const initialValues = data.initialFilters?.[categoryKey] ?? [];
 		const initialSet = new Set(initialValues);
-		const initialDisplay = initialValues.length > 0 ? initialValues.join(', ') : 'Any';
+		const initialDisplay = initialValues.length > 0 ? initialValues.join(', ') : '';
 		const initialActive = initialSet.size > 0;
 		return { selected: initialSet, display: initialDisplay, active: initialActive };
 	}
@@ -55,7 +55,7 @@
 		}
 		selectionsState[category].selected = updatedSet;
 		const selectedArray = [...updatedSet];
-		selectionsState[category].display = selectedArray.length > 0 ? selectedArray.join(', ') : 'Any';
+		selectionsState[category].display = selectedArray.length > 0 ? selectedArray.join(',') : '';
 		selectionsState[category].active = updatedSet.size > 0;
 	}
 
@@ -67,6 +67,7 @@
 		reactionType: initializeCategoryState('reactionType'),
 		reactionName: initializeCategoryState('reactionName'),
 	});
+	$inspect(selections)
 
 	let value = $state<string[]>([]);
 
@@ -83,13 +84,13 @@
 	<h1 class="mb-6 text-2xl font-bold text-gray-800">S3 Bucket Contents</h1>
 	<p class="mb-4 text-gray-600">Search in Metadata</p>
 	<div class="card preset-filled-surface-100-800 p-6">
-		<form method="POST" class="mx-auto w-full max-w-md space-y-4">
+		<form method="POST" action="?/search" class="mx-auto w-full max-w-md space-y-4">
 			<Accordion {value} onValueChange={(e) => (value = e.value)} multiple>
 				{#each accordionItemsConfig as item}
 				<Accordion.Item value={item.value} controlClasses={selections[item.value].active ? 'bg-primary-50' : ''}>
 					<!-- Control -->
-					{#snippet lead()}<item.icon size={24} /><input
-                       name="hidden"
+					{#snippet lead()}<item.icon size={24} /><input class="hidden"
+                       name="{item.nameAttr}" value={selections[item.value].display}
 					/>{/snippet}
 					{#snippet control()}{item.label}: {selections[item.value].display}{/snippet}
 					<!-- Panel -->
@@ -100,7 +101,6 @@
 									class="checkbox"
 									type="checkbox"
 									value={optionValue}
-									name={item.nameAttr}
 									checked={selections[item.value].selected.has(optionValue)}
 									onchange={(e) => toggleGenericSelection(selections, item.value, optionValue, e.currentTarget.checked)}
 								/>
