@@ -21,9 +21,9 @@
 		{ value: 'cas', label: 'CAS Number', icon: Atom, list: data.picklists?.cas ?? [], nameAttr: 'selected_cas'},
 		{ value: 'smiles', label: 'SMILES', icon: Atom, list: data.picklists?.smiles ?? [], nameAttr: 'selected_smiles'},
 	]);
-	$inspect(accordionItemsConfig);
-	$inspect(form);
-	$inspect(data);
+	//$inspect(accordionItemsConfig);
+	$inspect("form", form);
+	//$inspect(data);
 
 	// Define the structure for the state of each filter category
 	interface SelectionState {
@@ -81,7 +81,7 @@
 		reactionType: initializeCategoryState('reactionType'),
 		reactionName: initializeCategoryState('reactionName'),
 	});
-	$inspect(selections);
+	//$inspect(selections);
 	let value = $state<string[]>([]);
 
 	function logCurrentState() {
@@ -99,12 +99,14 @@
 	<h1 class="mb-6 text-2xl font-bold text-gray-800">S3 Bucket Contents</h1>
 	<p class="mb-4 text-gray-600">Search in Metadata</p>
 	<div class="card preset-filled-surface-100-800 p-6">
-		<form method="POST" action="?/search" class="mx-auto w-full max-w-md space-y-4">
+		<form method="POST" class="mx-auto w-full max-w-md space-y-4">
 			<Accordion {value} onValueChange={(e) => (value = e.value)} multiple>
 				{#each accordionItemsConfig as item}
 				<Accordion.Item value={item.value} controlClasses={selections[item.value].active ? 'bg-primary-50' : ''}>
 					<!-- Control -->
-					{#snippet lead()}<item.icon size={24} />{/snippet}
+					{#snippet lead()}<item.icon size={24} /><input
+                       name="hidden"
+					/>{/snippet}
 					{#snippet control()}{item.label}: {selections[item.value].display}{/snippet}
 					<!-- Panel -->
 					{#snippet panel()}
