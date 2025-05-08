@@ -8,11 +8,11 @@
 	import Search from '@lucide/svelte/icons/search';
 </script>
 
-<AppBar>
+<AppBar classes="flex items-left">
 	{#snippet lead()}
-	    <a href="/"><Home size={20} />Home</a>
-	    <a href="/search"><Search size={20} />Search</a>
-		<a href="/explore"><Database size={20} />Data</a>
+	    <a href="/" class="flex items-center mx-4"><Home size={20} />Home</a>
+	    <a href="/search" class="flex items-center"><Search size={20} />Search</a>
+		<a href="/explore" class="flex items-center"><Database size={20} />Data</a>
 	{/snippet}
 	{#snippet trail()}
 		<Paperclip size={20} />
