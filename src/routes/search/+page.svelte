@@ -139,7 +139,12 @@
 
 <div class="grid grid-cols-1 md:grid-cols-[auto_1fr]">
 	<aside class="p-4">
-		<form method="POST" action="?/search" class="mx-auto w-full max-w-md space-y-4">
+		<form method="POST" action="?/search" class="mx-auto w-full max-w-md space-y-4 bg-secondary-100 rounded">
+			<div class="flex justify-start">
+				<button type="submit" class="btn preset-filled-primary-500 w-full">
+					<Search />Search
+				</button>
+			</div>
 			<Accordion {value} onValueChange={(e) => (value = e.value)} multiple>
 				{#each accordionItemsConfig as item}
 					<Accordion.Item
@@ -177,11 +182,6 @@
 					</Accordion.Item>
 				{/each}
 			</Accordion>
-			<div class="flex justify-start">
-				<button type="submit" class="btn preset-filled-primary-500">
-					<span>Search</span>
-				</button>
-			</div>
 		</form>
 	</aside>
     <main class="space-y-4 p-4">
@@ -189,7 +189,7 @@
 	<section class="space-y-4">
 		<!-- Table -->
 		<div class="table-wrap">
-		  <table class="table table-fixed caption-bottom">
+		  <table class="table table-wrap caption-bottom">
 			<thead>
 			  <tr>
 				{#each tableHead as header}
@@ -203,7 +203,7 @@
 					{#each row as cell, index}
 					<td>
 					{#if index === 0}
-						<a href={s3LinkToUrlPath(cell)}>campaign-link</a>
+						<a href={s3LinkToUrlPath(cell)} class="text-primary-500">batch/2024/05/03/28/</a>
 					{:else}
 					    {cell}
 					{/if}
@@ -218,7 +218,7 @@
 		<footer class="flex justify-between">
 		  <select name="size" id="size" class="select max-w-[150px]" value={size} onchange={(e) => (size = Number(e.currentTarget.value))}>
 			{#each [1, 2, 5] as v}
-			  <option value={v}>Items {v}</option>
+			  <option value={v}>Results {v}</option>
 			{/each}
 			<option value={sourceData.length}>Show All</option>
 		  </select>
