@@ -7,6 +7,11 @@
 	import Search from '@lucide/svelte/icons/search';
 	import Archive from '@lucide/svelte/icons/archive';
 	import IconLink from '@lucide/svelte/icons/link';
+	import IconArrowLeft from '@lucide/svelte/icons/arrow-left';
+	import IconArrowRight from '@lucide/svelte/icons/arrow-right';
+	import IconEllipsis from '@lucide/svelte/icons/ellipsis';
+	import IconFirst from '@lucide/svelte/icons/chevrons-left';
+	import IconLast from '@lucide/svelte/icons/chevron-right';
 	import { s3LinkToUrlPath } from '$lib/utils/s3LinkParser'
 	import { Pagination } from '@skeletonlabs/skeleton-svelte'
     import { mapSparqlResultsToTableBody } from '$lib/utils/mapSparqlResults';
@@ -121,18 +126,15 @@
 	const displayResults = $derived(form?.results ?? data.results ?? []);
 	let page = $state(1);
 	let size = $state(5);
-	const slicedResults = $derived(
-		displayResults.slice((page - 1) * size, page * size)
-	);
 
 	const tableHead = ['S3 Link', 'Campaign', 'Chemical', 'SMILES', 'CAS', 'Reaction', 'Type'];
 	const tableKeysInOrder = ['s3link', 'campaignName', 'chemicalName', 'smiles', 'cas', 'reactionName', 'reactionType'];
-	const tableSource = $derived({
-		head: tableHead,
-		body: mapSparqlResultsToTableBody(slicedResults, tableKeysInOrder),
-	});
-	$inspect("tableSource", tableSource);
-	$inspect("silcedresuts", slicedResults);
+	const sourceData = $derived(mapSparqlResultsToTableBody(displayResults, tableKeysInOrder));
+	const slicedSourceData = $derived(
+		sourceData.slice((page - 1) * size, page * size)
+	);
+	$inspect("sourceData", sourceData);
+	$inspect("slicedSourceData", slicedSourceData);
 </script>
 
 <div class="grid grid-cols-1 md:grid-cols-[auto_1fr]">
@@ -196,7 +198,7 @@
 			  </tr>
 			</thead>
 			<tbody class="[&>tr]:hover:preset-tonal-primary">
-			  {#each tableSource.body as row, rowIndex (rowIndex)}
+			  {#each slicedSourceData as row, rowIndex (rowIndex)}
 				<tr>
 					{#each row as cell, index}
 					<td>
@@ -218,11 +220,11 @@
 			{#each [1, 2, 5] as v}
 			  <option value={v}>Items {v}</option>
 			{/each}
-			<option value={slicedResults.length}>Show All</option>
+			<option value={sourceData.length}>Show All</option>
 		  </select>
 		  <!-- Pagination -->
 		  <Pagination
-			data={slicedResults}
+			data={sourceData}
 			{page}
 			onPageChange={(e) => (page = e.page)}
 			pageSize={size}
