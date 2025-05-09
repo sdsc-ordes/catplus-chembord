@@ -1,6 +1,7 @@
 import type { PageServerLoad, Actions } from './$types';
-import { redirect, fail } from '@sveltejs/kit';
-import { mockPicklists, type mockPicklists, type SparqlResultRow, getMockSparqlResults} from '$lib/sparql/+server';
+import { redirect } from '@sveltejs/kit';
+import { mockPicklists, getMockSparqlResults } from '$lib/sparql/+server';
+import type { mockPicklists } from '$lib/sparql/+server';
 
 export const load: PageServerLoad = async ({ url }) => {
 	// the load function picks up the search filters from the url and loads the data
