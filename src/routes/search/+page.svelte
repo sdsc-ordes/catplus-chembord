@@ -13,6 +13,7 @@
 	import { s3LinkToUrlPath } from '$lib/utils/s3LinkParser'
 	import { Pagination } from '@skeletonlabs/skeleton-svelte'
     import { mapSparqlResultsToTableBody } from '$lib/utils/mapSparqlResults';
+	import type { SelectionState } from '$lib/types/search'
 
 	type FilterCategory =
 		| 'chemicalName'
@@ -72,12 +73,6 @@
 			nameAttr: 'selected_smiles'
 		}
 	]);
-
-	interface SelectionState {
-		selected: Set<string>;
-		display: string;
-		active: boolean;
-	}
 
 	function initializeCategoryState(categoryKey: FilterCategory): SelectionState {
 		const initialValues = data.initialFilters?.[categoryKey] ?? [];
