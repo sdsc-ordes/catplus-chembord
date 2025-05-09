@@ -5,8 +5,6 @@
 	import FlaskConical from '@lucide/svelte/icons/flask-conical';
 	import TestTubes from '@lucide/svelte/icons/test-tubes';
 	import Search from '@lucide/svelte/icons/search';
-	import Archive from '@lucide/svelte/icons/archive';
-	import IconLink from '@lucide/svelte/icons/link';
 	import IconArrowLeft from '@lucide/svelte/icons/arrow-left';
 	import IconArrowRight from '@lucide/svelte/icons/arrow-right';
 	import IconEllipsis from '@lucide/svelte/icons/ellipsis';
