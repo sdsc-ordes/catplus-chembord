@@ -10,9 +10,9 @@
 
 <AppBar classes="flex items-left">
 	{#snippet lead()}
-	    <a href="/" class="flex items-center mx-4"><Home size={20} />Home</a>
-	    <a href="/search" class="flex items-center"><Search size={20} />Search</a>
-		<a href="/explore" class="flex items-center"><Database size={20} />Data</a>
+	    <a href="/" class="flex items-center mx-4 gap-x-2"><Home size={20} />Home</a>
+	    <a href="/search" class="flex items-center mx-4 gap-x-2"><Search size={20} />Search</a>
+		<a href="/batch" class="flex items-center mx-4 gap-x-2"><Database size={20} />Data</a>
 	{/snippet}
 	{#snippet trail()}
 		<Paperclip size={20} />
