@@ -1,4 +1,24 @@
-// Define types needed for props and state
+// Interface for form selection
+interface SelectionState {
+    selected: Set<string>;
+    display: string;
+    active: boolean;
+}
+
+// Filter categories
+export const FilterCategoryConstants = {
+    CHEMICAL_NAME: 'chemicalName',
+    CAMPAIGN_NAME: 'campaignName',
+    SMILES: 'smiles',
+    CAS: 'cas',
+    REACTION_TYPE: 'reactionType',
+    REACTION_NAME: 'reactionName',
+} as const;
+
+// Keys of filter categories
+export type FilterCategory = typeof FilterCategoryConstants[keyof typeof FilterCategoryConstants];
+
+// option data for selection form coming from sparql
 interface PicklistData {
     chemicalName: string[];
     campaignName: string[];
@@ -8,14 +28,7 @@ interface PicklistData {
     reactionName: string[];
 }
 
-type FilterCategory = keyof PicklistData;
-
-interface SelectionState {
-    selected: Set<string>;
-    display: string;
-    active: boolean;
-}
-
+// Sparql Results
 interface SparqlBinding {
      [key: string]: {
          type: 'uri' | 'literal' | 'bnode';
