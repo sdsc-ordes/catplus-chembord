@@ -1,5 +1,11 @@
+interface Props {
+    initialFilters: string;
+    picklists: PicklistData;
+    results: SparqlBinding[]
+}
+
 // Interface for form selection
-interface SelectionState {
+export interface SelectionState {
     selected: Set<string>;
     display: string;
     active: boolean;

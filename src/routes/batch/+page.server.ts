@@ -2,19 +2,33 @@ import type { PageServerLoad, Actions } from '../$types';
 
 import { redirect, fail } from '@sveltejs/kit';
 import { error } from '@sveltejs/kit';
+import { groupFilesByCalculatedPrefix } from './groupFiles';
+import type { FolderGroup } from './types';
+import { addPresignedUrlsToFiles } from '$lib/utils/addDownloadUrls';
 
 export const load: PageServerLoad = async ({ locals, url }) => {
 	const prefix = url.searchParams.get('prefix') || 'batch/';
-    //	console.log("Prefix:", prefix);
+
+	// Default is 0
+	const indexParamValue = url.searchParams.get('index');
+	const index = parseInt(indexParamValue, 10) || 0;
+
+    console.log("Prefix:", prefix);
+	console.log("Index:", index);
 
     try {
         // Access the S3 utilities from locals
-        const folders = await locals.s3.listFolders(prefix);
 		const files = await locals.s3.listFiles(prefix);
+		let foldersWithFiles: FolderGroup[] = groupFilesByCalculatedPrefix(files);
+		let activeFolder = foldersWithFiles[index].prefix
+		let activeFiles = foldersWithFiles[index].files
+		const activefilesWithDownloadUrls = await addPresignedUrlsToFiles(
+			locals.s3.client, locals.s3.bucketName, activeFiles);
 
         return {
-			files: files,
-            folders: folders,
+			activefilesWithDownloadUrls: activefilesWithDownloadUrls,
+			activeFolder: activeFolder,
+            foldersWithFiles: foldersWithFiles,
             prefixQueried: prefix,
             bucket: locals.s3.bucketName,
         };
@@ -26,10 +40,9 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 
 
 export const actions: Actions = {
-	// Use a named action matching your form's 'action' attribute
-	// Or use 'default' if the form doesn't specify an action name
 	filter: async ({ request, url }) => {
 		const formData = await request.formData();
+		console.log("============= form data", formData);
 		const prefix = formData.get('prefix') ||  'batch/';
 
 		// --- Construct Redirect URL ---
@@ -45,5 +58,4 @@ export const actions: Actions = {
 		// Use status 303 (See Other) for POST -> GET redirect pattern
 		throw redirect(303, targetUrl.toString());
 	}
-	// Add other actions if needed
 };

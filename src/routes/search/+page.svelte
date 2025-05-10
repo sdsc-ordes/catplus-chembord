@@ -1,5 +1,4 @@
 <script lang="ts">
-	let { data, form } = $props();
 	import { Accordion } from '@skeletonlabs/skeleton-svelte';
 	import ContentLayout from '$lib/components/ContentLayout.svelte';
 	import Atom from '@lucide/svelte/icons/atom';
@@ -17,6 +16,10 @@
 	import type { SelectionState, FilterCategory } from './types.d';
 	import { FilterCategoryConstants } from './types.d';
 	import { initializeCategoryState, toggleGenericSelection } from '$lib/utils/searchForm';
+
+	let { data, form } = $props();
+	$inspect("data", data)
+	$inspect("form", form)
 
 	// Search form
 	const accordionItemsConfig: {
@@ -118,6 +121,7 @@
 		{#each accordionItemsConfig as item}
 			<Accordion.Item
 				value={item.value}
+				classes="text-sm"
 				controlClasses={selections[item.value].active ? 'bg-primary-50' : ''}
 			>
 				<!-- Control -->
@@ -144,7 +148,7 @@
 										e.currentTarget.checked
 									)}
 							/>
-							<p>{optionValue}</p>
+							<p class="break-words">{optionValue}</p>
 						</label>
 					{/each}
 				{/snippet}
