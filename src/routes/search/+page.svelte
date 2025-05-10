@@ -175,7 +175,7 @@
 						<td>
 							{#if index === 0}
 								<a href={s3LinkToUrlPath(cell)} class="text-primary-500"
-									>batch/2024/05/03/28/</a
+									>{s3LinkToUrlPath(cell)}</a
 								>
 							{:else}
 								{cell}

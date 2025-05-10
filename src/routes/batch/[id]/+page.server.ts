@@ -1,5 +1,5 @@
 // Example in src/routes/some-route/+page.server.ts
-import type { PageServerLoad } from '../../$types';
+import type { PageServerLoad, Actions } from '../../$types';
 import { addPresignedUrlsToFiles } from '$lib/utils/addDownloadUrls';
 import { error } from '@sveltejs/kit';
 
