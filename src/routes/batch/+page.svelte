@@ -73,7 +73,7 @@
 		</tbody>
 	</table>
 </div>
-<footer class="flex justify-between">
+<footer class="">
 	<select
 		name="size"
 		id="size"
