@@ -1,4 +1,3 @@
-// src/routes/api/details/[position]/+server.ts
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
