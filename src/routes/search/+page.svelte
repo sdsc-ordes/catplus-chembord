@@ -231,7 +231,9 @@
 
 {#snippet main()}
 <div class="bg-tertiary-50 rounded space-y-4 p-4">
+	<h1 class="mb-4 p-4 text-2xl bg-tertiary-50 font-bold text-gray-800">Results ({sourceData.length})</h1>
 <div class="table-wrap">
+	{#if activeResultItem}
 	<table class="table-wrap table caption-bottom">
 		<thead>
 			<tr>
@@ -245,6 +247,7 @@
 				<tr
 					onclick={() => handleRowClick(row)}
 					class="cursor-pointer"
+					class:bg-tertiary-200={activeResultItem === row[0]}
 				>
 					{#each row as cell, index}
 						<td>
@@ -259,6 +262,7 @@
 			{/each}
 		</tbody>
 	</table>
+	{/if}
 </div>
 <footer class="flex justify-between">
 	<!-- Pagination -->
