@@ -8,13 +8,11 @@
 	import IconFirst from '@lucide/svelte/icons/chevrons-left';
 	import IconLast from '@lucide/svelte/icons/chevron-right';
 	import Campaign from '$lib/components/Campaign.svelte';
-	import { groupFilesByCalculatedPrefix } from './groupFiles';
-	import { type FolderGroup, FileTableHeaders, type FileInfo } from './types.d';
+	import { campaignsPerPage} from '$lib/const/campaign';
+	import { extractDateFromPath } from '$lib/utils/displayFolder'
+	import { type FileInfo } from './types.d';
 	import { Pagination } from '@skeletonlabs/skeleton-svelte';
-	import { formatBytes, formatDate} from '$lib/utils/displayFile';
-	import { getZipFileName } from '$lib/utils/zipFileName';
-	import { s3LinkToUrlPath } from '$lib/utils/s3LinkParser';
-	import Archive from '@lucide/svelte/icons/archive';
+	import S3SearchForm from '$lib/components/S3SearchForm.svelte';
 
 	let prefix = routePage.url.searchParams.get('prefix') || 'batch/';
 	interface SourceData {
@@ -30,12 +28,11 @@
 
 	// State
 	let page = $state(1);
-	let size = $state(5);
+	let size = campaignsPerPage;
 	const slicedSource = $derived((s: SourceData[]) => s.slice((page - 1) * size, page * size));
 
 	// State for the fetched detailed data for the main content
 	let detailedContent = $state<FileInfo[] | null>(null);
-	$inspect("detailedContent", detailedContent);
 	let isLoadingDetails = $state(false);
 	let detailError = $state<string | null>(null);
 	let activeSidebarItem = $state<SidebarRowData | null>(null);
@@ -72,10 +69,17 @@
             detailError = null;
         }
 	}
+
+	function handlePageChange(e: Event) {
+		page = e.page;
+		activeSidebarItem = slicedSource(sourceData)[0];
+		console.log("page change", e);
+		handleRowClick(activeSidebarItem);
+	}
+
     $effect(() => {
         if (sourceData.length > 0 && activeSidebarItem === null) {
             const firstItem = sourceData[0];
-            $inspect('Auto-selecting first item:', firstItem);
             handleRowClick(firstItem); // Use your existing handler
         }
     });
@@ -83,45 +87,32 @@
 </script>
 
 {#snippet sidebar()}
-<h1 class="mb-4 text-2xl font-bold text-gray-800">S3 Bucket Contents</h1>
-<p class="mb-4 text-gray-600">
-	Listing folders in bucket: <code class="rounded bg-gray-200 px-2 py-1 text-sm"
-		>{data.bucket}</code
-	>
-</p>
+<S3SearchForm
+   prefix={prefix}
+/>
 
-<form method="POST"
-      action="?/filter"
-      class="card bg-secondary-100 space-y-4 p-4">
-	<label class="label">
-		<span>Prefix</span>
-		<input name="prefix" class="input" type="string" value={prefix} required />
-	</label>
-	<div class="flex justify-start">
-		<button type="submit" class="btn preset-filled-primary-500">
-			<span>Filter by Prefix</span>
-		</button>
-	</div>
-
-
-<div class="table-wrap">
+<div class="bg-tertiary-50 rounded space-y-4 p-4">
+<h1 class="mb-4 p-4 text-2xl bg-tertiary-50 font-bold text-gray-800">Results ({sourceData.length})</h1>
+<div class="table-wrap bg-tertiary-50">
 	<table class="table table-fixed caption-bottom">
 		<thead>
 			<tr>
-				<th>Campaign</th>
+				<th>Campaign Path</th>
+				<th>Date</th>
 			</tr>
 		</thead>
-		<tbody class="[&>tr]:hover:preset-tonal-primary">
+		<tbody class="[&>tr]:hover:bg-tertiary-100">
 			{#each slicedSource(sourceData) as row, i}
 				<tr
 				onclick={() => handleRowClick(row)}
 				class="cursor-pointer"
-				class:bg-primary-100={activeSidebarItem?.campaign === row.campaign}
-				class:font-semibold={activeSidebarItem?.campaign === row.campaign}
-				class:text-primary-700={activeSidebarItem?.campaign === row.campaign}
+				class:bg-tertiary-200={activeSidebarItem?.campaign === row.campaign}
 				>
-					<td class:bg-primary-50={row.campaign === activeSidebarItem?.campaign}>
+					<td>
 						{row.campaign}
+					</td>
+					<td>
+						{extractDateFromPath(row.campaign)}
 					</td>
 				</tr>
 			{/each}
@@ -129,24 +120,11 @@
 	</table>
 </div>
 <footer class="">
-	<select
-		name="size"
-		id="size"
-		class="select max-w-[150px]"
-		value={size}
-		onchange={(e) => (size = Number(e.currentTarget.value))}
-	>
-		{#each [1, 2, 5] as v}
-			<option value={v}>Items {v}</option>
-		{/each}
-		<option value={sourceData.length}>Show All</option>
-	</select>
 	<Pagination
 		data={sourceData}
 		{page}
-		onPageChange={(e) => (page = e.page)}
+		onPageChange={handlePageChange}
 		pageSize={size}
-		onPageSizeChange={(e) => (size = e.pageSize)}
 		siblingCount={4}
 	>
 		{#snippet labelEllipsis()}<IconEllipsis class="size-4" />{/snippet}
@@ -156,7 +134,7 @@
 		{#snippet labelLast()}<IconLast class="size-4" />{/snippet}
 	</Pagination>
 </footer>
-</form>
+</div>
 {/snippet}
 
 {#snippet main()}

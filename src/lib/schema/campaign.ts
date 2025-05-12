@@ -1,7 +1,7 @@
 /**
  * Interface for table columns of campaign file table
  */
-interface FileTableColumns {
+export interface FileTableColumns {
 	title: string; // Column title
 	widthInPercent: number // Column width in percent
 }

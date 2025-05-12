@@ -26,13 +26,14 @@
         <h2 class="text-xl font-semibold mb-2">Error Fetching Details</h2>
         <p>{error}</p>
     </div>
-{:else if campaignFiles}
-    <h1 class="mb-6 flex items-center gap-x-2 text-2xl font-bold text-gray-800">
+{:else if campaignFiles && activeCampaign}
+    <div class="hover:bg-tertiary-100">
+    <h1 class="mb-6 flex items-center gap-x-2 text-2xl text-gray-800">
         <Archive />
         <span>{activeCampaign}</span>
 		<a
 			href={`/api/s3-zip?prefix=${encodeURIComponent(activeCampaign)}`}
-			class="btn btn-sm variant-outline-secondary"
+			class="btn btn-sm variant-outline-secondary hover:text-primary-500"
 			title="Download all files in this folder as ZIP"
 			download={getZipFileName(activeCampaign)}
 			target="_blank"
@@ -42,6 +43,7 @@
 			<span>Download ZIP {getZipFileName(activeCampaign)}</span>
 		</a>
     </h1>
+    </div>
     <div class="table-wrap">
         <table class="table table-fixed caption-bottom">
             <thead>
@@ -53,7 +55,7 @@
                     {/each}
                 </tr>
             </thead>
-            <tbody class="[&>tr]:hover:preset-tonal-primary">
+            <tbody class="[&>tr]:hover:bg-tertiary-100">
                 {#each campaignFiles as file}
                     <tr>
                         <td>{file.name}</td>
