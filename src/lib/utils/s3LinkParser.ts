@@ -9,9 +9,5 @@
  */
 export function s3LinkToUrlPath(s3link: string): string {
     const path = s3link.replace("s3://", "");
-    const partsArray = path.split("/");
-    partsArray.shift();
-    partsArray.pop();
-    const urlPath = `batch/${partsArray.join("-")}`
-    return urlPath;
+    return path;
 }

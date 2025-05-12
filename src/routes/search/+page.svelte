@@ -4,13 +4,16 @@
 	import Atom from '@lucide/svelte/icons/atom';
 	import FlaskConical from '@lucide/svelte/icons/flask-conical';
 	import TestTubes from '@lucide/svelte/icons/test-tubes';
+	import { campaignsPerPage} from '$lib/const/campaign';
 	import Search from '@lucide/svelte/icons/search';
 	import IconArrowLeft from '@lucide/svelte/icons/arrow-left';
 	import IconArrowRight from '@lucide/svelte/icons/arrow-right';
+	import Campaign from '$lib/components/Campaign.svelte';
 	import IconEllipsis from '@lucide/svelte/icons/ellipsis';
 	import IconFirst from '@lucide/svelte/icons/chevrons-left';
 	import IconLast from '@lucide/svelte/icons/chevron-right';
 	import { s3LinkToUrlPath } from '$lib/utils/s3LinkParser';
+	import { type FileInfo } from '$lib/schema/s3.js';
 	import { Pagination } from '@skeletonlabs/skeleton-svelte';
 	import { mapSparqlResultsToTableBody } from '$lib/utils/mapSparqlResults';
 	import type { SelectionState, FilterCategory } from './types.d';
@@ -18,8 +21,6 @@
 	import { initializeCategoryState, toggleGenericSelection } from '$lib/utils/searchForm';
 
 	let { data, form } = $props();
-	$inspect("data", data)
-	$inspect("form", form)
 
 	// Search form
 	const accordionItemsConfig: {
@@ -87,7 +88,7 @@
 	// Result table
 	const displayResults = $derived(form?.results ?? data.results ?? []);
 	let page = $state(1);
-	let size = $state(5);
+	let size = campaignsPerPage;
 
 	const tableHead = ['S3 Link', 'Campaign', 'Chemical', 'SMILES', 'CAS', 'Reaction', 'Type'];
 	const tableKeysInOrder = [
@@ -99,16 +100,28 @@
 		'reactionName',
 		'reactionType'
 	];
+	interface SourceData {
+		s3link: string,
+		campaignName: string,
+		chemicalName: string,
+		smiles: string,
+		cas: string,
+		reactionName: string,
+		reactionType: string
+	};
 	const sourceData = $derived(mapSparqlResultsToTableBody(displayResults, tableKeysInOrder));
 	const slicedSourceData = $derived(sourceData.slice((page - 1) * size, page * size));
 	$inspect('sourceData', sourceData);
 	$inspect('slicedSourceData', slicedSourceData);
 	$inspect(data);
-    // State for the fetched detailed data for the main content
-    let detailedContent = $state<FileInfo[] | null>(null);
-	$inspect("detailedContent", detailedContent);
+
+	const slicedSource = $derived((s: SourceData[]) => s.slice((page - 1) * size, page * size));
+
+	// State for the fetched detailed data for the main content
+	let detailedContent = $state<FileInfo[] | null>(null);
 	let isLoadingDetails = $state(false);
 	let detailError = $state<string | null>(null);
+	let activeResultItem = $state<SourceData[0] | null>(null);
 
     async function fetchDetails(path: string) {
         isLoadingDetails = true;
@@ -116,7 +129,9 @@
         detailedContent = null;
         try {
             // Adjust the URL to your actual API endpoint structure
-            const response = await fetch(`/api/${path}`);
+			console.log("*** search", path)
+			const correctedPath = s3LinkToUrlPath(path)
+            const response = await fetch(`/api/${correctedPath}`);
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({ message: `HTTP error! status: ${response.status}` }));
                 throw new Error(errorData.message || `Failed to fetch details. Status: ${response.status}`);
@@ -131,10 +146,12 @@
         }
     }
 
-    function handleRowClick(row: SidebarRowData) {
-        activeSidebarItem = row; // Visually mark as active in sidebar
-        if (row && row.campaign) {
-            fetchDetails(row.campaign); // Fetch full details for the main content
+    function handleRowClick(row: string[]) {
+		console.log("**** clicked", row)
+        activeResultItem = row[0]; // Visually mark as active in sidebar
+		console.log("++++ s3 link", row[0])
+        if (row && row[0]) {
+            fetchDetails(row[0]); // Fetch full details for the main content
         } else {
             // Reset main content if row is invalid or deselected (if implementing deselection)
             detailedContent = null;
@@ -142,6 +159,22 @@
             detailError = null;
         }
 	}
+
+	function handlePageChange(e: Event) {
+		page = e.page;
+		activeResultItem = slicedSourceData[0];
+		console.log("page change", e);
+		handleRowClick(activeResultItem);
+	}
+
+    $effect(() => {
+        if (sourceData.length > 0 && activeResultItem === null) {
+            const firstItem: SourceData = sourceData[0];
+			console.log("first item", firstItem);
+            handleRowClick(firstItem); // Use your existing handler
+        }
+    });
+	$inspect(detailedContent)
 </script>
 
 {#snippet sidebar()}
@@ -197,6 +230,7 @@
 {/snippet}
 
 {#snippet main()}
+<div class="bg-tertiary-50 rounded space-y-4 p-4">
 <div class="table-wrap">
 	<table class="table-wrap table caption-bottom">
 		<thead>
@@ -206,15 +240,16 @@
 				{/each}
 			</tr>
 		</thead>
-		<tbody class="[&>tr]:hover:preset-tonal-primary">
+		<tbody class="[&>tr]:hover:bg-tertiary-100">
 			{#each slicedSourceData as row, rowIndex (rowIndex)}
-				<tr>
+				<tr
+					onclick={() => handleRowClick(row)}
+					class="cursor-pointer"
+				>
 					{#each row as cell, index}
 						<td>
 							{#if index === 0}
-								<a href={s3LinkToUrlPath(cell)} class="text-primary-500"
-									>{s3LinkToUrlPath(cell)}</a
-								>
+								{s3LinkToUrlPath(cell)}
 							{:else}
 								{cell}
 							{/if}
@@ -226,18 +261,6 @@
 	</table>
 </div>
 <footer class="flex justify-between">
-	<select
-		name="size"
-		id="size"
-		class="select max-w-[150px]"
-		value={size}
-		onchange={(e) => (size = Number(e.currentTarget.value))}
-	>
-		{#each [1, 2, 5] as v}
-			<option value={v}>Results {v}</option>
-		{/each}
-		<option value={sourceData.length}>Show All</option>
-	</select>
 	<!-- Pagination -->
 	<Pagination
 		data={sourceData}
@@ -254,6 +277,16 @@
 		{#snippet labelLast()}<IconLast class="size-4" />{/snippet}
 	</Pagination>
 </footer>
+</div>
+{#if activeResultItem}
+<Campaign
+	isLoading={isLoadingDetails}
+	error={detailError}
+	campaignFiles={detailedContent?.files}
+	activeCampaign={activeResultItem}
+	title={s3LinkToUrlPath(activeResultItem)}
+/>
+{/if}
 {/snippet}
 
 <ContentLayout {sidebar} {main} />
