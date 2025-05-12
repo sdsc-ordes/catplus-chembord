@@ -2,34 +2,40 @@
 <script lang="ts">
     import ContentLayout from '$lib/components/ContentLayout.svelte';
     import { Pagination } from '@skeletonlabs/skeleton-svelte';
+    // Icons (ensure all used in THIS file are imported)
+    import IconArrowLeft from '@lucide/svelte/icons/arrow-left';
+    import IconArrowRight from '@lucide/svelte/icons/arrow-right';
+    import IconEllipsis from '@lucide/svelte/icons/ellipsis';
+    import IconFirst from '@lucide/svelte/icons/chevrons-left';
+    import IconLast from '@lucide/svelte/icons/chevron-right';
 
-    // ... other imports ...
+    // Import the new DetailDisplay component
+    import DetailDisplay from '$lib/components/DetailDisplay.svelte';
 
-    // Basic data for rows in the sidebar (from initial load)
+    // Define your data structures (consider moving to a shared types file in $lib/types)
     interface SidebarRowData {
         position: number;
         name: string;
     }
 
-    // Detailed data structure expected from the API
     interface DetailedElementData extends SidebarRowData {
         weight?: number;
         symbol?: string;
-        notes?: string; // Example additional detail
+        notes?: string;
     }
 
     let { data } = $props<{ tableData: SidebarRowData[] }>();
+    $inspect('Data prop from load:', data);
 
     let tableDataForSidebar = $state(data.tableData || []);
+    $inspect('tableDataForSidebar $state after init:', tableDataForSidebar);
 
     let sidebarPage = $state(1);
     let sidebarPageSize = $state(5);
     const slicedSidebarItems = $derived(tableDataForSidebar.slice((sidebarPage - 1) * sidebarPageSize, sidebarPage * sidebarPageSize));
+    $inspect('slicedSidebarItems derived:', slicedSidebarItems);
 
-    // State for the currently selected item's basic info (from sidebar click)
     let activeSidebarItem = $state<SidebarRowData | null>(null);
-
-    // State for the fetched detailed data for the main content
     let detailedContent = $state<DetailedElementData | null>(null);
     let isLoadingDetails = $state(false);
     let detailError = $state<string | null>(null);
@@ -37,34 +43,47 @@
     async function fetchDetails(position: number) {
         isLoadingDetails = true;
         detailError = null;
-        detailedContent = null; // Clear previous details
+        // detailedContent = null; // Cleared in handleRowClick before calling fetchDetails
 
         try {
-            // Adjust the URL to your actual API endpoint structure
             const response = await fetch(`/api/details/${position}`);
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({ message: `HTTP error! status: ${response.status}` }));
                 throw new Error(errorData.message || `Failed to fetch details. Status: ${response.status}`);
             }
             const fetchedDetails: DetailedElementData = await response.json();
-            detailedContent = fetchedDetails;
+            // Ensure we're still trying to load details for the currently active item
+            if (activeSidebarItem && activeSidebarItem.position === position) {
+                detailedContent = fetchedDetails;
+            }
         } catch (err: any) {
             console.error('Error fetching details:', err);
-            detailError = err.message || 'An unknown error occurred.';
+            if (activeSidebarItem && activeSidebarItem.position === position) {
+                detailError = err.message || 'An unknown error occurred.';
+            }
         } finally {
-            isLoadingDetails = false;
+             if (activeSidebarItem && activeSidebarItem.position === position) {
+                isLoadingDetails = false;
+            }
         }
     }
 
     function handleRowClick(row: SidebarRowData) {
-        activeSidebarItem = row; // Visually mark as active in sidebar
-        if (row && row.position) {
-            fetchDetails(row.position); // Fetch full details for the main content
+        if (activeSidebarItem?.position === row.position && detailedContent && !isLoadingDetails) {
+            // Item already selected and details loaded, do nothing or allow re-fetch
+             $inspect('Row already active, not re-fetching unless specified.');
+            return; 
+        }
+        
+        activeSidebarItem = row;
+        detailedContent = null; // Clear previous details immediately
+        detailError = null;     // Clear previous errors
+        isLoadingDetails = true; // Set loading true before fetch call
+
+        if (row && row.position != null) {
+            fetchDetails(row.position);
         } else {
-            // Reset main content if row is invalid or deselected (if implementing deselection)
-            detailedContent = null;
-            isLoadingDetails = false;
-            detailError = null;
+            isLoadingDetails = false; // Not fetching if row or position is invalid
         }
         $inspect('Clicked row in sidebar:', activeSidebarItem);
     }
@@ -76,17 +95,16 @@
     }
 
     $effect(() => {
-        if (tableDataForSidebar.length > 0 && activeSidebarItem === null) {
+        if (tableDataForSidebar.length > 0 && activeSidebarItem === null && !isLoadingDetails) {
             const firstItem = tableDataForSidebar[0];
             $inspect('Auto-selecting first item:', firstItem);
-            handleRowClick(firstItem); // Use your existing handler
+            handleRowClick(firstItem);
         }
     });
 </script>
 
 {#snippet sidebar()}
     <section class="space-y-4">
-        <!-- Table -->
         <div class="table-wrap">
             <table class="table table-fixed caption-bottom">
                 <thead>
@@ -119,7 +137,6 @@
                 </tbody>
             </table>
         </div>
-        <!-- Footer -->
         <footer class="flex justify-between items-center mt-4">
             <select
                 name="size"
@@ -141,52 +158,23 @@
                 bind:pageSize={sidebarPageSize}
                 siblingCount={1}
             >
-                <!-- ... icon snippets ... -->
+                {#snippet labelEllipsis()}<IconEllipsis class="size-4" />{/snippet}
+                {#snippet labelNext()}<IconArrowRight class="size-4" />{/snippet}
+                {#snippet labelPrevious()}<IconArrowLeft class="size-4" />{/snippet}
+                {#snippet labelFirst()}<IconFirst class="size-4" />{/snippet}
+                {#snippet labelLast()}<IconLast class="size-4" />{/snippet}
             </Pagination>
         </footer>
     </section>
 {/snippet}
 
 {#snippet main()}
-    {#if isLoadingDetails}
-        <div class="p-6 text-center text-gray-500">
-            <p>Loading details...</p>
-            <!-- You could add a spinner component here -->
-        </div>
-    {:else if detailError}
-        <div class="p-6 card bg-error-100 text-error-700">
-            <h2 class="text-xl font-semibold mb-2">Error</h2>
-            <p>{detailError}</p>
-        </div>
-    {:else if detailedContent}
-        <article class="p-6 card bg-surface-100 shadow-lg rounded-lg">
-            <h1 class="text-2xl font-bold mb-4 text-primary-600 border-b pb-2">
-                Details for: {detailedContent.name}
-            </h1>
-            <div class="space-y-2">
-                <p><strong class="font-semibold text-gray-700 w-24 inline-block">Position:</strong> {detailedContent.position}</p>
-                <p><strong class="font-semibold text-gray-700 w-24 inline-block">Name:</strong> {detailedContent.name}</p>
-                {#if detailedContent.weight !== undefined}
-                    <p><strong class="font-semibold text-gray-700 w-24 inline-block">Weight:</strong> {detailedContent.weight}</p>
-                {/if}
-                {#if detailedContent.symbol}
-                    <p><strong class="font-semibold text-gray-700 w-24 inline-block">Symbol:</strong> {detailedContent.symbol}</p>
-                {/if}
-                {#if detailedContent.notes}
-                    <p class="mt-4"><strong class="font-semibold text-gray-700 block mb-1">Notes:</strong> <span class="block pl-2 border-l-2 border-primary-200">{detailedContent.notes}</span></p>
-                {/if}
-            </div>
-        </article>
-    {:else if activeSidebarItem}
-        <!-- This state might occur if a row is clicked but fetch hasn't started or completed without error -->
-        <div class="p-6 text-center text-gray-500">
-            <p>Select an item or wait for details to load for {activeSidebarItem.name}.</p>
-        </div>
-    {:else}
-        <div class="flex items-center justify-center h-full text-gray-500">
-            <p class="text-lg">Please select an item from the sidebar to view its details.</p>
-        </div>
-    {/if}
+    <DetailDisplay
+        isLoading={isLoadingDetails}
+        error={detailError}
+        details={detailedContent}
+        activeItemName={activeSidebarItem?.name}
+    />
 {/snippet}
 
 <ContentLayout {sidebar} {main} />
