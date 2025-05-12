@@ -2,7 +2,7 @@
     import Archive from '@lucide/svelte/icons/archive';
     import FolderDown from '@lucide/svelte/icons/folder-down';
     import { formatBytes, formatDate} from '$lib/utils/displayFile';
-    import { FileTableHeaders } from '$lib/types/campaign'
+    import { FileTableHeaders } from '$lib/schema/campaign'
     import { getZipFileName } from '$lib/utils/zipFileName';
 
     export let activeSidebarItem = null;
@@ -20,7 +20,9 @@
                 <thead>
                     <tr>
                         {#each FileTableHeaders as header}
-                            <th>{header}</th>
+                            <th class="w-[{header.widthInPercent}%] text-left p-3">
+                                {header.title}
+                            </th>
                         {/each}
                     </tr>
                 </thead>
