@@ -1,10 +1,9 @@
 import type { PageServerLoad, Actions } from '../$types';
 
-import { redirect, fail } from '@sveltejs/kit';
+import { redirect } from '@sveltejs/kit';
 import { error } from '@sveltejs/kit';
 import { groupFilesByCalculatedPrefix } from './groupFiles';
 import type { FolderGroup } from './types';
-import { addPresignedUrlsToFiles } from '$lib/utils/addDownloadUrls';
 
 export const load: PageServerLoad = async ({ locals, url }) => {
 	const prefix = url.searchParams.get('prefix') || 'batch/';
@@ -15,19 +14,16 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 
     console.log("Prefix:", prefix);
 	console.log("Index:", index);
+	const path="batch/2024/05/16/27/"
+	const files = await locals.s3.listFiles(path);
+	console.log("*** files", files)
 
     try {
         // Access the S3 utilities from locals
 		const files = await locals.s3.listFiles(prefix);
 		let foldersWithFiles: FolderGroup[] = groupFilesByCalculatedPrefix(files);
-		let activeFolder = foldersWithFiles[index].prefix
-		let activeFiles = foldersWithFiles[index].files
-		const activefilesWithDownloadUrls = await addPresignedUrlsToFiles(
-			locals.s3.client, locals.s3.bucketName, activeFiles);
 
         return {
-			activefilesWithDownloadUrls: activefilesWithDownloadUrls,
-			activeFolder: activeFolder,
             foldersWithFiles: foldersWithFiles,
             prefixQueried: prefix,
             bucket: locals.s3.bucketName,

@@ -13,6 +13,7 @@
 	import { formatBytes, formatDate} from '$lib/utils/displayFile';
 	import { getZipFileName } from '$lib/utils/zipFileName';
     $inspect($state)
+	$inspect(files);
 </script>
 
 {#snippet sidebar()}
@@ -56,7 +57,7 @@
           <tr>
 			<td>{file.name}</td>
             <td>{formatBytes(file.Size)}</td>
-            <td>{formatDate(file.LastModified)}</td>
+            <td>{formatDate(file.LastModified)} - {file.LastModified}</td>
             <td>
 				{#if file.presignedUrl}
 					<a href={file.presignedUrl} title="Download this file" class="hover:text-primary-500">

@@ -9,7 +9,7 @@
 	import IconLast from '@lucide/svelte/icons/chevron-right';
 	import FolderDown from '@lucide/svelte/icons/folder-down';
 	import { groupFilesByCalculatedPrefix } from './groupFiles';
-	import { type FolderGroup, FileTableHeaders } from './types.d';
+	import { type FolderGroup, FileTableHeaders, type FileInfo } from './types.d';
 	import { Pagination } from '@skeletonlabs/skeleton-svelte';
 	import { formatBytes, formatDate} from '$lib/utils/displayFile';
 	import { getZipFileName } from '$lib/utils/zipFileName';
@@ -17,7 +17,6 @@
 	import { Archive } from '@lucide/svelte';
 
 	let prefix = routePage.url.searchParams.get('prefix') || 'batch/';
-	let activeFolder = data.activeFolder;
 	interface SourceData {
 		campaign: string;
 	}
@@ -25,12 +24,63 @@
 		return { campaign: folderElement.prefix };
 	});
 
+    interface SidebarRowData {
+        campaign: string;
+    }
+
 	// State
 	let page = $state(1);
 	let size = $state(5);
 	const slicedSource = $derived((s: SourceData[]) => s.slice((page - 1) * size, page * size));
 
-	const activeFolderFiles = data.activefilesWithDownloadUrls;
+	// State for the fetched detailed data for the main content
+	let detailedContent = $state<FileInfo[] | null>(null);
+	$inspect("detailedContent", detailedContent);
+	let isLoadingDetails = $state(false);
+	let detailError = $state<string | null>(null);
+
+	let activeSidebarItem = $state<SidebarRowData | null>(null);
+
+    async function fetchDetails(path: string) {
+        isLoadingDetails = true;
+        detailError = null;
+        detailedContent = null;
+        try {
+            // Adjust the URL to your actual API endpoint structure
+            const response = await fetch(`/api/${path}`);
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ message: `HTTP error! status: ${response.status}` }));
+                throw new Error(errorData.message || `Failed to fetch details. Status: ${response.status}`);
+            }
+            const fetchedDetails: FileInfo[] = await response.json();
+            detailedContent = fetchedDetails;
+        } catch (err: any) {
+            console.error('Error fetching details:', err);
+            detailError = err.message || 'An unknown error occurred.';
+        } finally {
+            isLoadingDetails = false;
+        }
+    }
+
+    function handleRowClick(row: SidebarRowData) {
+        activeSidebarItem = row; // Visually mark as active in sidebar
+        if (row && row.campaign) {
+            fetchDetails(row.campaign); // Fetch full details for the main content
+        } else {
+            // Reset main content if row is invalid or deselected (if implementing deselection)
+            detailedContent = null;
+            isLoadingDetails = false;
+            detailError = null;
+        }
+	}
+    $effect(() => {
+        if (sourceData.length > 0 && activeSidebarItem === null) {
+            const firstItem = sourceData[0];
+            $inspect('Auto-selecting first item:', firstItem);
+            handleRowClick(firstItem); // Use your existing handler
+        }
+    });
+	$inspect(detailedContent)
 </script>
 
 {#snippet sidebar()}
@@ -64,9 +114,15 @@
 		</thead>
 		<tbody class="[&>tr]:hover:preset-tonal-primary">
 			{#each slicedSource(sourceData) as row, i}
-				<tr>
-					<td class:bg-primary-50={row.campaign === activeFolder}>
-						{row.campaign}{i}
+				<tr
+				onclick={() => handleRowClick(row)}
+				class="cursor-pointer"
+				class:bg-primary-100={activeSidebarItem?.campaign === row.campaign}
+				class:font-semibold={activeSidebarItem?.campaign === row.campaign}
+				class:text-primary-700={activeSidebarItem?.campaign === row.campaign}
+				>
+					<td class:bg-primary-50={row.campaign === activeSidebarItem?.campaign}>
+						{row.campaign}
 					</td>
 				</tr>
 			{/each}
@@ -105,10 +161,12 @@
 {/snippet}
 
 {#snippet main()}
+{#if activeSidebarItem}
 <h1 class="mb-6 flex items-center gap-x-2 text-2xl font-bold text-gray-800">
     <Archive />
-    <span>{activeFolder}</span>
+    <span>{activeSidebarItem?.campaign}</span>
 </h1>
+{#if detailedContent}
 <div class="table-wrap">
     <table class="table table-fixed caption-bottom">
       <thead>
@@ -119,11 +177,11 @@
         </tr>
       </thead>
       <tbody class="[&>tr]:hover:preset-tonal-primary">
-        {#each activeFolderFiles as file}
+        {#each detailedContent.files as file}
           <tr>
 			<td>{file.name}</td>
             <td>{formatBytes(file.Size)}</td>
-            <td>{formatDate(file.LastModified)}</td>
+            <td>{formatDate(file.LastModified)} - {file.LastModified}</td>
             <td>
 				{#if file.presignedUrl}
 					<a href={file.presignedUrl} title="Download this file" class="hover:text-primary-500">
@@ -136,6 +194,8 @@
       </tbody>
     </table>
   </div>
+  {/if}
+{/if}
 {/snippet}
 
 <ContentLayout {sidebar} {main} />

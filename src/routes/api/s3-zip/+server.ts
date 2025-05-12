@@ -1,5 +1,3 @@
-// src/routes/api/s3-zip/+server.ts
-
 import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { getZipFileName } from '$lib/utils/zipFileName';

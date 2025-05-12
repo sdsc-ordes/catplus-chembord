@@ -27,7 +27,6 @@ export const load: PageServerLoad = async ({ locals, url }) => {
           name: item.name
         };
       });
-    console.log(firstTwoColumnsData);
 
     return {
         tableData: firstTwoColumnsData

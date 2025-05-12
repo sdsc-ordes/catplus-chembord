@@ -2,6 +2,7 @@
 <script lang="ts">
     import ContentLayout from '$lib/components/ContentLayout.svelte';
     import { Pagination } from '@skeletonlabs/skeleton-svelte';
+
     // ... other imports ...
 
     // Basic data for rows in the sidebar (from initial load)
@@ -18,15 +19,12 @@
     }
 
     let { data } = $props<{ tableData: SidebarRowData[] }>();
-    $inspect('Data prop from load:', data);
 
     let tableDataForSidebar = $state(data.tableData || []);
-    $inspect('tableDataForSidebar $state after init:', tableDataForSidebar);
 
     let sidebarPage = $state(1);
     let sidebarPageSize = $state(5);
     const slicedSidebarItems = $derived(tableDataForSidebar.slice((sidebarPage - 1) * sidebarPageSize, sidebarPage * sidebarPageSize));
-    $inspect('slicedSidebarItems derived:', slicedSidebarItems);
 
     // State for the currently selected item's basic info (from sidebar click)
     let activeSidebarItem = $state<SidebarRowData | null>(null);
@@ -76,6 +74,14 @@
         sidebarPageSize = Number(target.value);
         sidebarPage = 1;
     }
+
+    $effect(() => {
+        if (tableDataForSidebar.length > 0 && activeSidebarItem === null) {
+            const firstItem = tableDataForSidebar[0];
+            $inspect('Auto-selecting first item:', firstItem);
+            handleRowClick(firstItem); // Use your existing handler
+        }
+    });
 </script>
 
 {#snippet sidebar()}
@@ -93,7 +99,7 @@
                     {#if slicedSidebarItems && slicedSidebarItems.length > 0}
                         {#each slicedSidebarItems as row (row.position)}
                             <tr
-                                on:click={() => handleRowClick(row)}
+                                onclick={() => handleRowClick(row)}
                                 class="cursor-pointer"
                                 class:bg-primary-100={activeSidebarItem?.position === row.position}
                                 class:font-semibold={activeSidebarItem?.position === row.position}
@@ -120,7 +126,7 @@
                 id="size"
                 class="select max-w-[150px]"
                 bind:value={sidebarPageSize}
-                on:change={handlePageSizeChange}
+                onchange={handlePageSizeChange}
             >
                 {#each [1, 2, 5, 10] as v}
                     <option value={v}>Items {v}</option>

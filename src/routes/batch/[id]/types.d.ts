@@ -13,8 +13,9 @@ interface Props {
 export interface FileInfo {
 	Key: string; // The full S3 object key
 	name: string; // The filename relative to its folder prefix
-	Size?: number; // File size in bytes (optional)
-	LastModified?: Date; // Last modified date (optional)
+	Size: number; // File size in bytes (optional)
+	LastModified: Date; // Last modified date (optional)
+    presignedUrl: string;
 }
 
 export const FileTableHeaders: String[] = ["File name", "Size", "Last modified", "Download"]

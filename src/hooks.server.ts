@@ -121,7 +121,7 @@ async function listObjectsInBucket(prefix: string): Promise<string[]> {
 	try {
 		const response = await s3Client.send(command);
         //console.log("get list object in buckets");
-		//console.log("response", response.Contents);
+		console.log("response", response.Contents);
 		return response.Contents?.map((item) => item.Key || '').filter(Boolean) as string[] || [];
 	} catch (error: any) {
 		console.error(`S3 Util: Error listing objects with prefix ${prefix}:`, error);
