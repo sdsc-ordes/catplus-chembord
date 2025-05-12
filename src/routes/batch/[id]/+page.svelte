@@ -57,7 +57,7 @@
           <tr>
 			<td>{file.name}</td>
             <td>{formatBytes(file.Size)}</td>
-            <td>{formatDate(file.LastModified)} - {file.LastModified}</td>
+            <td>{file.LastModified}</td>
             <td>
 				{#if file.presignedUrl}
 					<a href={file.presignedUrl} title="Download this file" class="hover:text-primary-500">
