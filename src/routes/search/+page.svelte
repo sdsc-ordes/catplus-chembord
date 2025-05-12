@@ -104,6 +104,44 @@
 	$inspect('sourceData', sourceData);
 	$inspect('slicedSourceData', slicedSourceData);
 	$inspect(data);
+    // State for the fetched detailed data for the main content
+    let detailedContent = $state<FileInfo[] | null>(null);
+	$inspect("detailedContent", detailedContent);
+	let isLoadingDetails = $state(false);
+	let detailError = $state<string | null>(null);
+
+    async function fetchDetails(path: string) {
+        isLoadingDetails = true;
+        detailError = null;
+        detailedContent = null;
+        try {
+            // Adjust the URL to your actual API endpoint structure
+            const response = await fetch(`/api/${path}`);
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ message: `HTTP error! status: ${response.status}` }));
+                throw new Error(errorData.message || `Failed to fetch details. Status: ${response.status}`);
+            }
+            const fetchedDetails: FileInfo[] = await response.json();
+            detailedContent = fetchedDetails;
+        } catch (err: any) {
+            console.error('Error fetching details:', err);
+            detailError = err.message || 'An unknown error occurred.';
+        } finally {
+            isLoadingDetails = false;
+        }
+    }
+
+    function handleRowClick(row: SidebarRowData) {
+        activeSidebarItem = row; // Visually mark as active in sidebar
+        if (row && row.campaign) {
+            fetchDetails(row.campaign); // Fetch full details for the main content
+        } else {
+            // Reset main content if row is invalid or deselected (if implementing deselection)
+            detailedContent = null;
+            isLoadingDetails = false;
+            detailError = null;
+        }
+	}
 </script>
 
 {#snippet sidebar()}

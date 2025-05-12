@@ -38,7 +38,6 @@
 	$inspect("detailedContent", detailedContent);
 	let isLoadingDetails = $state(false);
 	let detailError = $state<string | null>(null);
-
 	let activeSidebarItem = $state<SidebarRowData | null>(null);
 
     async function fetchDetails(path: string) {
@@ -164,8 +163,8 @@
 <Campaign
 	isLoading={isLoadingDetails}
 	error={detailError}
-	detailedContent={detailedContent}
-	activeSidebarItem={activeSidebarItem}
+	campaignFiles={detailedContent?.files}
+	activeCampaign={activeSidebarItem?.campaign}
 />
 {/snippet}
 

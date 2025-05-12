@@ -4,6 +4,7 @@ import { AWS_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, S3_BUCKET_NAME } 
 import type { Handle } from '@sveltejs/kit';
 import archiver from 'archiver'; // Library for creating zip archives
 import { PassThrough } from 'stream'; // Node.js stream utility
+import type { FileInfo } from '$lib/schema/s3';
 
 // --- S3 Configuration & Client Initialization ---
 
@@ -127,14 +128,6 @@ async function listObjectsInBucket(prefix: string): Promise<string[]> {
 		console.error(`S3 Util: Error listing objects with prefix ${prefix}:`, error);
 		throw error;
 	}
-}
-
-// The FileInfo interface
-interface FileInfo {
-    Key: string; // The full S3 object key
-    name: string; // The filename relative to its folder prefix
-    Size?: number; // File size in bytes (optional)
-    LastModified?: Date; // Last modified date (optional)
 }
 
 /** List common prefixes (folders) */

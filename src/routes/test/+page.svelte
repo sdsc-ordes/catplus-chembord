@@ -72,9 +72,9 @@
         if (activeSidebarItem?.position === row.position && detailedContent && !isLoadingDetails) {
             // Item already selected and details loaded, do nothing or allow re-fetch
              $inspect('Row already active, not re-fetching unless specified.');
-            return; 
+            return;
         }
-        
+
         activeSidebarItem = row;
         detailedContent = null; // Clear previous details immediately
         detailError = null;     // Clear previous errors
