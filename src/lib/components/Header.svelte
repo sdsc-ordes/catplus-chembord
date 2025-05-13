@@ -1,14 +1,18 @@
 <script lang="ts">
 	import { AppBar } from '@skeletonlabs/skeleton-svelte';
-	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 	import Paperclip from '@lucide/svelte/icons/paperclip';
 	import Calendar from '@lucide/svelte/icons/calendar';
+	import Home from '@lucide/svelte/icons/home';
+	import Database from '@lucide/svelte/icons/database';
 	import CircleUser from '@lucide/svelte/icons/circle-user';
+	import Search from '@lucide/svelte/icons/search';
 </script>
 
-<AppBar>
+<AppBar classes="flex items-left">
 	{#snippet lead()}
-		<ArrowLeft size={24} />
+	    <a href="/" class="flex items-center mx-4 gap-x-2"><Home size={20} />Home</a>
+	    <a href="/search" class="flex items-center mx-4 gap-x-2"><Search size={20} />Search</a>
+		<a href="/batch" class="flex items-center mx-4 gap-x-2"><Database size={20} />Data</a>
 	{/snippet}
 	{#snippet trail()}
 		<Paperclip size={20} />

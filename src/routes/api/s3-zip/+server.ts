@@ -1,5 +1,3 @@
-// src/routes/api/s3-zip/+server.ts
-
 import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { getZipFileName } from '$lib/utils/zipFileName';
@@ -10,8 +8,6 @@ export const GET: RequestHandler = async ({ url, locals }) => {
 	if (!prefixToZip || typeof prefixToZip !== 'string') {
 		throw error(400, 'Missing or invalid "prefix" query parameter');
 	}
-
-	//console.log(`API Route: Requesting zip stream for prefix: ${prefixToZip}`);
 
 	try {
 		// Call the utility function from locals

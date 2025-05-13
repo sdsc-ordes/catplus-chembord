@@ -9,3 +9,18 @@ export function formatBytes(bytes: number | undefined | null, decimals = 2): str
 export function formatDate(date: Date | undefined | null): string {
     if (!date) return 'N/A'; if (date instanceof Date && !isNaN(date.getTime())) { return date.toLocaleString(); } return 'Invalid Date';
 }
+
+function formatToReadableCEST(date: Date): string {
+    const options: Intl.DateTimeFormatOptions = {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true,
+        timeZone: 'Europe/Paris',
+        timeZoneName: 'short'
+    };
+    return date.toLocaleString('en-US', options);
+}

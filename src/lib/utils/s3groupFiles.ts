@@ -1,33 +1,15 @@
-import type { _Object } from '@aws-sdk/client-s3'; // Import the S3 Object type
-
-/**
- * Represents a file with its full S3 key, relative name, size, and last modified date.
- */
-interface FileInfo {
-	Key: string; // The full S3 object key
-	name: string; // The filename relative to its folder prefix
-	Size?: number; // File size in bytes (optional)
-	LastModified?: Date; // Last modified date (optional)
-}
-
-/**
- * Represents a folder prefix and the list of files directly under it.
- */
-interface FolderGroup {
-	prefix: string; // The calculated folder prefix (e.g., 'batch/2024/05/16/24/') or '' for root
-	files: FileInfo[]; // Array of files within this folder
-}
-
+import type { _Object } from '@aws-sdk/client-s3';
+import type { S3FileInfo, S3FolderGroup } from '$lib/schema/s3';
 
 /**
  * Groups a flat list of S3 objects into folders based on their calculated directory prefix.
  *
  * @param allS3Objects - An array of S3 _Object items from ListObjectsV2Command response.Contents.
- * @returns An array of FolderGroup objects, sorted by prefix.
+ * @returns An array of S3FolderGroup objects, sorted by prefix.
  */
-export function groupFilesByCalculatedPrefix(allS3Objects: _Object[]): FolderGroup[] {
+export function groupFilesByCalculatedPrefix(allS3Objects: _Object[]): S3FolderGroup[] {
 	// Use a Map to group files by their calculated prefix
-	const filesByPrefixMap = new Map<string, FileInfo[]>();
+	const filesByPrefixMap = new Map<string, S3FileInfo[]>();
 
 	for (const s3Object of allS3Objects) {
 		const fileKey = s3Object.Key; // Get the key from the object
@@ -66,7 +48,7 @@ export function groupFilesByCalculatedPrefix(allS3Objects: _Object[]): FolderGro
 	}
 
 	// Convert the map entries into the desired array structure
-	const result: FolderGroup[] = Array.from(filesByPrefixMap.entries()).map(([prefix, files]) => ({
+	const result: S3FolderGroup[] = Array.from(filesByPrefixMap.entries()).map(([prefix, files]) => ({
 		prefix: prefix,
 		files: files,
 	}));

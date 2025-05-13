@@ -1,72 +1,71 @@
 import type { PageServerLoad, Actions } from './$types';
-import { redirect, fail } from '@sveltejs/kit';
-import { mockPicklists, type mockPicklists, type SparqlResultRow, getMockSparqlResults} from '$lib/sparql/+server';
+import { redirect } from '@sveltejs/kit';
+import { mockPicklists, getMockSparqlResults } from '$lib/sparql/+server';
+import type { mockPicklists } from '$lib/sparql/+server';
 
-// Load function runs first, provides initial data and picklists
 export const load: PageServerLoad = async ({ url }) => {
-	// --- Extract initial filter values from URL ---
-	// Use getAll() for parameters that can have multiple values
+	// the load function picks up the search filters from the url and loads the data
 	const initialFilters = {
-		// Keep single value retrieval for single-value params if any
-		// prefix: url.searchParams.get('prefix') || '', // Example if you had a prefix filter
-
-		// Use getAll() for potentially multi-valued filters
-		campaignName: url.searchParams.getAll('campaign') || [], // Use key set by action ('campaign')
-		chemicalName: url.searchParams.getAll('chemical') || [], // Use key set by action ('chemical')
+		campaignName: url.searchParams.getAll('campaign') || [],
+		chemicalName: url.searchParams.getAll('chemical') || [],
 		smiles: url.searchParams.getAll('smiles') || [],
 		cas: url.searchParams.getAll('cas') || [],
 		reactionName: url.searchParams.getAll('reaction_name') || [],
 		reactionType: url.searchParams.getAll('reaction_type') || [],
 	};
-	// Note: `getAll()` returns an empty array `[]` if the parameter is not present,
-	// so the `|| []` fallback might be redundant but doesn't hurt.
-
-	//console.log('Load: Initial filters from URL:', initialFilters);
-
-	// Get initial results (pass the filters object to your query function)
-	// Ensure getMockSparqlResults (or your real query function) can handle
-	// filter values being arrays of strings.
+	// the query results are currently mocked and will later be received
+	// from a Qlever backend
 	const initialResults = getMockSparqlResults(initialFilters);
-
-	//console.log('Load: Providing initial results and picklists.');
 
 	// Return initial results, picklists, and the filters used for this load
 	return {
 		results: initialResults,
-		picklists: mockPicklists, // Pass the whole picklist object
-		initialFilters: initialFilters // Pass the filters read from the URL
+		picklists: mockPicklists,
+		initialFilters: initialFilters,
 	};
 };
 
 export const actions: Actions = {
-	// Assuming your form action is action="?/search"
+	// search picks up the filters from a form and reloads the search page with
+	// the selected filters
 	search: async ({ request, url }) => {
 		const formData = await request.formData();
-		console.log(formData);
 
-		// --- Use getAll() to retrieve all checked values for each category ---
-		const selectedChemicals = formData.getAll('selected_chemicals') as string[];
-		const selectedCampaignNames = formData.getAll('selected_campaign_names') as string[];
-		const selectedReactionTypes = formData.getAll('selected_reaction_types') as string[];
-		const selectedReactionNames = formData.getAll('selected_reaction_names') as string[];
-		const selectedCas = formData.getAll('selected_cas') as string[];
-		const selectedSmiles = formData.getAll('selected_smiles') as string[];
+		// --- Define mapping from form input name to URL parameter name ---
+		const filterMappings: Record<string, string> = {
+			selected_chemicals: 'chemical',
+			selected_campaign_names: 'campaign',
+			selected_reaction_types: 'reaction_type',
+			selected_reaction_names: 'reaction_name',
+			selected_cas: 'cas',
+			selected_smiles: 'smiles',
+		};
 
-		// --- Construct Redirect URL ---
-		// Create a URL object based on the current page's URL (path only, discarding old params)
-		const targetUrl = new URL(url.origin + url.pathname); // Start fresh with path
+		const targetUrl = new URL(url.origin + url.pathname);
 
-		// --- Append parameters for multi-value fields ---
-		selectedChemicals.forEach(value => targetUrl.searchParams.append('chemical', value));
-		selectedCampaignNames.forEach(value => targetUrl.searchParams.append('campaign', value));
-		selectedReactionTypes.forEach(value => targetUrl.searchParams.append('reaction_type', value));
-		selectedReactionNames.forEach(value => targetUrl.searchParams.append('reaction_name', value));
-		selectedCas.forEach(value => targetUrl.searchParams.append('cas', value));
-		selectedSmiles.forEach(value => targetUrl.searchParams.append('smiles', value));
+		for (const [formName, urlParamName] of Object.entries(filterMappings)) {
+			// Get potential values of the form data
+			const valuesFromForm = formData.getAll(formName);
+			let finalValues: string[] = [];
 
-		// --- Redirect ---
-		// Use status 303 (See Other) for POST -> GET redirect pattern
+			if (valuesFromForm.length === 1 && typeof valuesFromForm[0] === 'string' && valuesFromForm[0].includes(',')) {
+				console.warn(`Received comma-separated string for ${formName}. Splitting.`);
+				finalValues = valuesFromForm[0].split(',').map(s => s.trim()).filter(Boolean);
+			} else if (valuesFromForm.length > 0) {
+				finalValues = valuesFromForm.filter(v => typeof v === 'string') as string[];
+			}
+
+			// Append the processed values to the url as query parameters
+			if (finalValues.length > 0) {
+				finalValues.forEach(value => {
+					if (value) {
+						targetUrl.searchParams.append(urlParamName, value);
+					}
+				});
+			}
+		}
+
+		// Use status 303 for POST -> GET redirect pattern
 		throw redirect(303, targetUrl.toString());
 	}
-	// Add other actions if needed
 };

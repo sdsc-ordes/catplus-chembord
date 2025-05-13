@@ -4,6 +4,7 @@ import { AWS_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, S3_BUCKET_NAME } 
 import type { Handle } from '@sveltejs/kit';
 import archiver from 'archiver'; // Library for creating zip archives
 import { PassThrough } from 'stream'; // Node.js stream utility
+import type { S3FileInfo } from '$lib/schema/s3';
 
 // --- S3 Configuration & Client Initialization ---
 
@@ -57,8 +58,6 @@ async function createZipStreamForPrefix(prefix: string): Promise<PassThrough> {
 		// Throw an error that the API route can catch and convert to a 404
 		throw new Error(`No files found under prefix: ${normalizedPrefix}`);
 	}
-	//console.log(`S3 Util (Zip Prefix): Found ${objectsToZip.length} objects to zip under ${normalizedPrefix}.`);
-
 
 	const archive = archiver('zip', {
 		zlib: { level: 9 }, // Set compression level
@@ -88,7 +87,6 @@ async function createZipStreamForPrefix(prefix: string): Promise<PassThrough> {
 				const relativePath = s3Object.Key.substring(normalizedPrefix.length);
 				// Only append if relativePath is not empty (don't add the folder itself)
 				if (relativePath) {
-					//console.log(`S3 Util (Zip Prefix): Appending ${relativePath} to archive...`);
 					archive.append(objectStream, { name: relativePath });
 				}
 			} catch (appendError) {
@@ -108,7 +106,6 @@ async function createZipStreamForPrefix(prefix: string): Promise<PassThrough> {
 
 	// Finalize the archive *after* initiating all appends
 	archive.finalize();
-	//console.log(`S3 Util (Zip Prefix): Archive finalized for prefix ${normalizedPrefix}.`);
 
 	// Return the stream that the archive is piping to
 	return passThrough;
@@ -120,8 +117,6 @@ async function listObjectsInBucket(prefix: string): Promise<string[]> {
 	const command = new ListObjectsV2Command({ Bucket: BUCKET, Prefix: prefix });
 	try {
 		const response = await s3Client.send(command);
-        //console.log("get list object in buckets");
-		//console.log("response", response.Contents);
 		return response.Contents?.map((item) => item.Key || '').filter(Boolean) as string[] || [];
 	} catch (error: any) {
 		console.error(`S3 Util: Error listing objects with prefix ${prefix}:`, error);
@@ -129,25 +124,16 @@ async function listObjectsInBucket(prefix: string): Promise<string[]> {
 	}
 }
 
-// The FileInfo interface
-interface FileInfo {
-    Key: string; // The full S3 object key
-    name: string; // The filename relative to its folder prefix
-    Size?: number; // File size in bytes (optional)
-    LastModified?: Date; // Last modified date (optional)
-}
-
 /** List common prefixes (folders) */
-async function listFilesInBucket(prefix: string): Promise<FileInfo[]> {
+async function listFilesInBucket(prefix: string): Promise<S3FileInfo[]> {
     const command = new ListObjectsV2Command({
         Bucket: BUCKET,
         Prefix: prefix,
     });
     try {
         const response = await s3Client.send(command);
-        //console.log("get list files in buckets");
 		const files = response.Contents?.map((item) => item.Key || '').filter(Boolean) as string[] || [];
-		const fileInfoList: FileInfo[] = (response.Contents || [])
+		const fileInfoList: S3FileInfo[] = (response.Contents || [])
 			.filter(s3Object => s3Object.Key)
 			.map(s3Object => {
 				// We know Key exists and is a string due to the filter above
@@ -157,7 +143,7 @@ async function listFilesInBucket(prefix: string): Promise<FileInfo[]> {
 				const relativeName = (lastSlashIndex === -1)
 					? fileKey // If no slash, the name is the whole key (root file)
 					: fileKey.substring(lastSlashIndex + 1); // Otherwise, get the part after the last slash
-				// Create the FileInfo object
+				// Create the S3FileInfo object
 				return {
 					Key: fileKey,
 					name: relativeName,
@@ -165,7 +151,6 @@ async function listFilesInBucket(prefix: string): Promise<FileInfo[]> {
 					LastModified: s3Object.LastModified // Directly map LastModified (assuming it's already a Date object)
 				};
 			});
-		//console.log("fileInfoList", fileInfoList);
 		return fileInfoList;
     } catch (error: any) {
         console.error(`S3 Util: Error listing files with prefix ${prefix}:`, error);
@@ -182,9 +167,6 @@ async function listFoldersInBucket(prefix: string): Promise<string[]> {
     });
     try {
         const response = await s3Client.send(command);
-        //console.log("get list folders in buckets");
-        // console.log("response", response);
-		// console.log(Object.keys(response));
         return response.CommonPrefixes?.map(commonPrefix => commonPrefix.Prefix).filter(Boolean) as string[] || [];
     } catch (error: any) {
         console.error(`S3 Util: Error listing folders with prefix ${prefix}:`, error);
@@ -197,9 +179,6 @@ async function listFoldersInBucket(prefix: string): Promise<string[]> {
 async function getPresignedDownloadUrl(key: string, expiresInSeconds = 300): Promise<string> {
 	const command = new GetObjectCommand({ Bucket: BUCKET, Key: key });
 	try {
-		//console.log(key);
-		const url = await getSignedUrl(s3Client, command, { expiresIn: expiresInSeconds });
-		//console.log(url);
 		return await getSignedUrl(s3Client, command, { expiresIn: expiresInSeconds });
 	} catch (error: any) {
 		console.error(`S3 Util: Error generating presigned download URL for ${key}:`, error);
