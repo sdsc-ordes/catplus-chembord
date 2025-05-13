@@ -14,13 +14,17 @@ export interface CampaignFileAccess {
 	name: string; // The filename relative to its folder prefix
 	Size: number; // File size in bytes (optional)
 	LastModified: Date; // Last modified date (optional)
-    presignedUrl: string;
+	presignedUrl: string;
 }
 
 /**
  * Campaign results from S3 filtering by prefix
  */
 export interface CampaignResult {
-    prefix: string;
-    date: string;
+	prefix: string;
+	date: string;
+}
+
+export interface ResultItemBase {
+	prefix: string;
 }

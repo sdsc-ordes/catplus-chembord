@@ -4,7 +4,7 @@
 	import Atom from '@lucide/svelte/icons/atom';
 	import FlaskConical from '@lucide/svelte/icons/flask-conical';
 	import TestTubes from '@lucide/svelte/icons/test-tubes';
-	import { campaignsPerPage} from '$lib/const/campaign';
+	import { ResultsPerPage} from '$lib/const/campaign';
 	import Search from '@lucide/svelte/icons/search';
 	import IconArrowLeft from '@lucide/svelte/icons/arrow-left';
 	import IconArrowRight from '@lucide/svelte/icons/arrow-right';
@@ -89,7 +89,7 @@
 	// Result table
 	const displayResults = $derived(form?.results ?? data.results ?? []);
 	let page = $state(1);
-	let size = campaignsPerPage;
+	let size = ResultsPerPage;
 
 	const tableHead = ['S3 Link', 'Campaign', 'Chemical', 'SMILES', 'CAS', 'Reaction', 'Type'];
 	const tableKeysInOrder = [
