@@ -111,10 +111,6 @@
 	};
 	const sourceData = $derived(mapSparqlResultsToTableBody(displayResults, tableKeysInOrder));
 	const slicedSourceData = $derived(sourceData.slice((page - 1) * size, page * size));
-	$inspect('sourceData', sourceData);
-	$inspect('slicedSourceData', slicedSourceData);
-	$inspect(data);
-
 	const slicedSource = $derived((s: SourceData[]) => s.slice((page - 1) * size, page * size));
 
 	// State for the fetched detailed data for the main content
@@ -183,11 +179,6 @@
 	action="?/search"
 	class="bg-secondary-100 mx-auto w-full max-w-md space-y-4 rounded"
 >
-	<div class="flex justify-start">
-		<button type="submit" class="btn preset-filled-primary-500 w-full">
-			<Search />Search
-		</button>
-	</div>
 	<Accordion {value} onValueChange={(e) => (value = e.value)} multiple>
 		{#each accordionItemsConfig as item}
 			<Accordion.Item
@@ -226,6 +217,11 @@
 			</Accordion.Item>
 		{/each}
 	</Accordion>
+	<div class="flex justify-start">
+		<button type="submit" class="btn preset-filled-primary-500 w-full">
+			<Search />Apply Search Filter
+		</button>
+	</div>
 </form>
 {/snippet}
 

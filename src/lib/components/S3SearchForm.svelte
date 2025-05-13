@@ -1,5 +1,6 @@
 <script lang="ts">
-	 let {
+	import Database from '@lucide/svelte/icons/database';
+	let {
         prefix = "batch/"
     }: {
         prefix: string;
@@ -14,8 +15,8 @@
 			<input name="prefix" class="input" type="string" value={prefix} required />
 		</label>
 		<div class="flex justify-start">
-			<button type="submit" class="btn preset-filled-primary-500">
-				<span>Apply Filter</span>
+			<button type="submit" class="btn preset-filled-primary-500 w-full">
+				<Database />Apply Path Filter
 			</button>
 		</div>
 	</form>
