@@ -10,7 +10,7 @@
 	import Campaign from '$lib/components/Campaign.svelte';
 	import { campaignsPerPage} from '$lib/const/campaign';
 	import { extractDateFromPath } from '$lib/utils/displayFolder'
-	import { type S3FileInfo } from '$lib/schema/s3.js';
+	import type { S3FileInfo } from '$lib/schema/s3.js';
 	import { Pagination } from '@skeletonlabs/skeleton-svelte';
 	import S3SearchForm from '$lib/components/S3SearchForm.svelte';
 

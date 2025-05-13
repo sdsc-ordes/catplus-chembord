@@ -1,13 +1,13 @@
 import type { _Object } from '@aws-sdk/client-s3';
-import { type S3FileInfo } from '$lib/schema/s3.js';
+import { type S3FileInfo, S3FolderGroup } from '$lib/schema/s3.js';
 
 /**
  * Groups a flat list of S3 objects into folders based on their calculated directory prefix.
  *
  * @param allS3Objects - An array of S3 _Object items from ListObjectsV2Command response.Contents.
- * @returns An array of FolderGroup objects, sorted by prefix.
+ * @returns An array of S3FolderGroup objects, sorted by prefix.
  */
-export function groupFilesByCalculatedPrefix(allS3Objects: _Object[]): FolderGroup[] {
+export function groupFilesByCalculatedPrefix(allS3Objects: _Object[]): S3FolderGroup[] {
 	// Use a Map to group files by their calculated prefix
 	const filesByPrefixMap = new Map<string, S3FileInfo[]>();
 
@@ -48,7 +48,7 @@ export function groupFilesByCalculatedPrefix(allS3Objects: _Object[]): FolderGro
 	}
 
 	// Convert the map entries into the desired array structure
-	const result: FolderGroup[] = Array.from(filesByPrefixMap.entries()).map(([prefix, files]) => ({
+	const result: S3FolderGroup[] = Array.from(filesByPrefixMap.entries()).map(([prefix, files]) => ({
 		prefix: prefix,
 		files: files,
 	}));
