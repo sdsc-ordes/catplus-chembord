@@ -1,8 +1,8 @@
 import type { PageServerLoad, Actions } from '../$types';
 import { redirect } from '@sveltejs/kit';
 import { error } from '@sveltejs/kit';
-import { groupFilesByCalculatedPrefix } from '$lib/utils/s3groupFiles';
-import type { S3FolderGroup } from '$lib/schema/s3';
+import { getCampaigns } from '$lib/utils/s3CampaignPrefixes';
+import type { CampaignResult } from '$lib/schema/campaign';
 
 export const load: PageServerLoad = async ({ locals, url }) => {
 	const prefix = url.searchParams.get('prefix') || 'batch/';
@@ -10,12 +10,10 @@ export const load: PageServerLoad = async ({ locals, url }) => {
     try {
         // Access the S3 utilities from locals
 		const files = await locals.s3.listFiles(prefix);
-		let foldersWithFiles: S3FolderGroup[] = groupFilesByCalculatedPrefix(files);
+		let campaignResults: CampaignResult[] = getCampaigns(files);
 
         return {
-            foldersWithFiles: foldersWithFiles,
-            prefixQueried: prefix,
-            bucket: locals.s3.bucketName,
+            results: campaignResults,
         };
     } catch (err) {
         console.error("Error using S3 locals:", err);
