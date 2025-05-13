@@ -10,4 +10,4 @@ export const FileTableHeaders: FileTableColumns[] = [
     {title: "Download", widthInPercent: 10},
 ]
 
-export const campaignsPerPage: number = 4;
+export const ResultsPerPage: number = 4;

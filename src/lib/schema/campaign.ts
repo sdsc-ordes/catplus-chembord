@@ -16,3 +16,11 @@ export interface CampaignFileAccess {
 	LastModified: Date; // Last modified date (optional)
     presignedUrl: string;
 }
+
+/**
+ * Campaign results from S3 filtering by prefix
+ */
+export interface CampaignResult {
+    prefix: string;
+    date: string;
+}
