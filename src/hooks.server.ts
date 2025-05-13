@@ -4,7 +4,7 @@ import { AWS_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, S3_BUCKET_NAME } 
 import type { Handle } from '@sveltejs/kit';
 import archiver from 'archiver'; // Library for creating zip archives
 import { PassThrough } from 'stream'; // Node.js stream utility
-import type { FileInfo } from '$lib/schema/s3';
+import type { S3FileInfo } from '$lib/schema/s3';
 
 // --- S3 Configuration & Client Initialization ---
 
@@ -131,7 +131,7 @@ async function listObjectsInBucket(prefix: string): Promise<string[]> {
 }
 
 /** List common prefixes (folders) */
-async function listFilesInBucket(prefix: string): Promise<FileInfo[]> {
+async function listFilesInBucket(prefix: string): Promise<S3FileInfo[]> {
     const command = new ListObjectsV2Command({
         Bucket: BUCKET,
         Prefix: prefix,
@@ -140,7 +140,7 @@ async function listFilesInBucket(prefix: string): Promise<FileInfo[]> {
         const response = await s3Client.send(command);
         //console.log("get list files in buckets");
 		const files = response.Contents?.map((item) => item.Key || '').filter(Boolean) as string[] || [];
-		const fileInfoList: FileInfo[] = (response.Contents || [])
+		const fileInfoList: S3FileInfo[] = (response.Contents || [])
 			.filter(s3Object => s3Object.Key)
 			.map(s3Object => {
 				// We know Key exists and is a string due to the filter above
@@ -150,7 +150,7 @@ async function listFilesInBucket(prefix: string): Promise<FileInfo[]> {
 				const relativeName = (lastSlashIndex === -1)
 					? fileKey // If no slash, the name is the whole key (root file)
 					: fileKey.substring(lastSlashIndex + 1); // Otherwise, get the part after the last slash
-				// Create the FileInfo object
+				// Create the S3FileInfo object
 				return {
 					Key: fileKey,
 					name: relativeName,

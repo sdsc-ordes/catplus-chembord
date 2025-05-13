@@ -10,7 +10,7 @@
 	import Campaign from '$lib/components/Campaign.svelte';
 	import { campaignsPerPage} from '$lib/const/campaign';
 	import { extractDateFromPath } from '$lib/utils/displayFolder'
-	import { type FileInfo } from '$lib/schema/s3.js';
+	import { type S3FileInfo } from '$lib/schema/s3.js';
 	import { Pagination } from '@skeletonlabs/skeleton-svelte';
 	import S3SearchForm from '$lib/components/S3SearchForm.svelte';
 
@@ -32,7 +32,7 @@
 	const slicedSource = $derived((s: SourceData[]) => s.slice((page - 1) * size, page * size));
 
 	// State for the fetched detailed data for the main content
-	let detailedContent = $state<FileInfo[] | null>(null);
+	let detailedContent = $state<S3FileInfo[] | null>(null);
 	let isLoadingDetails = $state(false);
 	let detailError = $state<string | null>(null);
 	let activeSidebarItem = $state<SidebarRowData | null>(null);
@@ -48,7 +48,7 @@
                 const errorData = await response.json().catch(() => ({ message: `HTTP error! status: ${response.status}` }));
                 throw new Error(errorData.message || `Failed to fetch details. Status: ${response.status}`);
             }
-            const fetchedDetails: FileInfo[] = await response.json();
+            const fetchedDetails: S3FileInfo[] = await response.json();
             detailedContent = fetchedDetails;
         } catch (err: any) {
             console.error('Error fetching details:', err);

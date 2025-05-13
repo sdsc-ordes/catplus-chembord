@@ -1,16 +1,12 @@
 import { S3Client, GetObjectCommand, type _Object } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
-// Define the input object structure (can be the raw _Object or a subset)
-// Ensure it at least has the 'Key' property.
+// Define the input object structure
 interface S3FileObjectInput {
 	Key: string;
-	// Include other properties like Size, LastModified if they are present
-	// and you want to keep them in the output object.
 	Size?: number;
 	LastModified?: Date;
-	// Add any other properties from _Object you might have
-	[key: string]: any; // Allow other properties
+	[key: string]: any;
 }
 
 // Define the output object structure, adding the presignedUrl
@@ -36,11 +32,10 @@ export async function addPresignedUrlsToFiles(
 	expiresInSeconds = 300
 ): Promise<S3FileObjectWithUrl[]> {
 
+	// Return empty array if input is empty
 	if (!fileObjects || fileObjects.length === 0) {
-		return []; // Return empty array if input is empty
+		return [];
 	}
-
-	//console.log(`Generating pre-signed URLs for ${fileObjects.length} files...`);
 
 	// Use Promise.all to generate URLs concurrently for better performance
 	const filesWithUrlsPromises = fileObjects.map(async (file): Promise<S3FileObjectWithUrl> => {
@@ -58,7 +53,6 @@ export async function addPresignedUrlsToFiles(
 			const url = await getSignedUrl(s3Client, command, {
 				expiresIn: expiresInSeconds,
 			});
-            //console.log(url);
 			// Return a new object combining original properties and the URL
 			return {
 				...file,
@@ -76,6 +70,5 @@ export async function addPresignedUrlsToFiles(
 
 	// Wait for all promises to resolve
 	const results = await Promise.all(filesWithUrlsPromises);
-	//console.log('Finished generating pre-signed URLs.');
 	return results;
 }

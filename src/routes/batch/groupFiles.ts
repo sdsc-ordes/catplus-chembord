@@ -1,4 +1,5 @@
-import type { _Object } from '@aws-sdk/client-s3'; // Import the S3 Object type
+import type { _Object } from '@aws-sdk/client-s3';
+import { type S3FileInfo } from '$lib/schema/s3.js';
 
 /**
  * Groups a flat list of S3 objects into folders based on their calculated directory prefix.
@@ -8,7 +9,7 @@ import type { _Object } from '@aws-sdk/client-s3'; // Import the S3 Object type
  */
 export function groupFilesByCalculatedPrefix(allS3Objects: _Object[]): FolderGroup[] {
 	// Use a Map to group files by their calculated prefix
-	const filesByPrefixMap = new Map<string, FileInfo[]>();
+	const filesByPrefixMap = new Map<string, S3FileInfo[]>();
 
 	for (const s3Object of allS3Objects) {
 		const fileKey = s3Object.Key; // Get the key from the object
