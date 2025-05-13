@@ -1,21 +1,11 @@
 import type { PageServerLoad, Actions } from '../$types';
 import { redirect } from '@sveltejs/kit';
 import { error } from '@sveltejs/kit';
-import { groupFilesByCalculatedPrefix } from '$lib/utils/groupFiles';
+import { groupFilesByCalculatedPrefix } from '$lib/utils/s3groupFiles';
 import type { S3FolderGroup } from '$lib/schema/s3';
 
 export const load: PageServerLoad = async ({ locals, url }) => {
 	const prefix = url.searchParams.get('prefix') || 'batch/';
-
-	// Default is 0
-	const indexParamValue = url.searchParams.get('index');
-	const index = parseInt(indexParamValue, 10) || 0;
-
-    console.log("Prefix:", prefix);
-	console.log("Index:", index);
-	const path="batch/2024/05/16/27/"
-	const files = await locals.s3.listFiles(path);
-	console.log("*** files", files)
 
     try {
         // Access the S3 utilities from locals
@@ -37,7 +27,6 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 export const actions: Actions = {
 	filter: async ({ request, url }) => {
 		const formData = await request.formData();
-		console.log("============= form data", formData);
 		const prefix = formData.get('prefix') ||  'batch/';
 
 		// --- Construct Redirect URL ---
@@ -46,8 +35,6 @@ export const actions: Actions = {
 
 		// Set the desired search parameters
 		targetUrl.searchParams.set('prefix', prefix);
-
-		//console.log("Target URL for redirect:", targetUrl.toString());
 
 		// --- Redirect ---
 		// Use status 303 (See Other) for POST -> GET redirect pattern

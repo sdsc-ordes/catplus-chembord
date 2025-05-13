@@ -9,8 +9,6 @@ export const GET: RequestHandler = async ({ url, locals }) => {
 		throw error(400, 'Missing or invalid "prefix" query parameter');
 	}
 
-	//console.log(`API Route: Requesting zip stream for prefix: ${prefixToZip}`);
-
 	try {
 		// Call the utility function from locals
 		const zipStream = await locals.s3.createZipFile(prefixToZip);

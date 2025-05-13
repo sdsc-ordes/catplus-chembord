@@ -32,7 +32,6 @@ export interface SparqlResultRow {
 
 // Mock SPARQL data function (can be defined here or imported)
 export function getMockSparqlResults(filters?: Record<string, string>): SparqlResultRow[] {
-	//console.log('Load: Generating mock SPARQL results with filters:', filters);
 	// In a real scenario, use filters to query SPARQL endpoint
 	return [
 		{ s3link: { type: 'uri', value: 's3://batch/2024/05/16/25/' }, campaignName: { type: 'literal', value: 'Caffeine Synthesis Run 24' }, chemicalName: { type: 'literal', value: 'theobromine' }, smiles: { type: 'literal', value: 'COC1=CC=C(C=C1)C=O' }, cas: { type: 'literal', value: '83-67-0' }, reactionName: { type: 'literal', value: 'Caffeine synthesis' }, reactionType: { type: 'literal', value: 'N-methylation' } },

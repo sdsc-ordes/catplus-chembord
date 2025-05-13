@@ -13,11 +13,11 @@
 	import type { S3FileInfo } from '$lib/schema/s3.js';
 	import { Pagination } from '@skeletonlabs/skeleton-svelte';
 	import S3SearchForm from '$lib/components/S3SearchForm.svelte';
+	import type { SourceData } from '$lib/schema/batch.js';
 
+	// Get prefix from parameters
 	let prefix = routePage.url.searchParams.get('prefix') || 'batch/';
-	interface SourceData {
-		campaign: string;
-	}
+
 	let sourceData: SourceData[] = data.foldersWithFiles.map(folderElement => {
 		return { campaign: folderElement.prefix };
 	});
@@ -73,7 +73,6 @@
 	function handlePageChange(e: Event) {
 		page = e.page;
 		activeSidebarItem = slicedSource(sourceData)[0];
-		console.log("page change", e);
 		handleRowClick(activeSidebarItem);
 	}
 
@@ -83,7 +82,6 @@
             handleRowClick(firstItem); // Use your existing handler
         }
     });
-	$inspect(detailedContent)
 </script>
 
 {#snippet sidebar()}

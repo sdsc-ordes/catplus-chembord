@@ -30,7 +30,6 @@ export const actions: Actions = {
 	// the selected filters
 	search: async ({ request, url }) => {
 		const formData = await request.formData();
-		console.log("Received FormData:", formData);
 
 		// --- Define mapping from form input name to URL parameter name ---
 		const filterMappings: Record<string, string> = {
@@ -58,7 +57,6 @@ export const actions: Actions = {
 
 			// Append the processed values to the url as query parameters
 			if (finalValues.length > 0) {
-				console.log(`Appending ${finalValues.length} value(s) for ${urlParamName}`);
 				finalValues.forEach(value => {
 					if (value) {
 						targetUrl.searchParams.append(urlParamName, value);
@@ -66,7 +64,6 @@ export const actions: Actions = {
 				});
 			}
 		}
-		console.log("Target URL for redirect:", targetUrl.toString());
 
 		// Use status 303 for POST -> GET redirect pattern
 		throw redirect(303, targetUrl.toString());

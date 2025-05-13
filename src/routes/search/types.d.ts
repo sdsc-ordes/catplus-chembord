@@ -4,13 +4,6 @@ interface Props {
     results: SparqlBinding[]
 }
 
-// Interface for form selection
-export interface SelectionState {
-    selected: Set<string>;
-    display: string;
-    active: boolean;
-}
-
 // Filter categories
 export const FilterCategoryConstants = {
     CHEMICAL_NAME: 'chemicalName',

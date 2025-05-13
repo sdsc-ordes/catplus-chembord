@@ -16,8 +16,9 @@
 	import { type S3FileInfo } from '$lib/schema/s3.js';
 	import { Pagination } from '@skeletonlabs/skeleton-svelte';
 	import { mapSparqlResultsToTableBody } from '$lib/utils/mapSparqlResults';
-	import type { SelectionState, FilterCategory } from './types.d';
-	import { FilterCategoryConstants } from './types.d';
+	import type { FilterCategory } from './types.d';
+	import { FilterCategoryConstants } from '$lib/const/search';
+	import type { SelectionState } from '$lib/schema/search';
 	import { initializeCategoryState, toggleGenericSelection } from '$lib/utils/searchForm';
 
 	let { data, form } = $props();
@@ -125,7 +126,6 @@
         detailedContent = null;
         try {
             // Adjust the URL to your actual API endpoint structure
-			console.log("*** search", path)
 			const correctedPath = s3LinkToUrlPath(path)
             const response = await fetch(`/api/${correctedPath}`);
             if (!response.ok) {
@@ -143,9 +143,7 @@
     }
 
     function handleRowClick(row: string[]) {
-		console.log("**** clicked", row)
         activeResultItem = row[0]; // Visually mark as active in sidebar
-		console.log("++++ s3 link", row[0])
         if (row && row[0]) {
             fetchDetails(row[0]); // Fetch full details for the main content
         } else {
@@ -159,18 +157,15 @@
 	function handlePageChange(e: Event) {
 		page = e.page;
 		activeResultItem = slicedSourceData[0];
-		console.log("page change", e);
 		handleRowClick(activeResultItem);
 	}
 
     $effect(() => {
         if (sourceData.length > 0 && activeResultItem === null) {
             const firstItem: SourceData = sourceData[0];
-			console.log("first item", firstItem);
             handleRowClick(firstItem); // Use your existing handler
         }
     });
-	$inspect(detailedContent)
 </script>
 
 {#snippet sidebar()}
