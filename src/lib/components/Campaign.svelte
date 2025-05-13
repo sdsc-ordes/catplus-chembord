@@ -42,7 +42,7 @@
 			rel="noopener noreferrer"
 		>
 			<FolderDown />
-			<span>Download ZIP {getZipFileName(activeCampaign)}</span>
+			<span>Download ZIP {getZipFileName(title)}</span>
 		</a>
     </h1>
     </div>
