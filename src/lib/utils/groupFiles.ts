@@ -1,5 +1,5 @@
 import type { _Object } from '@aws-sdk/client-s3';
-import { type S3FileInfo, S3FolderGroup } from '$lib/schema/s3.js';
+import type { S3FileInfo, S3FolderGroup } from '$lib/schema/s3';
 
 /**
  * Groups a flat list of S3 objects into folders based on their calculated directory prefix.

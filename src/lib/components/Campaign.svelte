@@ -2,7 +2,8 @@
     import Archive from '@lucide/svelte/icons/archive';
     import FolderDown from '@lucide/svelte/icons/folder-down';
     import { formatBytes, formatDate} from '$lib/utils/displayFile';
-    import { FileTableHeaders, type CampaignFileAccess } from '$lib/schema/campaign';
+    import { type CampaignFileAccess } from '$lib/schema/campaign';
+    import { FileTableHeaders } from '$lib/const/campaign';
     import { getZipFileName } from '$lib/utils/zipFileName';
     let {
         isLoading = false,

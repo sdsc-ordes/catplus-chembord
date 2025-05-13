@@ -1,8 +1,7 @@
 import type { PageServerLoad, Actions } from '../$types';
-
 import { redirect } from '@sveltejs/kit';
 import { error } from '@sveltejs/kit';
-import { groupFilesByCalculatedPrefix } from './groupFiles';
+import { groupFilesByCalculatedPrefix } from '$lib/utils/groupFiles';
 import type { S3FolderGroup } from '$lib/schema/s3';
 
 export const load: PageServerLoad = async ({ locals, url }) => {
