@@ -9,3 +9,8 @@ export const FilterCategoryConstants = {
     REACTION_TYPE: 'reactionType',
     REACTION_NAME: 'reactionName',
 } as const;
+
+export const ResultTableHeaders: string[] = [
+    "Campaign Path", "Campaign Name", "Chemical Name", "Smiles",
+    "CAS", "Reaction Type", "Reaction Type",
+]

@@ -1,24 +1,4 @@
-export interface SparqlSearchResult {
-	prefix: string;
-	campaignName: string;
-	chemicalName: string;
-	smiles: string;
-	cas: string;
-	reactionName: string;
-	reactionType: string;
-}
-
-// Type for the flattened object
-export type FlatSparqlRow = { [key: string]: string };
-
-export interface SparqlBinding {
-    [key: string]: { // This is the SPARQL variable name, e.g., "s", "p", "o"
-        type: 'uri' | 'literal' | 'bnode';
-        value: string; // This is the actual value we want to extract
-        datatype?: string;
-        'xml:lang'?: string;
-    };
-}
+import type { SparqlBinding, FlatSparqlRow } from '$lib/schema/sparql'
 
 /**
  * Transforms a single SparqlBinding object into a "flat" object
@@ -36,21 +16,16 @@ export function flattenSparqlBinding(
     if (!binding || Object.keys(binding).length === 0) {
         return null;
     }
-
     return Object.fromEntries(
         Object.entries(binding).map(([key, valueDetails]) => [key, valueDetails.value])
     ) as FlatSparqlRow;
 }
 
-/**
- * Maps SPARQL JSON result bindings to a simple array of arrays for table display.
- * @param results - The array of binding objects from SPARQL JSON result.
- * @param keysInOrder - An array of strings representing the variable names in the desired column order.
- * @returns An array of arrays, where each inner array is a row of string values.
- */
-export function mapSparqlResultsToTableBody(results: SparqlBinding[], keysInOrder: string[]): string[][] {
-    if (!results) return [];
-    return results.map(row =>
-        keysInOrder.map(key => row[key]?.value ?? '') // Extract value safely
-    );
+export function s3LinkToPrefix(s3link: string): string {
+    // Example: 's3://batch/2024/05/16/28/' -> 'batch/2024/05/16/28/'
+    if (s3link && s3link.startsWith('s3://')) {
+        return s3link.substring(5); // Removes 's3://'
+    }
+     // Return an empty string if the input is invalid
+    return '';
 }

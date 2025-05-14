@@ -11,3 +11,5 @@ export const FileTableHeaders: FileTableColumns[] = [
 ]
 
 export const ResultsPerPage: number = 4;
+
+export const ResultTableHeaders: string[] = ["Campaign Path", "Date"]

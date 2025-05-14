@@ -11,8 +11,10 @@
 	import type { ResultItemBase } from '$lib/schema/campaign';
 
 	// get props from data loader
-	let { results,
-	 } = $props();
+	let {
+		results,
+		tableHeaders
+	} = $props();
     $inspect(results)
 
 	// Pagination of Campaigns
@@ -71,7 +73,6 @@
             handleRowClick(firstItem); // Use your existing handler
         }
     });
-	$inspect(results)
 </script>
 
 <div class="bg-tertiary-50 space-y-4 rounded p-4">
@@ -82,8 +83,9 @@
 		<table class="table table-fixed caption-bottom">
 			<thead>
 				<tr>
-					<th>Campaign Path</th>
-					<th>Date</th>
+					{#each tableHeaders as header}
+					<th>{header}</th>
+					{/each}
 				</tr>
 			</thead>
 			<tbody class="[&>tr]:hover:bg-tertiary-100">
