@@ -78,8 +78,8 @@
 	<h1 class="bg-tertiary-50 mb-4 p-4 text-2xl font-bold text-gray-800">
 		Results ({results.length})
 	</h1>
-	<div class="table-wrap bg-tertiary-50">
-		<table class="table table-fixed caption-bottom">
+	<div class="table-wrap bg-tertiary-50 overflow-x-auto rounded-lg shadow">
+		<table class="table caption-bottom">
 			<thead>
 				<tr>
 					{#each tableHeaders as header}
