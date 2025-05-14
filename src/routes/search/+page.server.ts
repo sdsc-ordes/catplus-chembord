@@ -2,6 +2,7 @@ import type { PageServerLoad, Actions } from './$types';
 import { redirect } from '@sveltejs/kit';
 import { mockPicklists, getMockSparqlResults } from '$lib/sparql/+server';
 import type { mockPicklists } from '$lib/sparql/+server';
+import { mapSparqlResultsToTableBody, flattenSparqlBinding, type FlatSparqlRow, type SparqlBinding } from '$lib/utils/mapSparqlResults';
 
 export const load: PageServerLoad = async ({ url }) => {
 	// the load function picks up the search filters from the url and loads the data
@@ -15,7 +16,12 @@ export const load: PageServerLoad = async ({ url }) => {
 	};
 	// the query results are currently mocked and will later be received
 	// from a Qlever backend
-	const initialResults = getMockSparqlResults(initialFilters);
+	const initialResults:SparqlBinding[] = getMockSparqlResults(initialFilters);
+	console.log(initialResults);
+	const results2 = initialResults
+		.map(singleBinding => flattenSparqlBinding(singleBinding))
+		.filter(item => item !== null) as FlatSparqlRow[];
+	console.log(results2);
 
 	// Return initial results, picklists, and the filters used for this load
 	return {

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { page as routePage } from '$app/state';
 	import ContentLayout from '$lib/components/ContentLayout.svelte';
-	import Results from '$lib/components/Results.svelte';
+	import SearchResults from '$lib/components/SearchResults.svelte';
 	import S3SearchForm from '$lib/components/S3SearchForm.svelte';
 	import type { CampaignResult } from '$lib/schema/campaign';
 
@@ -11,6 +11,7 @@
 	// get props from data loader
 	let { data } = $props();
 	const results: CampaignResult[] = data.results;
+	$inspect(results);
 </script>
 
 {#snippet sidebar()}
@@ -20,7 +21,7 @@
 {/snippet}
 
 {#snippet main()}
-<Results
+<SearchResults
     results={results}
 />
 {/snippet}

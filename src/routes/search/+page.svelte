@@ -20,7 +20,7 @@
 	import { FilterCategoryConstants } from '$lib/const/search';
 	import type { SelectionState } from '$lib/schema/search';
 	import { initializeCategoryState, toggleGenericSelection } from '$lib/utils/searchForm';
-
+	import SearchResults from '$lib/components/SearchResults.svelte';
 	let { data, form } = $props();
 
 	// Search form
@@ -111,6 +111,7 @@
 		reactionType: string
 	};
 	const sourceData = $derived(mapSparqlResultsToTableBody(displayResults, tableKeysInOrder));
+	//$inspect(sourceData);
 	const slicedSourceData = $derived(sourceData.slice((page - 1) * size, page * size));
 	const slicedSource = $derived((s: SourceData[]) => s.slice((page - 1) * size, page * size));
 
