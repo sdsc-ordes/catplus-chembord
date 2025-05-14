@@ -2,6 +2,8 @@ import type { PageServerLoad, Actions } from './$types';
 import { redirect } from '@sveltejs/kit';
 import { mockPicklists, getMockSparqlResults } from '$lib/sparql/+server';
 import type { mockPicklists } from '$lib/sparql/+server';
+import { flattenSparqlBinding, s3LinkToPrefix } from '$lib/utils/mapSparqlResults';
+import type { SparqlBinding, FlatSparqlRow, SparqlSearchResult } from '$lib/schema/sparql'
 
 export const load: PageServerLoad = async ({ url }) => {
 	// the load function picks up the search filters from the url and loads the data
@@ -15,11 +17,24 @@ export const load: PageServerLoad = async ({ url }) => {
 	};
 	// the query results are currently mocked and will later be received
 	// from a Qlever backend
-	const initialResults = getMockSparqlResults(initialFilters);
+	const initialResults:SparqlBinding[] = getMockSparqlResults(initialFilters);
+	console.log(initialResults);
+
+	const results = initialResults
+		.map(singleBinding => flattenSparqlBinding(singleBinding))
+		.filter((item): item is FlatSparqlRow => item !== null)
+		.map(item => {
+			const { s3link, ...restOfProperties } = item;
+			const newPrefix = s3LinkToPrefix(s3link);
+			return {
+				prefix: newPrefix,
+				...restOfProperties
+			};
+		});
 
 	// Return initial results, picklists, and the filters used for this load
 	return {
-		results: initialResults,
+		results: results,
 		picklists: mockPicklists,
 		initialFilters: initialFilters,
 	};

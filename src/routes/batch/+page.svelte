@@ -1,9 +1,10 @@
 <script lang="ts">
 	import { page as routePage } from '$app/state';
 	import ContentLayout from '$lib/components/ContentLayout.svelte';
-	import Results from '$lib/components/Results.svelte';
+	import DisplayResults from '$lib/components/DisplayResults.svelte';
 	import S3SearchForm from '$lib/components/S3SearchForm.svelte';
-	import type { CampaignResult } from '$lib/schema/campaign.js';
+	import type { CampaignResult } from '$lib/schema/campaign';
+	import { ResultTableHeaders } from '$lib/const/campaign';
 
 	// Get prefix from parameters
 	let prefix = routePage.url.searchParams.get('prefix') || 'batch/';
@@ -20,8 +21,9 @@
 {/snippet}
 
 {#snippet main()}
-<Results
+<DisplayResults
     results={results}
+	tableHeaders={ResultTableHeaders}
 />
 {/snippet}
 
