@@ -15,7 +15,6 @@
 		results,
 		tableHeaders
 	} = $props();
-    $inspect(results)
 
 	// Pagination of Campaigns
 	let page = $state(1);
