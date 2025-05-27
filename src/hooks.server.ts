@@ -1,6 +1,6 @@
 import { S3Client, GetObjectCommand, ListObjectsV2Command } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { AWS_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, S3_BUCKET_NAME } from '$env/static/private';
+import { AWS_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, S3_BUCKET_NAME, AWS_S3_ENDPOINT } from '$env/static/private';
 import type { Handle } from '@sveltejs/kit';
 import archiver from 'archiver'; // Library for creating zip archives
 import { PassThrough } from 'stream'; // Node.js stream utility
@@ -14,10 +14,20 @@ if (!AWS_REGION || !S3_BUCKET_NAME) {
 	throw new Error('Server configuration error: S3 settings missing.');
 }
 
+// Log if using custom endpoint
+if (AWS_S3_ENDPOINT) {
+	console.log(`HOOKS: Using custom S3 endpoint: ${AWS_S3_ENDPOINT}`);
+}
+
 // Instantiate the S3 Client (runs once when the server module loads)
 // Ensure credentials are secure (use IAM roles in production ideally)
 const s3Client = new S3Client({
 	region: AWS_REGION,
+	// Use custom endpoint if provided
+	...(AWS_S3_ENDPOINT ? { 
+		endpoint: AWS_S3_ENDPOINT,
+		forcePathStyle: true // Use path-style addressing for custom endpoints
+	} : {}),
 	// Avoid hardcoding credentials if possible. SDK will check env vars / IAM roles.
 	// Only include credentials here if absolutely necessary and other methods aren't viable.
     credentials: { // Only needed if NOT using env vars or IAM roles
