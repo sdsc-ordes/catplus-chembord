@@ -11,6 +11,10 @@ image:
   pullPolicy: 'Always'
 
 s3:
+  #@schema/desc "Name of existing secret containing all S3 configuration. If provided, fields below will be ignored."
+  #@schema/example "my-s3-credentials"
+  #@schema/nullable
+  existingSecret: ''
   region: 'us-east-1'
   #@schema/desc "Custom (non-AWS) S3 endpoint URL"
   #@schema/example "https://s3.custom-endpoint.example.com"
@@ -20,15 +24,27 @@ s3:
   accessKeyId: ''
   #@schema/nullable
   secretAccessKey: ''
-  #@schema/desc "Name of existing Kubernetes secret containing all S3 configuration (region, endpoint, bucket, and credentials)"
-  #@schema/example "my-s3-credentials"
-  #@schema/nullable
-  existingSecret: ''
 
 service:
   port: 80
 
 ingress:
+  #@schema/desc "Whether to create an Ingress resource"
+  enabled: true
   #@schema/desc "Hostname for the ingress"
   #@schema/example "chemboard.example.com"
   host: ''
+  #@schema/desc "Path prefix for the ingress rule"
+  path: '/'
+  #@schema/desc "Path type for the ingress rule (Exact, Prefix, or ImplementationSpecific)"
+  pathType: 'Prefix'
+  #@schema/desc "Ingress class name"
+  className: 'nginx'
+  #@schema/nullable
+  annotations: {}
+  tls:
+    #@schema/desc "Whether to enable TLS for the ingress"
+    enabled: true
+    #@schema/desc "Name of the TLS secret"
+    #@schema/nullable
+    secretName: ''
