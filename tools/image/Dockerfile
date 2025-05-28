@@ -1,6 +1,9 @@
 # Build stage
 FROM node:20-alpine AS build
 
+ENV NODE_ENV=production
+ENV PORT=3000
+
 # Install pnpm
 RUN npm install -g pnpm
 
@@ -15,13 +18,6 @@ RUN pnpm install
 
 # Copy the rest of the source code
 COPY . .
-
-# Create a placeholder .env file with dummy values for build time
-RUN echo "AWS_REGION=us-east-1" > .env && \
-    echo "AWS_ACCESS_KEY_ID=placeholder" >> .env && \
-    echo "AWS_SECRET_ACCESS_KEY=placeholder" >> .env && \
-    echo "S3_BUCKET_NAME=placeholder" >> .env && \
-    echo "AWS_S3_ENDPOINT=https://placeholder.example.com" >> .env
 
 # Build the application
 RUN pnpm build
@@ -40,10 +36,17 @@ COPY --from=build /app/node_modules ./node_modules
 # Expose the port the app will run on
 EXPOSE 3000
 
-# Environment variables
+# Application settings
 ENV NODE_ENV=production
 ENV PORT=3000
 ENV HOST=0.0.0.0
+
+# AWS/S3 Configuration - these can be overridden at runtime
+ENV AWS_REGION=""
+ENV AWS_ACCESS_KEY_ID=""
+ENV AWS_SECRET_ACCESS_KEY=""
+ENV S3_BUCKET_NAME=""
+ENV AWS_S3_ENDPOINT=""
 
 # Command to run the application
 CMD ["node", "build/index.js"]
