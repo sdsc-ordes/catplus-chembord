@@ -1,8 +1,8 @@
 set positional-arguments
 set shell := ["bash", "-cue"]
 root_dir := `git rev-parse --show-toplevel`
-ctr := env("CTR", "docker")
-version := env("VERSION", `git describe --tags --abbrev=0`)
+ctr := env("CTR", "podman")
+version := env("VERSION", "latest")
 image := "ghcr.io/sdsc-ordes/catplus-chemboard:" + version
 image_dir := root_dir + "/tools/image"
 
