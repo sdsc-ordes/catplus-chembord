@@ -16,6 +16,13 @@ RUN pnpm install
 # Copy the rest of the source code
 COPY . .
 
+# Create a placeholder .env file with dummy values for build time
+RUN echo "AWS_REGION=us-east-1" > .env && \
+    echo "AWS_ACCESS_KEY_ID=placeholder" >> .env && \
+    echo "AWS_SECRET_ACCESS_KEY=placeholder" >> .env && \
+    echo "S3_BUCKET_NAME=placeholder" >> .env && \
+    echo "AWS_S3_ENDPOINT=https://placeholder.example.com" >> .env
+
 # Build the application
 RUN pnpm build
 
