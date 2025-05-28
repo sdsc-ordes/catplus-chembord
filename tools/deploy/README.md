@@ -26,9 +26,38 @@ just manifests render | kubectl apply --dry-run=client -f-
 
 ## Configuration
 
-Edit `values.yaml` to configure:
+Define `values.yaml` for your deployment, for example:
 
-- Application name and namespace
-- Container image details
-- S3 storage settings
-- Ingress hostname
+```yaml
+#@ load("@ytt:data", "data")
+
+#@data/values
+---
+name: catplus-chemboard
+version: latest
+namespace: chemboard
+
+image:
+  repository: ghcr.io/sdsc-ordes/catplus-chemboard
+  tag: latest
+  pullPolicy: Always
+
+s3:
+  region: us-east-1
+  endpoint: https://s3.custom-endpoint.example.com
+  bucketName: catplus-chemboard-bucket
+  accessKeyId: ''
+  secretAccessKey: ''
+
+service:
+  port: 80
+
+ingress:
+  enabled: false
+```
+
+Then use ytt to render the manifests:
+
+```bash
+just manifests render -f values.yaml
+```

@@ -15,14 +15,12 @@ s3:
   #@schema/example "my-s3-credentials"
   #@schema/nullable
   existingSecret: ''
-  region: 'us-east-1'
+  region: ''
   #@schema/desc "Custom (non-AWS) S3 endpoint URL"
   #@schema/example "https://s3.custom-endpoint.example.com"
   endpoint: ''
   bucketName: ''
-  #@schema/nullable
   accessKeyId: ''
-  #@schema/nullable
   secretAccessKey: ''
 
 service:
