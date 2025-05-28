@@ -1,0 +1,88 @@
+#@ load("@ytt:data", "data")
+
+#@ def s3_secret_name():
+#@   if data.values.s3.existingSecret:
+#@     return data.values.s3.existingSecret
+#@   else:
+#@     return data.values.name + "-secrets"
+#@   end
+#@ end
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: #@ data.values.name
+  namespace: #@ data.values.namespace
+  labels:
+    app: #@ data.values.name
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: #@ data.values.name
+  template:
+    metadata:
+      labels:
+        app: #@ data.values.name
+    spec:
+      containers:
+      - name: #@ data.values.name
+        image: #@ data.values.image.repository + ":" + data.values.image.tag
+        imagePullPolicy: #@ data.values.image.pullPolicy
+        ports:
+        - containerPort: 3000
+          name: http
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: PORT
+          valueFrom:
+            configMapKeyRef:
+              name: #@ data.values.name + "-config"
+              key: PORT
+        - name: HOST
+          valueFrom:
+            configMapKeyRef:
+              name: #@ data.values.name + "-config"
+              key: HOST
+        - name: AWS_REGION
+          valueFrom:
+            configMapKeyRef:
+              name: #@ data.values.name + "-config"
+              key: AWS_REGION
+        - name: AWS_S3_ENDPOINT
+          valueFrom:
+            configMapKeyRef:
+              name: #@ data.values.name + "-config"
+              key: AWS_S3_ENDPOINT
+        - name: S3_BUCKET_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: #@ data.values.name + "-config"
+              key: S3_BUCKET_NAME
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: #@ s3_secret_name()
+              key: AWS_ACCESS_KEY_ID
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: #@ s3_secret_name()
+              key: AWS_SECRET_ACCESS_KEY
+
+        readinessProbe:
+          httpGet:
+            path: /
+            port: http
+          initialDelaySeconds: 10
+          periodSeconds: 5
+        livenessProbe:
+          httpGet:
+            path: /
+            port: http
+          initialDelaySeconds: 20
+          periodSeconds: 10
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000

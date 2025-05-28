@@ -1,0 +1,35 @@
+#@library/ref "@ytt:schema"
+
+#@schema/desc "Deployment schema for the CAT+ ChemBoard frontend"
+---
+name: 'catplus-chemboard'
+version: 'latest'
+namespace: 'chemboard'
+
+image:
+  repository: 'ghcr.io/sdsc-ordes/catplus-chemboard'
+  tag: 'latest'
+  pullPolicy: 'Always'
+
+s3:
+  region: 'us-east-1'
+  #@schema/desc "Custom (non-AWS) S3 endpoint URL"
+  #@schema/example "https://s3.custom-endpoint.example.com"
+  endpoint: ''
+  bucketName: ''
+  #@schema/nullable
+  accessKeyId: ''
+  #@schema/nullable
+  secretAccessKey: ''
+  #@schema/desc "Name of existing Kubernetes secret containing AWS credentials (if specified, accessKeyId and secretAccessKey are ignored)"
+  #@schema/example "my-s3-credentials"
+  #@schema/nullable
+  existingSecret: ''
+
+service:
+  port: 80
+
+ingress:
+  #@schema/desc "Hostname for the ingress"
+  #@schema/example "chemboard.example.com"
+  host: ''
