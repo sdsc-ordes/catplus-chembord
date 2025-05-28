@@ -1,0 +1,14 @@
+#@ load("@ytt:data", "data")
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: #@ data.values.name + "-config"
+  namespace: #@ data.values.namespace
+  labels:
+    app: #@ data.values.name
+data:
+  #! Application environment
+  NODE_ENV: 'production'
+  PORT: '3000'
+  HOST: '0.0.0.0'

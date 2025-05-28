@@ -1,0 +1,81 @@
+#@ load("@ytt:data", "data")
+#@ load("lib/common.star", "s3_secret_name")
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: #@ data.values.name
+  namespace: #@ data.values.namespace
+  labels:
+    app: #@ data.values.name
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: #@ data.values.name
+  template:
+    metadata:
+      labels:
+        app: #@ data.values.name
+    spec:
+      containers:
+      - name: #@ data.values.name
+        image: #@ data.values.image.repository + ":" + data.values.image.tag
+        imagePullPolicy: #@ data.values.image.pullPolicy
+        ports:
+        - containerPort: 3000
+          name: http
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: PORT
+          valueFrom:
+            configMapKeyRef:
+              name: #@ data.values.name + "-config"
+              key: PORT
+        - name: HOST
+          valueFrom:
+            configMapKeyRef:
+              name: #@ data.values.name + "-config"
+              key: HOST
+        - name: AWS_REGION
+          valueFrom:
+            secretKeyRef:
+              name: #@ s3_secret_name()
+              key: region
+        - name: AWS_S3_ENDPOINT
+          valueFrom:
+            secretKeyRef:
+              name: #@ s3_secret_name()
+              key: endpoint
+        - name: S3_BUCKET_NAME
+          valueFrom:
+            secretKeyRef:
+              name: #@ s3_secret_name()
+              key: bucketName
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: #@ s3_secret_name()
+              key: accessKeyId
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: #@ s3_secret_name()
+              key: secretAccessKey
+
+        readinessProbe:
+          httpGet:
+            path: /
+            port: http
+          initialDelaySeconds: 10
+          periodSeconds: 5
+        livenessProbe:
+          httpGet:
+            path: /
+            port: http
+          initialDelaySeconds: 20
+          periodSeconds: 10
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000

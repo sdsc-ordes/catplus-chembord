@@ -1,0 +1,51 @@
+# Node
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Build
+/build
+/.svelte-kit
+/.output
+/package
+
+# Version control
+.git
+.gitignore
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test and documentation
+/tests
+/docs
+/coverage
+*.md
+!README.md
+
+# Kubernetes manifests
+/k8s
+
+# CI/CD
+.github
+.gitlab
+.circleci
+
+# Misc
+*.log
+*.lock
+.npmrc
