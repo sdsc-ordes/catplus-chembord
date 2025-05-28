@@ -1,5 +1,4 @@
-#@library/ref "@ytt:schema"
-
+#@data/values-schema
 #@schema/desc "Deployment schema for the CAT+ ChemBoard frontend"
 ---
 name: 'catplus-chemboard'
