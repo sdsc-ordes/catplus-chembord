@@ -1,12 +1,5 @@
 #@ load("@ytt:data", "data")
-
-#@ def s3_secret_name():
-#@   if data.values.s3.existingSecret:
-#@     return data.values.s3.existingSecret
-#@   else:
-#@     return data.values.name + "-secrets"
-#@   end
-#@ end
+#@ load("lib/common.star", "s3_secret_name")
 
 apiVersion: apps/v1
 kind: Deployment
