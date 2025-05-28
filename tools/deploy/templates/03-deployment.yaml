@@ -40,18 +40,18 @@ spec:
               key: HOST
         - name: AWS_REGION
           valueFrom:
-            configMapKeyRef:
-              name: #@ data.values.name + "-config"
+            secretKeyRef:
+              name: #@ s3_secret_name()
               key: AWS_REGION
         - name: AWS_S3_ENDPOINT
           valueFrom:
-            configMapKeyRef:
-              name: #@ data.values.name + "-config"
+            secretKeyRef:
+              name: #@ s3_secret_name()
               key: AWS_S3_ENDPOINT
         - name: S3_BUCKET_NAME
           valueFrom:
-            configMapKeyRef:
-              name: #@ data.values.name + "-config"
+            secretKeyRef:
+              name: #@ s3_secret_name()
               key: S3_BUCKET_NAME
         - name: AWS_ACCESS_KEY_ID
           valueFrom:

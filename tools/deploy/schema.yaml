@@ -20,7 +20,7 @@ s3:
   accessKeyId: ''
   #@schema/nullable
   secretAccessKey: ''
-  #@schema/desc "Name of existing Kubernetes secret containing AWS credentials (if specified, accessKeyId and secretAccessKey are ignored)"
+  #@schema/desc "Name of existing Kubernetes secret containing all S3 configuration (region, endpoint, bucket, and credentials)"
   #@schema/example "my-s3-credentials"
   #@schema/nullable
   existingSecret: ''
