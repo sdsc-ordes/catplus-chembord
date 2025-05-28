@@ -42,27 +42,27 @@ spec:
           valueFrom:
             secretKeyRef:
               name: #@ s3_secret_name()
-              key: AWS_REGION
+              key: region
         - name: AWS_S3_ENDPOINT
           valueFrom:
             secretKeyRef:
               name: #@ s3_secret_name()
-              key: AWS_S3_ENDPOINT
+              key: endpoint
         - name: S3_BUCKET_NAME
           valueFrom:
             secretKeyRef:
               name: #@ s3_secret_name()
-              key: S3_BUCKET_NAME
+              key: bucketName
         - name: AWS_ACCESS_KEY_ID
           valueFrom:
             secretKeyRef:
               name: #@ s3_secret_name()
-              key: AWS_ACCESS_KEY_ID
+              key: accessKeyId
         - name: AWS_SECRET_ACCESS_KEY
           valueFrom:
             secretKeyRef:
               name: #@ s3_secret_name()
-              key: AWS_SECRET_ACCESS_KEY
+              key: secretAccessKey
 
         readinessProbe:
           httpGet:
