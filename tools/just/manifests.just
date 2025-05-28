@@ -10,12 +10,12 @@ default:
   just --list manifests --no-aliases
 
 # Render manifests
-render:
+render *args:
   cd "{{root_dir}}" && \
-    ytt -f {{deploy_dir}}/
+    ytt -f {{deploy_dir}}/ {{args}}
 
 alias apply := deploy
 # Apply manifests to the cluster.
-deploy:
+deploy *args:
   just manifests render \
-    | kubectl apply -f-
+    | kubectl apply -f- {{args}}
