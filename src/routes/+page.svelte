@@ -1,5 +1,6 @@
 <script lang="ts">
     import ContentLayout from '$lib/components/ContentLayout.svelte';
+    import { base } from '$app/paths';
 </script>
 
 {#snippet sidebar()}
@@ -26,9 +27,9 @@
 
 {#snippet main()}
 	<h1 class="mb-6 p-4 text-2xl font-bold text-gray-800">An automated Catalysis Lab</h1>
-	<h2 class="mb-6 p-4 text-xl font-bold"><a href="/batch" class="text-primary-500">Exlore the data</a></h2>
+	<h2 class="mb-6 p-4 text-xl font-bold"><a href="{base}/batch" class="text-primary-500">Exlore the data</a></h2>
 	<p>Explore the campaigns by year / month / day</p>
-	<h2 class="mb-6 p-4 text-xl font-bold"><a href="/search" class="text-primary-500">Search in the Campaigns</a></h2>
+	<h2 class="mb-6 p-4 text-xl font-bold"><a href="{base}/search" class="text-primary-500">Search in the Campaigns</a></h2>
 	<p>You can search Campaigns by a variety of search criteria:</p>
 	<ul class="mb-6 p-4 list-disc">
 		<li>Campaign Name</li>
