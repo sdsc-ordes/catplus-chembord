@@ -9,6 +9,7 @@
 	import type { S3FileInfo } from '$lib/schema/s3.js';
 	import { Pagination } from '@skeletonlabs/skeleton-svelte';
 	import type { ResultItemBase } from '$lib/schema/campaign';
+	import { base } from '$app/paths';
 
 	// get props from data loader
 	let {
@@ -33,7 +34,7 @@
         detailedContent = null;
         try {
             // Adjust the URL to your actual API endpoint structure
-            const response = await fetch(`/api/${path}`);
+            const response = await fetch(`${base}/api/${path}`);
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({ message: `HTTP error! status: ${response.status}` }));
                 throw new Error(errorData.message || `Failed to fetch details. Status: ${response.status}`);
