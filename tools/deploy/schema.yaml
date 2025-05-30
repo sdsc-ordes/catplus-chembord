@@ -39,6 +39,7 @@ ingress:
   #@schema/desc "Ingress class name"
   className: 'nginx'
   #@schema/nullable
+  #@schema/type any=True
   annotations: {}
   tls:
     #@schema/desc "Whether to enable TLS for the ingress"
