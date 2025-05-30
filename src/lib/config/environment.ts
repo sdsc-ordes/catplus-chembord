@@ -4,34 +4,22 @@
 
 import { dev } from '$app/environment';
 
-// Try to import from SvelteKit's env modules, with fallbacks for build time
-let awsRegion = '';
-let awsAccessKeyId = '';
-let awsSecretAccessKey = '';
-let s3BucketName = '';
-let awsS3Endpoint = '';
-
-// Dynamic import that won't fail during build
-try {
-  // This will only work at runtime
-  const { AWS_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, S3_BUCKET_NAME, AWS_S3_ENDPOINT } = 
-    process.env.NODE_ENV === 'production' 
-      ? process.env // In production, read directly from process.env
-      : await import('$env/dynamic/private'); // In dev, use SvelteKit's env system
-  
-  awsRegion = AWS_REGION || '';
-  awsAccessKeyId = AWS_ACCESS_KEY_ID || '';
-  awsSecretAccessKey = AWS_SECRET_ACCESS_KEY || '';
-  s3BucketName = S3_BUCKET_NAME || '';
-  awsS3Endpoint = AWS_S3_ENDPOINT || '';
-} catch (error) {
-  if (dev) {
-    console.warn('Running in build mode or environment variables not available:', error);
+// Simple environment variable loading that works in both dev and production
+function getEnvVar(name: string): string {
+  // In production builds, always use process.env
+  if (typeof process !== 'undefined' && process.env) {
+    return process.env[name] || '';
   }
-  // During build, we'll use empty strings, which will be replaced at runtime
+  return '';
 }
 
 // Export the environment variables
+const awsRegion = getEnvVar('AWS_REGION');
+const awsAccessKeyId = getEnvVar('AWS_ACCESS_KEY_ID');
+const awsSecretAccessKey = getEnvVar('AWS_SECRET_ACCESS_KEY');
+const s3BucketName = getEnvVar('S3_BUCKET_NAME');
+const awsS3Endpoint = getEnvVar('AWS_S3_ENDPOINT');
+
 export const AWS_REGION = awsRegion;
 export const AWS_ACCESS_KEY_ID = awsAccessKeyId;
 export const AWS_SECRET_ACCESS_KEY = awsSecretAccessKey;
