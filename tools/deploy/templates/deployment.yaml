@@ -38,6 +38,11 @@ spec:
             configMapKeyRef:
               name: #@ data.values.name + "-config"
               key: HOST
+        - name: BASE_PATH
+          valueFrom:
+            configMapKeyRef:
+              name: #@ data.values.name + "-config"
+              key: BASE_PATH
         - name: AWS_REGION
           valueFrom:
             secretKeyRef:
@@ -66,13 +71,13 @@ spec:
 
         readinessProbe:
           httpGet:
-            path: /
+            path: #@ data.values.app.basePath + "/"
             port: http
           initialDelaySeconds: 10
           periodSeconds: 5
         livenessProbe:
           httpGet:
-            path: /
+            path: #@ data.values.app.basePath + "/"
             port: http
           initialDelaySeconds: 20
           periodSeconds: 10

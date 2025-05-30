@@ -48,5 +48,8 @@ ENV AWS_SECRET_ACCESS_KEY=""
 ENV S3_BUCKET_NAME=""
 ENV AWS_S3_ENDPOINT=""
 
+# Base path for reverse proxy deployment (e.g., '/chemboard' for path-based routing)
+ENV BASE_PATH=""
+
 # Command to run the application
 CMD ["node", "build/index.js"]
