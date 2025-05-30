@@ -15,6 +15,8 @@ cp .env.example .env
 # Edit .env
 ```
 
+> NOTE: changing the BASE_PATH requires rebuilding the image
+
 Then let docker run the container with variables loaded from the env file:
 ```bash
 docker run -p 3000:3000 --env-file .env ghcr.io/sdsc-ordes/catplus-chemboard:latest

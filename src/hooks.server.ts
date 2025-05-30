@@ -18,6 +18,7 @@ try {
 }
 
 // Log configuration status
+console.log("HOOKS: BASE_PATH is set to:", process.env.BASE_PATH || '/');
 console.log(`HOOKS: S3 Configuration - Region: ${AWS_REGION}, Bucket: ${S3_BUCKET_NAME}`);
 console.log(`HOOKS: AWS credentials ${hasS3Credentials() ? 'PRESENT' : 'MISSING'}`);
 
@@ -25,6 +26,7 @@ console.log(`HOOKS: AWS credentials ${hasS3Credentials() ? 'PRESENT' : 'MISSING'
 if (AWS_S3_ENDPOINT) {
     console.log(`HOOKS: Using custom S3 endpoint: ${AWS_S3_ENDPOINT}`);
 }
+
 
 // Instantiate the S3 Client (runs once when the server module loads)
 const s3Client = new S3Client({
