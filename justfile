@@ -1,4 +1,5 @@
 set positional-arguments
+set dotenv-required
 set shell := ["bash", "-cue"]
 
 root_dir := `git rev-parse --show-toplevel`
@@ -13,6 +14,15 @@ alias fmt := format
 # Format the whole repository.
 format *args:
     treefmt {{args}}
+
+install:
+    pnpm install
+
+build: install
+    pnpm build
+
+run: build
+    node ./build/index.js
 
 alias dev := develop
 # Enter a Nix development shell.
