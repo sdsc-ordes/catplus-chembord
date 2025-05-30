@@ -26,6 +26,11 @@ s3:
 service:
   port: 80
 
+app:
+  #@schema/desc "Base path for reverse proxy deployment (e.g., '/chemboard' for path-based routing). Leave empty for root deployment."
+  #@schema/example "/chemboard"
+  basePath: ""
+
 ingress:
   #@schema/desc "Whether to create an Ingress resource"
   enabled: true

@@ -12,3 +12,4 @@ data:
   NODE_ENV: 'production'
   PORT: '3000'
   HOST: '0.0.0.0'
+  BASE_PATH: #@ data.values.app.basePath
