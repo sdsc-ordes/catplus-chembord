@@ -29,8 +29,7 @@ run *args: build
       -it \
       --rm \
       --env-file .env \
-      -p 8000:8000 \
-      -p 8501:8501 \
+      -p 3000:3000 \
       {{args}} \
       {{image}}
 

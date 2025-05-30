@@ -17,7 +17,7 @@ cp .env.example .env
 
 Then let docker run the container with variables loaded from the env file:
 ```bash
-docker run --env-file .env ghcr.io/sdsc-ordes/catplus-chemboard:latest
+docker run -p 3000:3000 --env-file .env ghcr.io/sdsc-ordes/catplus-chemboard:latest
 ```
 
 ## Development Environment
