@@ -1,41 +1,66 @@
 # Catplus Chemboard
 
-[!WARNING]
- > This is a WIP repository, it is not yet stable.
-
 Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
 
-## Creating a project
 
-If you're seeing this, you've probably already done this step. Congrats!
+## Quickstart
 
-```bash
-# create a new project in the current directory
-npx sv create
+The easy way to run the project is to use docker.
 
-# create a new project in my-app
-npx sv create my-app
-```
-
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+First, define your .env file by copying the example:
 
 ```bash
-npm run dev
+cp .env.example .env
 
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+# Edit .env
 ```
 
-## Building
+Then let docker run the container with variables loaded from the env file:
+```bash
+docker run --env-file .env ghcr.io/sdsc-ordes/catplus-chemboard:latest
+```
 
-To create a production version of your app:
+## Development Environment
+
+### Pre-requisites
+
+The development setup requires the following:
+* nix 
+* just
+
+Additionally, we recommend using direnv to automatically activate the development environment when entering the project directory.
+
+### Setup
+
+### Usage
+
+Then use just to install, build and run the project:
 
 ```bash
-npm run build
+just install
+just build
+just run # this also installs and builds the project
 ```
 
-You can preview the production build with `npm run preview`.
+### Docker
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+The docker image can be built using `just image` subcommands:
+
+```bash
+just image build
+just image push # this also builds the image
+```
+
+### Kubernetes
+
+Manifests are defined in `tools/deploy`. The templates can be rendered with default values using:
+
+```bash
+just manifests render
+```
+
+And deployed with
+
+```bash
+just manifests deploy
+```
