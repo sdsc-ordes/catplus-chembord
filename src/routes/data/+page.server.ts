@@ -2,17 +2,17 @@ import type { Actions } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types'
 import { redirect } from '@sveltejs/kit';
 import { error } from '@sveltejs/kit';
-import { getCampaigns } from '$lib/utils/s3CampaignPrefixes';
-import { listFilesInBucket } from '$lib/server/s3';
+import { groupFilesByCampaign, type CampaignResult } from '$lib/utils/groupCampaigns';
+import { listFilesInBucket, type S3FileInfo } from '$lib/server/s3';
+
 
 export const load: PageServerLoad = async ({ locals, url }) => {
 	const prefix = url.searchParams.get('prefix') || 'batch/';
-	console.log("***** s3", prefix);
 
     try {
         // Access the S3 utilities from locals
-		const files = await listFilesInBucket(prefix);
-		let campaignResults: CampaignResult[] = getCampaigns(files);
+		const files: S3FileInfo[] = await listFilesInBucket(prefix);
+		let campaignResults: CampaignResult[] = groupFilesByCampaign(files);
 
         return {
             results: campaignResults,
@@ -22,7 +22,6 @@ export const load: PageServerLoad = async ({ locals, url }) => {
         throw error(500, "Failed to access S3 data");
     }
 };
-
 
 export const actions: Actions = {
 	filter: async ({ request, url }) => {

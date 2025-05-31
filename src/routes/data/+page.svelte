@@ -3,7 +3,7 @@
 	import ContentLayout from '$lib/components/ContentLayout.svelte';
 	import DisplayResults from '$lib/components/DisplayResults.svelte';
 	import S3SearchForm from '$lib/components/S3SearchForm.svelte';
-	import type { CampaignResult } from '$lib/types/campaign.js';
+	import type { CampaignResult } from '$lib/utils/groupCampaigns.js';
 
 	// Get prefix from parameters
 	let prefix = routePage.url.searchParams.get('prefix') || 'batch/';
