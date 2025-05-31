@@ -1,6 +1,7 @@
-import { S3Client } from '@aws-sdk/client-s3';
-import { AWS_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, S3_BUCKET_NAME, AWS_S3_ENDPOINT, validateS3Config, hasS3Credentials } from '$lib/server/environment';
+import { AWS_REGION, S3_BUCKET_NAME, AWS_S3_ENDPOINT, validateS3Config, hasS3Credentials } from '$lib/server/environment';
 import type { ServerInit } from '@sveltejs/kit';
+import type { Handle, HandleServerError, HandleClientError, HandleFetch } from '@sveltejs/kit';
+import { json } from '@sveltejs/kit';
 
 // init hook runs only once when the application starts
 export const init: ServerInit = async () => {
@@ -8,7 +9,7 @@ export const init: ServerInit = async () => {
 	// Validate essential configuration
 	try {
 		validateS3Config();
-	} catch (error) {
+	} catch (error: any) {
 		console.error(`HOOKS: ${error.message}`);
 		throw error;
 	}
@@ -24,3 +25,37 @@ export const init: ServerInit = async () => {
 	}
 };
 
+
+export const handle: Handle = async ({ event, resolve }) => {
+	// currently this is only logging requests
+	console.log("request", event.request.url)
+	const response = await resolve(event);
+	return response;
+};
+
+export const handleServerError: HandleServerError = async ({ error, event }) => {
+    console.log('Server Error occured for:', event.url.pathname, error);
+    return json(
+        {
+            message: 'An error occurred while processing your request.',
+            error: error instanceof Error ? error.message : String(error),
+        },
+    );
+};
+
+export const handleClientError: HandleClientError = async ({ error, event }) => {
+    console.log('Client Error occured for:', event.url.pathname, error);
+    return json(
+        {
+            message: 'An error occurred while processing your request.',
+            error: error instanceof Error ? error.message : String(error),
+        },
+    );
+};
+
+export const handleFetch: Handle = async ({ request, fetch }) => {
+	console.log('Fetch for:', request);
+	const url = request.url;
+	request = new Request(url,  request);
+	return fetch(request);
+};
