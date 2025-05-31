@@ -6,10 +6,16 @@
 	import IconLast from '@lucide/svelte/icons/chevron-right';
 	import Campaign from '$lib/components/Campaign.svelte';
 	import { ResultsPerPage} from '$lib/const/campaign';
-	import type { S3FileInfo } from '$lib/schema/s3.js';
+	import type { S3FileInfo } from '$lib/server/s3';
 	import { Pagination } from '@skeletonlabs/skeleton-svelte';
 	import type { ResultItemBase } from '$lib/schema/campaign';
 	import { base } from '$app/paths';
+
+
+	interface ResultItemBase {
+		prefix: string;
+	}
+
 
 	// get props from data loader
 	let {

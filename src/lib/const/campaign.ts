@@ -13,3 +13,12 @@ export const FileTableHeaders: FileTableColumns[] = [
 export const ResultsPerPage: number = 4;
 
 export const ResultTableHeaders: string[] = ["Campaign Path", "Date"]
+
+/**
+ * Interface for table columns of campaign file table
+ */
+export interface FileTableColumns {
+	title: string; // Column title
+	widthInPercent: number // Column width in percent
+}
+

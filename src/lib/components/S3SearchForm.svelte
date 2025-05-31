@@ -20,4 +20,12 @@
 			</button>
 		</div>
 	</form>
+	<ul>
+		<li>All Campaigns start with `batch`</li>
+		<li>Next comes the year as `YYYY`</li>
+		<li>the month as `MM`</li>
+		<li>the day `DD`</li>
+		<li>a number `NN`</li>
+	</ul>
+	<p>Example `batch/2024/05/16/22`</p>
 </div>

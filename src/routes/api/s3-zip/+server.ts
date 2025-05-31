@@ -1,6 +1,7 @@
 import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { getZipFileName } from '$lib/utils/zipFileName';
+import { createZipStreamForPrefix } from '$lib/server/s3';
 
 export const GET: RequestHandler = async ({ url, locals }) => {
 	const prefixToZip = url.searchParams.get('prefix');
@@ -11,13 +12,13 @@ export const GET: RequestHandler = async ({ url, locals }) => {
 
 	try {
 		// Call the utility function from locals
-		const zipStream = await locals.s3.createZipFile(prefixToZip);
+		const zipStream = await createZipStreamForPrefix(prefixToZip);
 
 		// Generate a filename for the download
 		const zipFileName = getZipFileName(prefixToZip);
 
 		// Return the stream directly in the Response
-		return new Response(zipStream as ReadableStream<any>, { // Cast stream type if necessary for Response constructor
+		return new Response(zipStream as ReadableStream<any>, {
 			status: 200,
 			headers: {
 				'Content-Type': 'application/zip',

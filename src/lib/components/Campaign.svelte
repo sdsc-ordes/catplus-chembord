@@ -2,7 +2,7 @@
     import Archive from '@lucide/svelte/icons/archive';
     import FolderDown from '@lucide/svelte/icons/folder-down';
     import { formatBytes, formatDate} from '$lib/utils/displayFile';
-    import { type CampaignFileAccess } from '$lib/schema/campaign';
+    import { type S3FileInfoWithUrl } from '$lib/server/s3';
     import { FileTableHeaders } from '$lib/const/campaign';
     import { getZipFileName } from '$lib/utils/zipFileName';
     let {
@@ -14,7 +14,7 @@
     }: {
         isLoading?: boolean;
         error?: string | null;
-        campaignFiles?: CampaignFileAccess[] | [];
+        campaignFiles?: S3FileInfoWithUrl[] | [];
         activeCampaign?: string | null;
         title: string | "";
     } = $props();
