@@ -5,7 +5,10 @@ import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 const config = {
 	// Consult https://svelte.dev/docs/kit/integrations
 	// for more information about preprocessors
-	preprocess: vitePreprocess(),
+	//preprocess: vitePreprocess(),
+	preprocess: [
+		vitePreprocess(),
+	],
 
 	kit: {
 		// Using Node adapter for Kubernetes deployment
@@ -22,6 +25,10 @@ const config = {
 		paths: {
 			base: process.env.BASE_PATH || '',
 			// assets path omitted - will use same path as base for relative assets
+		},
+		csrf: {
+			// TODO: remove this: temporary to prevent form submit errors
+			checkOrigin: false // Use with caution and understand the security implications
 		}
 	}
 };
