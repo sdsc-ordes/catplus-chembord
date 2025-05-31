@@ -27,17 +27,17 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 export const actions: Actions = {
 	filter: async ({ request, url }) => {
 		const formData = await request.formData();
-		const prefix = formData.get('prefix') ||  'batch/';
+		const prefix = formData.get('prefix') || 'batch/';
 
-		// --- Construct Redirect URL ---
 		// Create a URL object based on the current page's URL
 		const targetUrl = new URL(url);
-
-		// Set the desired search parameters
 		targetUrl.searchParams.set('prefix', prefix);
 
-		// --- Redirect ---
-		// Use status 303 (See Other) for POST -> GET redirect pattern
-		throw redirect(303, targetUrl.toString());
+		// TODO: this step should not be necessary
+		const redirectUrl = targetUrl.toString().replace("https", "http");
+		console.log("+++redirectUrl", redirectUrl);
+
+		// Use status 303 (See Other) for the redirect status code
+		throw redirect(303, redirectUrl);
 	}
 };
