@@ -1,13 +1,21 @@
-// Example in src/routes/some-route/+page.server.ts
-import { addPresignedUrlsToFiles } from '$lib/utils/addDownloadUrls';
-import type { RequestHandler } from '../../../$types';
+import { addPresignedUrlsToFiles } from '$lib/server/s3';
+import type { RequestHandler } from '@sveltejs/kit';
 import { json } from '@sveltejs/kit';
+import { listFilesInBucket } from '$lib/server/s3';
+import { error } from '@sveltejs/kit';
 
-export const GET: RequestHandler = async ({ params, locals }) => {
+export const GET: RequestHandler = async ({ params, request }) => {
     const path = `batch/${params.year}/${params.month}/${params.day}/${params.nr}/`
-    const files = await locals.s3.listFiles(path);
-    const fileWithDownloadUrls = await addPresignedUrlsToFiles(locals.s3.client, locals.s3.bucketName, files);
+    const files = await listFilesInBucket(path);
+    if (!files) {
+		error(404, {
+			message: 'Not found'
+		});
+	}
+    const fileWithDownloadUrls = await addPresignedUrlsToFiles(files);
     return json({
+        request: request,
+        params: params,
         files: fileWithDownloadUrls,
     });
 };

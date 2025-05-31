@@ -3,8 +3,7 @@
 	import ContentLayout from '$lib/components/ContentLayout.svelte';
 	import DisplayResults from '$lib/components/DisplayResults.svelte';
 	import S3SearchForm from '$lib/components/S3SearchForm.svelte';
-	import type { CampaignResult } from '$lib/schema/campaign';
-	import { ResultTableHeaders } from '$lib/const/campaign';
+	import type { CampaignResult } from '$lib/types/campaign.js';
 
 	// Get prefix from parameters
 	let prefix = routePage.url.searchParams.get('prefix') || 'batch/';
@@ -12,6 +11,9 @@
 	// get props from data loader
 	let { data } = $props();
 	const results: CampaignResult[] = data.results;
+
+	// Result Display
+	const HeadersS3Results: string[] = ["Campaign Path", "Date"]
 </script>
 
 {#snippet sidebar()}
@@ -23,7 +25,7 @@
 {#snippet main()}
 <DisplayResults
     results={results}
-	tableHeaders={ResultTableHeaders}
+	tableHeaders={HeadersS3Results}
 />
 {/snippet}
 

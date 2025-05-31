@@ -1,15 +1,17 @@
-import type { PageServerLoad, Actions } from '../$types';
+import type { Actions } from '@sveltejs/kit';
+import type { PageServerLoad } from './$types'
 import { redirect } from '@sveltejs/kit';
 import { error } from '@sveltejs/kit';
 import { getCampaigns } from '$lib/utils/s3CampaignPrefixes';
-import type { CampaignResult } from '$lib/schema/campaign';
+import { listFilesInBucket } from '$lib/server/s3';
 
 export const load: PageServerLoad = async ({ locals, url }) => {
 	const prefix = url.searchParams.get('prefix') || 'batch/';
+	console.log("***** s3", prefix);
 
     try {
         // Access the S3 utilities from locals
-		const files = await locals.s3.listFiles(prefix);
+		const files = await listFilesInBucket(prefix);
 		let campaignResults: CampaignResult[] = getCampaigns(files);
 
         return {
