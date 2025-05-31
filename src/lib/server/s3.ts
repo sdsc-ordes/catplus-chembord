@@ -3,11 +3,30 @@ import { S3_CLIENT, S3_BUCKET_NAME } from '$lib/server/environment';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import archiver from 'archiver'; // Library for creating zip archives
 import { PassThrough } from 'stream'; // Node.js stream utility
-import type { S3FileInfo } from '$lib/types/s3Search';
 
-// --- S3 Utility Functions (using the initialized client) ---
+/**
+ * S3 File Object Info
+ */
+export interface S3FileInfo {
+	Key: string; // The full S3 object key
+	name: string; // The filename relative to its folder prefix
+	Size?: number; // File size in bytes (optional)
+	LastModified?: Date; // Last modified date (optional)
+}
 
-/** Get an object's content stream */
+/**
+ * S3 File Info with a signed Url.
+ */
+interface S3FileInfoWithUrl extends S3FileInfo {
+	presignedUrl?: string;
+	presignedUrlError?: string;
+}
+
+/**
+ * Get Object Stream from S3 for a key in the predefined S3 bucket
+ * @param key - An S3 object key
+ * @returns A Promise resolving to a new array of file objects.
+ */
 async function getObjectStream(key: string): Promise<NodeJS.ReadableStream | undefined> {
     const command = new GetObjectCommand({ Bucket: S3_BUCKET_NAME, Key: key });
     try {
@@ -24,6 +43,7 @@ async function getObjectStream(key: string): Promise<NodeJS.ReadableStream | und
     }
 }
 
+// create a Zip stream for a s3 prefix
 export async function createZipStreamForPrefix(prefix: string): Promise<PassThrough> {
     // Ensure prefix ends with '/' for accurate relative path calculation and listing
     const normalizedPrefix = prefix.endsWith('/') ? prefix : `${prefix}/`;
@@ -88,20 +108,12 @@ export async function createZipStreamForPrefix(prefix: string): Promise<PassThro
     return passThrough;
 }
 
-
-/** List object keys in a bucket/prefix */
-export async function listObjectsInBucket(prefix: string): Promise<string[]> {
-    const command = new ListObjectsV2Command({ Bucket: S3_BUCKET_NAME, Prefix: prefix });
-    try {
-        const response = await S3_CLIENT.send(command);
-        return response.Contents?.map((item) => item.Key || '').filter(Boolean) as string[] || [];
-    } catch (error: any) {
-        console.error(`S3 Util: Error listing objects with prefix ${prefix}:`, error);
-        throw error;
-    }
-}
-
-/** List common prefixes (folders) */
+/**
+ * Takes an prefix returns a list of objects for that prefix in a predefined S3 bucket
+ *
+ * @param prefix - An array of objects, each must have at least a 'Key' property.
+ * @returns A Promise resolving to a new array of file objects.
+ */
 export async function listFilesInBucket(prefix: string): Promise<S3FileInfo[]> {
     const command = new ListObjectsV2Command({
         Bucket: S3_BUCKET_NAME,
@@ -135,51 +147,6 @@ export async function listFilesInBucket(prefix: string): Promise<S3FileInfo[]> {
     }
 }
 
-/** List common prefixes (folders) */
-export async function listFoldersInBucket(prefix: string): Promise<string[]> {
-    const command = new ListObjectsV2Command({
-        Bucket: S3_BUCKET_NAME,
-        Prefix: prefix,
-        Delimiter: '/',
-    });
-    try {
-        const response = await S3_CLIENT.send(command);
-        return response.CommonPrefixes?.map(commonPrefix => commonPrefix.Prefix).filter(Boolean) as string[] || [];
-    } catch (error: any) {
-        console.error(`S3 Util: Error listing folders with prefix ${prefix}:`, error);
-        throw error;
-    }
-}
-
-
-/** Generate a pre-signed URL for client-side GET (download) */
-export async function getPresignedDownloadUrl(key: string, expiresInSeconds = 300): Promise<string> {
-    const command = new GetObjectCommand({ Bucket: S3_BUCKET_NAME, Key: key });
-    try {
-        return await getSignedUrl(S3_CLIENT, command, { expiresIn: expiresInSeconds });
-    } catch (error: any) {
-        console.error(`S3 Util: Error generating presigned download URL for ${key}:`, error);
-        if (error.name === 'NoSuchKey') throw new Error('File not found');
-        throw error;
-    }
-}
-
-
-// Define the input object structure
-interface S3FileObjectInput {
-	Key: string;
-	Size?: number;
-	LastModified?: Date;
-	[key: string]: any;
-}
-
-// Define the output object structure, adding the presignedUrl
-interface S3FileObjectWithUrl extends S3FileObjectInput {
-	presignedUrl?: string; // The generated pre-signed URL (optional in case of error)
-	presignedUrlError?: string; // Optional field to indicate if URL generation failed
-}
-
-
 /**
  * Takes an array of S3 file objects and adds a pre-signed GET URL to each.
  *
@@ -188,9 +155,9 @@ interface S3FileObjectWithUrl extends S3FileObjectInput {
  * @returns A Promise resolving to a new array of file objects, each potentially augmented with a 'presignedUrl'.
  */
 export async function addPresignedUrlsToFiles(
-    fileObjects: S3FileObjectInput[],
+    fileObjects: S3FileInfo[],
     expiresInSeconds = 300
-): Promise<S3FileObjectWithUrl[]> {
+): Promise<S3FileInfoWithUrl[]> {
     // Return empty array if input is empty
     if (!fileObjects || fileObjects.length === 0) {
         return [];
