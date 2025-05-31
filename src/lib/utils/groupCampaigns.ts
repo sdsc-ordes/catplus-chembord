@@ -1,13 +1,20 @@
-import type { S3FileInfo } from '$lib/schema/s3.js';
-import type { CampaignResult } from '$lib/schema/campaign';
+import type { S3FileInfo } from '$lib/server/s3';
+
+/**
+ * An array of campaign prefixes and their derived data
+ */
+export interface CampaignResult {
+	prefix: string,
+	date: string,
+}
 
 /**
  * Extracts unique directory prefixes from a list of S3 files.
  *
- * @param allS3Objects - An array of S3 _Object items.
- * @returns A sorted array of unique string prefixes.
+ * @param s3Files - An array of S3 objects
+ * @returns A sorted array of unique campaign prefixes.
  */
-export function getCampaigns(s3Files: S3FileInfo[] | undefined): CampaignResult[] {
+export function groupFilesByCampaign(s3Files: S3FileInfo[] | undefined): CampaignResult[] {
     if (!s3Files) {
         return [];
     }
@@ -25,9 +32,8 @@ export function getCampaigns(s3Files: S3FileInfo[] | undefined): CampaignResult[
     return campaignResults;
 }
 
-
 /**
- * Extracts the folder path (prefix) from a full S3 key by removing the filename.
+ * Helper function: Extracts the folder path (prefix) from a full S3 key by removing the filename.
  * If the key represents a file at the root (no slashes), it returns an empty string,
  * representing the root "folder".
  * If the key already appears to be a folder path (ends with '/'), it returns it as is.
@@ -55,7 +61,7 @@ function getS3FolderPrefix(s3Key: string | null | undefined): string | null {
 }
 
 /**
- * Extracts a date in YYYY/MM/DD format from a path string.
+ * Helper function: Extracts a date in YYYY/MM/DD format from a path string.
  * Expects a path like "batch/YYYY/MM/DD/..."
  *
  * @param pathString The input string, e.g., "batch/2024/05/16/24/"
