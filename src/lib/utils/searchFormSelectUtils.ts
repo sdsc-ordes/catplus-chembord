@@ -1,20 +1,16 @@
-import type { SelectionState, FilterCategory } from '$lib/types/search'
+import type { FilterCategory } from '$lib/config/sparqlQueries'
 
 /**
- * Stores the selections in the Search Form
+ * Selection State of the Search Form
  */
 export interface SelectionState {
     selected: Set<string>;
-    display: string; // display the selections as a string
-    active: boolean; // indicator whether the selection category is active
+    display: string;
+    active: boolean;
 }
 
 /**
- * initializes the state of the Search Form
- *
- * @param data for the search filter category
- * @param categoryKey a search filter category
- * @returns categoryData: selection state entry for that category
+ * initializes the selection state of the Search Form
  */
 export function initializeCategoryState(categoryKey: FilterCategory, categoryData: string[]): SelectionState {
     const initialValues = categoryData ?? [];
@@ -24,12 +20,7 @@ export function initializeCategoryState(categoryKey: FilterCategory, categoryDat
     return { selected: initialSet, display: initialDisplay, active: initialActive };
 }
 
-/**
- * toggle generic selection
- *
- * @param data for the search filter category
- * @param categoryKey a search filter category
- * @returns categoryData: selection state entry for that category
+/** Toggles selection state on search form
  */
 export function toggleGenericSelection<T extends FilterCategory>(
     selectionsState: Record<T, SelectionState>,
