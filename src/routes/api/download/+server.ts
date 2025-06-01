@@ -4,18 +4,20 @@ import { getZipFileName } from '$lib/utils/zipFileName';
 import { createZipStreamForPrefix } from '$lib/server/s3';
 
 export const GET: RequestHandler = async ({ url, locals }) => {
-	const prefixToZip = url.searchParams.get('prefix');
+	const prefix = url.searchParams.get('prefix');
+	console.log(prefix);
+	console.log(url);
 
-	if (!prefixToZip || typeof prefixToZip !== 'string') {
+	if (!prefix || typeof prefix !== 'string') {
 		throw error(400, 'Missing or invalid "prefix" query parameter');
 	}
 
 	try {
 		// Call the utility function from locals
-		const zipStream = await createZipStreamForPrefix(prefixToZip);
+		const zipStream = await createZipStreamForPrefix(prefix);
 
 		// Generate a filename for the download
-		const zipFileName = getZipFileName(prefixToZip);
+		const zipFileName = getZipFileName(prefix);
 
 		// Return the stream directly in the Response
 		return new Response(zipStream as ReadableStream<any>, {
@@ -28,7 +30,7 @@ export const GET: RequestHandler = async ({ url, locals }) => {
 		});
 
 	} catch (err: any) {
-		console.error(`API Route: Error creating zip for prefix ${prefixToZip}:`, err);
+		console.error(`API Route: Error creating zip for prefix ${prefix}:`, err);
 		// Handle errors thrown by createZipFile (e.g., "No files found")
 		if (err.message?.includes('No files found')) {
 			 throw error(404, err.message);

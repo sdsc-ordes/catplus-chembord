@@ -1,7 +1,7 @@
 <script lang="ts">
     import Archive from '@lucide/svelte/icons/archive';
     import FolderDown from '@lucide/svelte/icons/folder-down';
-    import { formatBytes, formatDate} from '$lib/utils/displayFile';
+    import { formatBytes} from '$lib/utils/displayFile';
     import { type S3FileInfoWithUrl } from '$lib/server/s3';
     import { FileTableHeaders } from '$lib/const/campaign';
     import { getZipFileName } from '$lib/utils/zipFileName';
@@ -35,7 +35,7 @@
         <Archive />
         <span>{title}</span>
 		<a
-			href={`/api/s3-zip?prefix=${encodeURIComponent(title)}`}
+			href={`/api/download?prefix=${encodeURIComponent(title)}`}
 			class="btn btn-sm variant-outline-secondary hover:text-primary-500"
 			title="Download all files in this folder as ZIP"
 			download={getZipFileName(activeCampaign)}
