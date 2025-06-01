@@ -1,6 +1,15 @@
 import type { SelectionState, FilterCategory } from '$lib/types/search'
 
 /**
+ * Stores the selections in the Search Form
+ */
+export interface SelectionState {
+    selected: Set<string>;
+    display: string; // display the selections as a string
+    active: boolean; // indicator whether the selection category is active
+}
+
+/**
  * initializes the state of the Search Form
  *
  * @param data for the search filter category
