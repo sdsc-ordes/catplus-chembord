@@ -5,17 +5,14 @@
 	import IconFirst from '@lucide/svelte/icons/chevrons-left';
 	import IconLast from '@lucide/svelte/icons/chevron-right';
 	import Campaign from '$lib/components/Campaign.svelte';
-	import { ResultsPerPage} from '$lib/const/campaign';
+	import { RESULTS_PER_PAGE } from '$lib/config';
 	import type { S3FileInfo } from '$lib/server/s3';
 	import { Pagination } from '@skeletonlabs/skeleton-svelte';
-	import type { ResultItemBase } from '$lib/schema/campaign';
 	import { base } from '$app/paths';
-
 
 	interface ResultItemBase {
 		prefix: string;
 	}
-
 
 	// get props from data loader
 	let {
@@ -25,7 +22,7 @@
 
 	// Pagination of Campaigns
 	let page = $state(1);
-	let size = ResultsPerPage;
+	let size = RESULTS_PER_PAGE;
 	const slicedResults = $derived((r: ResultItemType[]) => r.slice((page - 1) * size, page * size));
 
 	// State for the fetched detailed data for the main content
