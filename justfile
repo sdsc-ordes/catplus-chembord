@@ -24,6 +24,9 @@ build: install
 run: build
     node ./build/index.js
 
+local:
+    pnpm dev
+
 alias dev := develop
 # Enter a Nix development shell.
 develop *args:
