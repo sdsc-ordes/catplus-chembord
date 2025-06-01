@@ -34,7 +34,7 @@ export const actions: Actions = {
 
 		// TODO: this step should not be necessary
 		const redirectUrl = targetUrl.toString().replace("https", "http");
-		console.log("+++redirectUrl", redirectUrl);
+		console.log("TODO: remove this step: redirectUrl", redirectUrl);
 
 		// Use status 303 (See Other) for the redirect status code
 		throw redirect(303, redirectUrl);
