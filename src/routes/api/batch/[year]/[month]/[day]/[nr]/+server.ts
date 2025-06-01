@@ -4,19 +4,14 @@ import { json } from '@sveltejs/kit';
 import { error } from '@sveltejs/kit';
 
 export const GET: RequestHandler = async ({ params, request }) => {
-    console.log("FETCH");
     const path = `batch/${params.year}/${params.month}/${params.day}/${params.nr}/`
-    console.log("Path to fetch files from:", path);
     const files = await listFilesInBucket(path);
-    console.log(!files);
     if (files.length === 0) {
         console.log("No files found for path:", path);
-        const errorMessage = `Campaign does not exist on S3 at path ${path}`;
-        console.log(errorMessage);
+        const errorMessage = `Campaign does not exist on S3 at p ${path}`;
 		throw error(404, {
             message: errorMessage} );
 	}
-    console.log("Files found:", files);
     const fileWithDownloadUrls = await addPresignedUrlsToFiles(files);
     return json({
         request: request.url,
