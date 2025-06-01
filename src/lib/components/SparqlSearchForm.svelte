@@ -6,8 +6,7 @@
 	import Search from '@lucide/svelte/icons/search';
 	import type { FilterCategory } from './types.d';
 	import { FilterCategoryConstants } from '$lib/const/search';
-	import type { SelectionState } from '$lib/schema/search';
-	import { initializeCategoryState, toggleGenericSelection } from '$lib/utils/searchForm';
+	import { initializeCategoryState, toggleGenericSelection, type SelectionState } from '$lib/utils/searchForm';
 	let { data } = $props();
 
 	// Search form
