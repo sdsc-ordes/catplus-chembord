@@ -3,7 +3,6 @@
     import FolderDown from '@lucide/svelte/icons/folder-down';
     import { formatBytes} from '$lib/utils/displayFile';
     import { type S3FileInfoWithUrl } from '$lib/server/s3';
-    import { FileTableHeaders } from '$lib/const/campaign';
     import { getZipFileName } from '$lib/utils/zipFileName';
     let {
         isLoading = false,
@@ -18,6 +17,18 @@
         activeCampaign?: string | null;
         title: string | "";
     } = $props();
+
+    interface FileTableColumns {
+        title: string; // Column title
+        widthInPercent: number // Column width in percent
+    }
+
+    const FileTableHeaders: FileTableColumns[] = [
+        {title: "File name", widthInPercent: 45},
+        {title: "Size", widthInPercent: 20},
+        {title: "Last modified", widthInPercent: 25},
+        {title: "Download", widthInPercent: 10},
+    ]
 </script>
 
 {#if isLoading}
