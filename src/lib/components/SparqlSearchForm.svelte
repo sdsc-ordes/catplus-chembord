@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { Accordion } from '@skeletonlabs/skeleton-svelte';;
+	import { Accordion } from '@skeletonlabs/skeleton-svelte';
+	import SelectFilter from '$lib/components/SelectFilter.svelte';
 	import {
 		type FilterCategory, FilterCategoriesSorted
 	} from '$lib/config';
@@ -106,22 +107,12 @@
 				<!-- Panel -->
 				{#snippet panel()}
 					{#each accordionItemsConfig[key].options as optionValue}
-						<label class="flex cursor-pointer items-center space-x-2">
-							<input
-								class="checkbox"
-								type="checkbox"
-								value={optionValue}
-								checked={selections[key].selected.has(optionValue)}
-								onchange={(e) =>
-									toggleGenericSelection(
-										selections,
-										key,
-										optionValue,
-										e.currentTarget.checked
-									)}
-							/>
-							<p class="break-words">{optionValue}</p>
-						</label>
+						<SelectFilter
+						    key={key}
+							optionValue={optionValue}
+							selections={selections}
+							toggleGenericSelection={toggleGenericSelection}
+						/>
 					{/each}
 				{/snippet}
 			</Accordion.Item>
