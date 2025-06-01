@@ -8,7 +8,7 @@ export const GET: RequestHandler = async ({ params, request }) => {
     const files = await listFilesInBucket(path);
     if (files.length === 0) {
         console.log("No files found for path:", path);
-        const errorMessage = `Campaign does not exist on S3 at p ${path}`;
+        const errorMessage = `Campaign does not exist on S3 at path: ${path}`;
 		throw error(404, {
             message: errorMessage} );
 	}
