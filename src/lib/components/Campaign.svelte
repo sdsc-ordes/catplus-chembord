@@ -35,7 +35,7 @@
         <Archive />
         <span>{title}</span>
 		<a
-			href={`/api/download?prefix=${encodeURIComponent(title)}`}
+			href={`/api/${activeCampaign}download`}
 			class="btn btn-sm variant-outline-secondary hover:text-primary-500"
 			title="Download all files in this folder as ZIP"
 			download={getZipFileName(activeCampaign)}
