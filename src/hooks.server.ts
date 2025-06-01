@@ -25,37 +25,10 @@ export const init: ServerInit = async () => {
 	}
 };
 
-
+// Logs every request
 export const handle: Handle = async ({ event, resolve }) => {
 	// currently this is only logging requests
-	console.log("request", event.request.url)
+	console.log("HANDLE request", event.request.url)
 	const response = await resolve(event);
 	return response;
-};
-
-export const handleServerError: HandleServerError = async ({ error, event }) => {
-    console.log('Server Error occured for:', event.url.pathname, error);
-    return json(
-        {
-            message: 'An error occurred while processing your request.',
-            error: error instanceof Error ? error.message : String(error),
-        },
-    );
-};
-
-export const handleClientError: HandleClientError = async ({ error, event }) => {
-    console.log('Client Error occured for:', event.url.pathname, error);
-    return json(
-        {
-            message: 'An error occurred while processing your request.',
-            error: error instanceof Error ? error.message : String(error),
-        },
-    );
-};
-
-export const handleFetch: Handle = async ({ request, fetch }) => {
-	console.log('Fetch for:', request);
-	const url = request.url;
-	request = new Request(url,  request);
-	return fetch(request);
 };
