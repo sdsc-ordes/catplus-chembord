@@ -1,7 +1,6 @@
-import { addPresignedUrlsToFiles } from '$lib/server/s3';
+import { addPresignedUrlsToFiles, listFilesInBucket } from '$lib/server/s3';
 import type { RequestHandler } from '@sveltejs/kit';
 import { json } from '@sveltejs/kit';
-import { listFilesInBucket } from '$lib/server/s3';
 import { error } from '@sveltejs/kit';
 
 export const GET: RequestHandler = async ({ params, request }) => {
@@ -14,7 +13,7 @@ export const GET: RequestHandler = async ({ params, request }) => {
 	}
     const fileWithDownloadUrls = await addPresignedUrlsToFiles(files);
     return json({
-        request: request,
+        request: request.url,
         params: params,
         files: fileWithDownloadUrls,
     });
