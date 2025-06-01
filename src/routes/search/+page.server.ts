@@ -17,7 +17,6 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 
     // Use Promise.all to fetch all select options in parallel
     const picklistPromises = Object.entries(SparqlFilterQueries).map(async ([optionName, query]) => {
-		console.log("%%%%%%%%% query", query)
 		const picklist = await getSearchOptionsList(
 			query);
         return {
