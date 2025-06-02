@@ -86,7 +86,7 @@
 </script>
 
 <form
-	method="GET"
+	method="POST"
 	action="?/search"
 	class="bg-secondary-100 mx-auto w-full max-w-md space-y-4 rounded"
 >
