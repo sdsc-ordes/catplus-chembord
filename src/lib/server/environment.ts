@@ -32,6 +32,13 @@ export function hasS3Credentials(): boolean {
   return Boolean(AWS_ACCESS_KEY_ID && AWS_SECRET_ACCESS_KEY);
 }
 
+export function validateQleverUrl(): boolean {
+  // Checks if the Qlever URL is set and valid
+  if (!QLEVER_URL) {
+    throw new Error('Missing required environment variable: QLEVER_URL');
+  }
+}
+
 export function validateS3Config(): void {
   if (!AWS_REGION) {
     throw new Error('Missing required environment variable: AWS_REGION');
