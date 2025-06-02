@@ -30,7 +30,6 @@ export const actions: Actions = {
 
 		// Create a URL object based on the current page's URL
 		const targetUrl = new URL(url.origin + url.pathname);
-		console.log("Target URL for filter action:", targetUrl.toString());
 		targetUrl.searchParams.set('prefix', prefix);
 
 		// Use status 303 (See Other) for the redirect status code
