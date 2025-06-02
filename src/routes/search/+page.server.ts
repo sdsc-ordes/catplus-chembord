@@ -85,7 +85,7 @@ export const actions: Actions = {
 			}
 		}
 
-		// Use status 303 for POST -> GET redirect pattern
+		// Use status 303 for GET redirect pattern
 		throw redirect(303, targetUrl.toString());
 	}
 };

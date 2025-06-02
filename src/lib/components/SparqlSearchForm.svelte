@@ -5,7 +5,7 @@
 	import {
 		type FilterCategory, FilterCategoriesSorted
 	} from '$lib/config';
-	import { Search, Atom } from '@lucide/svelte';
+	import { Search, Atom, X } from '@lucide/svelte';
 
 	interface Props {
 		picklists: Record<FilterCategory, string[]>;
@@ -74,10 +74,19 @@
 
 	// initially accordion is closed
 	let accordionValue = $state<string[]>([]);
+
+	/**
+	 * Resets the selected items for all categories to an empty array.
+	 */
+	function handleReset() {
+		for (const key of Object.keys(selectedItems)) {
+			selectedItems[key] = [];
+		}
+    }
 </script>
 
 <form
-	method="POST"
+	method="GET"
 	action="?/search"
 	class="bg-secondary-100 mx-auto w-full max-w-md space-y-4 rounded"
 >
@@ -111,6 +120,9 @@
 	<div class="flex justify-start">
 		<button type="submit" class="btn preset-filled-primary-500 w-full">
 			<Search />Apply Search Filter
+		</button>
+		<button type="submit" class="btn" onclick={handleReset}>
+			<X />Reset
 		</button>
 	</div>
 </form>
