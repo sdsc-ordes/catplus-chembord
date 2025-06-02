@@ -2,7 +2,6 @@
 // This file provides a consistent interface for environment variables
 // that works during both build time and runtime
 import { env as secrets } from '$env/dynamic/private' ;
-import { S3Client } from '@aws-sdk/client-s3';
 
 
 // Simple environment variable loading that works in both dev and production
@@ -23,23 +22,6 @@ export const AWS_SECRET_ACCESS_KEY = getEnvVar('AWS_SECRET_ACCESS_KEY');
 export const S3_BUCKET_NAME = getEnvVar('S3_BUCKET_NAME');
 export const AWS_S3_ENDPOINT = getEnvVar('AWS_S3_ENDPOINT');
 export const QLEVER_URL = getEnvVar('QLEVER_URL');
-
-// Setup S3 Client
-export const S3_CLIENT = new S3Client({
-  region: AWS_REGION,
-  // Use custom endpoint if provided
-  ...(AWS_S3_ENDPOINT ? {
-    endpoint: AWS_S3_ENDPOINT,
-    forcePathStyle: true // Use path-style addressing for custom endpoints
-  } : {}),
-  // Only include credentials if both key and secret are provided
-  ...(hasS3Credentials() ? {
-    credentials: {
-      accessKeyId: AWS_ACCESS_KEY_ID,
-      secretAccessKey: AWS_SECRET_ACCESS_KEY,
-    }
-  } : {})
-});
 
 // Helper functions for validation
 export function isS3Configured(): boolean {

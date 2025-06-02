@@ -1,5 +1,6 @@
-import { GetObjectCommand, ListObjectsV2Command } from '@aws-sdk/client-s3';
-import { S3_CLIENT, S3_BUCKET_NAME } from '$lib/server/environment';
+import { GetObjectCommand, ListObjectsV2Command, S3Client } from '@aws-sdk/client-s3';
+import { S3_BUCKET_NAME, AWS_REGION,
+    AWS_S3_ENDPOINT, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY } from '$lib/server/environment';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import archiver from 'archiver'; // Library for creating zip archives
 import { PassThrough } from 'stream'; // Node.js stream utility
@@ -30,7 +31,16 @@ interface S3FileInfoWithUrl extends S3FileInfo {
 async function getObjectStream(key: string): Promise<NodeJS.ReadableStream | undefined> {
     const command = new GetObjectCommand({ Bucket: S3_BUCKET_NAME, Key: key });
     try {
-        const response = await S3_CLIENT.send(command);
+        const s3Client = new S3Client({
+            region: AWS_REGION,
+            endpoint: AWS_S3_ENDPOINT,
+            forcePathStyle: true,
+            credentials: {
+                accessKeyId: AWS_ACCESS_KEY_ID,
+                secretAccessKey: AWS_SECRET_ACCESS_KEY,
+            }
+        });
+        const response = await s3Client.send(command);
         if (response.Body && typeof (response.Body as any).pipe === 'function') {
             return response.Body as NodeJS.ReadableStream;
         }
@@ -120,7 +130,16 @@ export async function listFilesInBucket(prefix: string): Promise<S3FileInfo[]> {
         Prefix: prefix,
     });
     try {
-        const response = await S3_CLIENT.send(command);
+        const s3Client = new S3Client({
+            region: AWS_REGION,
+            endpoint: AWS_S3_ENDPOINT,
+            forcePathStyle: true,
+            credentials: {
+                accessKeyId: AWS_ACCESS_KEY_ID,
+                secretAccessKey: AWS_SECRET_ACCESS_KEY,
+            }
+        });
+        const response = await s3Client.send(command);
         const files = response.Contents?.map((item) => item.Key || '').filter(Boolean) as string[] || [];
         const fileInfoList: S3FileInfo[] = (response.Contents || [])
             .filter(s3Object => s3Object.Key)
@@ -174,9 +193,18 @@ export async function addPresignedUrlsToFiles(
             Bucket: S3_BUCKET_NAME,
             Key: file.Key,
         });
+        const s3Client = new S3Client({
+            region: AWS_REGION,
+            endpoint: AWS_S3_ENDPOINT,
+            forcePathStyle: true,
+            credentials: {
+                accessKeyId: AWS_ACCESS_KEY_ID,
+                secretAccessKey: AWS_SECRET_ACCESS_KEY,
+            }
+        });
 
         try {
-            const url = await getSignedUrl(S3_CLIENT, command, {
+            const url = await getSignedUrl(s3Client, command, {
                 expiresIn: expiresInSeconds,
             });
             // Return a new object combining original properties and the URL
