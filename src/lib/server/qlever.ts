@@ -1,4 +1,4 @@
-import { QLEVER_URL } from '$env/static/private';
+import { QLEVER_URL } from '$lib/server/environment';
 import { parseCsvToObjects, parseTolist } from '$lib/utils/csvParser';
 
 /**
