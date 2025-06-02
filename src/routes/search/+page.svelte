@@ -15,12 +15,39 @@
 	const HeadersQleverResults: string[] = [
 		"Campaign Path", "Campaign Name", "Reaction Type", "Reaction Type", "Chemicals (Name, Cas, Smiles)"
 	]
+
+	interface LabelValueOption {
+		label: string;
+		value: string;
+	}
+
+	function transformArrayToLabelValue(stringArray: string[]): LabelValueOption[] {
+		return stringArray.map(item => ({
+			label: item,
+			value: item,
+		}));
+	}
+	const transformedCasNumbers = transformArrayToLabelValue(picklists.CAS || []);
+	const transformedReactionTypes = transformArrayToLabelValue(picklists.REACTION_TYPE || []);
+	const transformedChemicalNames = transformArrayToLabelValue(picklists.CHEMICAL_NAME || []);
+	const transformedCampaignNames = transformArrayToLabelValue(picklists.CAMPAIGN_NAME || []);
+	const transformedReactionNames = transformArrayToLabelValue(picklists.REACTION_NAME || []);
+	const transformedSmiles = transformArrayToLabelValue(picklists.SMILES || []);
+	const transformedPicklists: Record<FilterCategory, LabelValueOption[]> = {
+		CAS: transformedCasNumbers,
+		REACTION_TYPE: transformedReactionTypes,
+		CHEMICAL_NAME: transformedChemicalNames,
+		CAMPAIGN_NAME: transformedCampaignNames,
+		REACTION_NAME: transformedReactionNames,
+		SMILES: transformedSmiles
+	};
 </script>
 
 {#snippet sidebar()}
 <SparqlSearchForm
     picklists={picklists}
 	initialFilters={initialFilters}
+	transformedPicklists={transformedPicklists}
 />
 {/snippet}
 

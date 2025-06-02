@@ -1,25 +1,30 @@
 <script lang="ts">
+	import { selectedItems } from '$lib/shared.svelte';
 	import { Accordion } from '@skeletonlabs/skeleton-svelte';
-	import SelectFilter from '$lib/components/SelectFilter.svelte';
+	import SelectFilterCombox from '$lib/components/SelectFilterCombox.svelte';
 	import {
 		type FilterCategory, FilterCategoriesSorted
 	} from '$lib/config';
 	import { Search, Atom } from '@lucide/svelte';
-	import {
-		initializeCategoryState, toggleGenericSelection, type SelectionState
-	} from '$lib/utils/searchFormSelectUtils';
 
 	interface Props {
 		picklists: Record<FilterCategory, string[]>;
 		initialFilters: Record<FilterCategory, string[]>;
+		transformedPicklists?: Record<FilterCategory, { label: string; value: string }[]>;
 	};
-	let { picklists, initialFilters }: Props = $props();
+	let { picklists, initialFilters, transformedPicklists }: Props = $props();
 
 	// type used in the configuration of search filters
 	interface FilterDisplayConfig {
 		label: string,
 		nameAttr: string;
 	}
+
+	FilterCategoriesSorted.forEach(categoryKey => {
+		// Use the value from initialFilters if it exists for this categoryKey,
+		// otherwise default to an empty array.
+		selectedItems[categoryKey] = initialFilters[categoryKey] || [];
+	});
 
     // mapping of filter categories to lables and form attribute names
 	export const FilterDisplays: Record<FilterCategory, FilterDisplayConfig> = {
@@ -67,19 +72,8 @@
 		})
 	) as Record<FilterCategory, AccordionItemConfig>;
 
-	// set initial selections for each filter category
-	const initialSelectionsObject = Object.fromEntries(
-		FilterCategoriesSorted.map((categoryKey) => {
-			const categorySpecificInitialData = initialFilters?.[categoryKey] ?? [];
-			return [categoryKey, initializeCategoryState(categoryKey, categorySpecificInitialData)];
-		})
-	) as Record<FilterCategory, SelectionState>;
-
-	// set the selection state in the form for each filter category
-	let selections = $state<Record<FilterCategory, SelectionState>>(initialSelectionsObject);
-
 	// initially accordion is closed
-	let value = $state<string[]>([]);
+	let accordionValue = $state<string[]>([]);
 </script>
 
 <form
@@ -87,33 +81,29 @@
 	action="?/search"
 	class="bg-secondary-100 mx-auto w-full max-w-md space-y-4 rounded"
 >
-	<Accordion {value} onValueChange={(e) => (value = e.value)} multiple>
-		{#each FilterCategoriesSorted as key}
+	<Accordion {accordionValue} onValueChange={(e) => (accordionValue = e.value)} multiple>
+		{#each FilterCategoriesSorted as categoryKey}
 			<Accordion.Item
-				value={key}
+				value={categoryKey}
 				classes="text-sm"
-				controlClasses={selections[key].active ? 'bg-primary-50' : ''}
+				controlClasses={selectedItems[categoryKey] ? 'bg-primary-50' : ''}
 			>
-			    <p>{accordionItemsConfig[key].options}</p>
-				<!-- Control -->
 			{#snippet lead()}
 			<Atom size={24} /><input
 						class="hidden"
-						name={key}
-						value={selections[key].display}
+						name={categoryKey}
+						value={selectedItems[categoryKey] ? selectedItems[categoryKey].join(',') : ''}
 					/>
 			{/snippet}
-				{#snippet control()}{accordionItemsConfig[key].label}: {selections[key].display}{/snippet}
+				{#snippet control()}{accordionItemsConfig[categoryKey].label}: {selectedItems[categoryKey].join(',')}{/snippet}
 				<!-- Panel -->
 				{#snippet panel()}
-					{#each accordionItemsConfig[key].options as optionValue}
-						<SelectFilter
-						    key={key}
-							optionValue={optionValue}
-							selections={selections}
-							toggleGenericSelection={toggleGenericSelection}
-						/>
-					{/each}
+					<SelectFilterCombox
+					    options={accordionItemsConfig[categoryKey].options}
+						categoryKey={categoryKey}
+						selectedItems={selectedItems}
+						transformedPicklist={transformedPicklists?.[categoryKey]}
+				    />
 				{/snippet}
 			</Accordion.Item>
 		{/each}

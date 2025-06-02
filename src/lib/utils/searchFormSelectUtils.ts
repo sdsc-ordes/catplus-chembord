@@ -44,3 +44,25 @@ export function toggleGenericSelection<T extends FilterCategory>(
     selectionsState[category].display = selectedArray.length > 0 ? selectedArray.join(',') : '';
     selectionsState[category].active = updatedSet.size > 0;
 }
+
+/** Update Selections
+ */
+export function updateSelections<T extends FilterCategory>(
+    selectionsState: Record<T, SelectionState>,
+    category: T,
+    value: string,
+): void {
+    const currentCategoryState = selectionsState[category];
+    if (!currentCategoryState) {
+        console.warn(`Category "${category}" not found in selections state.`);
+        return;
+    }
+    const updatedSet = new Set(currentCategoryState.selected);
+    if (value) {
+        updatedSet.add(value);
+    }
+    selectionsState[category].selected = updatedSet;
+    const selectedArray = [...updatedSet];
+    selectionsState[category].display = selectedArray.length > 0 ? selectedArray.join(',') : '';
+    selectionsState[category].active = updatedSet.size > 0;
+}
