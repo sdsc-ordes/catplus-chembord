@@ -1,9 +1,8 @@
 <script lang="ts">
     import Archive from '@lucide/svelte/icons/archive';
     import FolderDown from '@lucide/svelte/icons/folder-down';
-    import { formatBytes, formatDate} from '$lib/utils/displayFile';
-    import { type CampaignFileAccess } from '$lib/schema/campaign';
-    import { FileTableHeaders } from '$lib/const/campaign';
+    import { formatBytes} from '$lib/utils/displayFile';
+    import { type S3FileInfoWithUrl } from '$lib/server/s3';
     import { getZipFileName } from '$lib/utils/zipFileName';
     let {
         isLoading = false,
@@ -14,10 +13,22 @@
     }: {
         isLoading?: boolean;
         error?: string | null;
-        campaignFiles?: CampaignFileAccess[] | [];
+        campaignFiles?: S3FileInfoWithUrl[] | [];
         activeCampaign?: string | null;
         title: string | "";
     } = $props();
+
+    interface FileTableColumns {
+        title: string; // Column title
+        widthInPercent: number // Column width in percent
+    }
+
+    const FileTableHeaders: FileTableColumns[] = [
+        {title: "File name", widthInPercent: 45},
+        {title: "Size", widthInPercent: 20},
+        {title: "Last modified", widthInPercent: 25},
+        {title: "Download", widthInPercent: 10},
+    ]
 </script>
 
 {#if isLoading}
@@ -35,7 +46,7 @@
         <Archive />
         <span>{title}</span>
 		<a
-			href={`/api/s3-zip?prefix=${encodeURIComponent(title)}`}
+			href={`/api/${activeCampaign}download`}
 			class="btn btn-sm variant-outline-secondary hover:text-primary-500"
 			title="Download all files in this folder as ZIP"
 			download={getZipFileName(activeCampaign)}

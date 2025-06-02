@@ -1,16 +1,18 @@
-import type { PageServerLoad, Actions } from '../$types';
+import type { Actions } from '@sveltejs/kit';
+import type { PageServerLoad } from './$types'
 import { redirect } from '@sveltejs/kit';
 import { error } from '@sveltejs/kit';
-import { getCampaigns } from '$lib/utils/s3CampaignPrefixes';
-import type { CampaignResult } from '$lib/schema/campaign';
+import { groupFilesByCampaign, type CampaignResult } from '$lib/utils/groupCampaigns';
+import { listFilesInBucket, type S3FileInfo } from '$lib/server/s3';
+
 
 export const load: PageServerLoad = async ({ locals, url }) => {
 	const prefix = url.searchParams.get('prefix') || 'batch/';
 
     try {
         // Access the S3 utilities from locals
-		const files = await locals.s3.listFiles(prefix);
-		let campaignResults: CampaignResult[] = getCampaigns(files);
+		const files: S3FileInfo[] = await listFilesInBucket(prefix);
+		let campaignResults: CampaignResult[] = groupFilesByCampaign(files);
 
         return {
             results: campaignResults,
@@ -21,21 +23,16 @@ export const load: PageServerLoad = async ({ locals, url }) => {
     }
 };
 
-
 export const actions: Actions = {
 	filter: async ({ request, url }) => {
 		const formData = await request.formData();
-		const prefix = formData.get('prefix') ||  'batch/';
+		const prefix = formData.get('prefix') || 'batch/';
 
-		// --- Construct Redirect URL ---
 		// Create a URL object based on the current page's URL
-		const targetUrl = new URL(url);
-
-		// Set the desired search parameters
+		const targetUrl = new URL(url.origin + url.pathname);
 		targetUrl.searchParams.set('prefix', prefix);
 
-		// --- Redirect ---
-		// Use status 303 (See Other) for POST -> GET redirect pattern
-		throw redirect(303, targetUrl.toString());
+		// Use status 303 (See Other) for the redirect status code
+		throw redirect(303, targetUrl);
 	}
 };

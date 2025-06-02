@@ -1,77 +1,92 @@
 <script lang="ts">
+	import { selectedItems } from '$lib/shared.svelte';
 	import { Accordion } from '@skeletonlabs/skeleton-svelte';
-	import Atom from '@lucide/svelte/icons/atom';
-	import FlaskConical from '@lucide/svelte/icons/flask-conical';
-	import TestTubes from '@lucide/svelte/icons/test-tubes';
-	import Search from '@lucide/svelte/icons/search';
-	import type { FilterCategory } from './types.d';
-	import { FilterCategoryConstants } from '$lib/const/search';
-	import type { SelectionState } from '$lib/schema/search';
-	import { initializeCategoryState, toggleGenericSelection } from '$lib/utils/searchForm';
-	let { data } = $props();
+	import SelectFilterCombox from '$lib/components/SelectFilterCombox.svelte';
+	import {
+		type FilterCategory, FilterCategoriesSorted
+	} from '$lib/config';
+	import { Search, Atom, X } from '@lucide/svelte';
 
-	// Search form
-	const accordionItemsConfig: {
-		value: FilterCategory;
-		label: string;
-		icon: typeof Atom;
-		list: string[];
+	interface Props {
+		picklists: Record<FilterCategory, string[]>;
+		initialFilters: Record<FilterCategory, string[]>;
+		transformedPicklists?: Record<FilterCategory, { label: string; value: string }[]>;
+	};
+	let { picklists, initialFilters, transformedPicklists }: Props = $props();
+
+	// type used in the configuration of search filters
+	interface FilterDisplayConfig {
+		label: string,
 		nameAttr: string;
-	}[] = $derived([
-		{
-			value: 'campaignName',
+	}
+
+	FilterCategoriesSorted.forEach(categoryKey => {
+		// Use the value from initialFilters if it exists for this categoryKey,
+		// otherwise default to an empty array.
+		selectedItems[categoryKey] = initialFilters[categoryKey] || [];
+	});
+
+    // mapping of filter categories to lables and form attribute names
+	export const FilterDisplays: Record<FilterCategory, FilterDisplayConfig> = {
+		CAMPAIGN_NAME: {
 			label: 'Campaign Name',
-			icon: TestTubes,
-			list: data.picklists?.campaignName ?? [],
-			nameAttr: 'selected_campaign_names'
+			nameAttr: 'campaign_name'
 		},
-		{
-			value: 'reactionType',
-			label: 'Reaction Type',
-			icon: FlaskConical,
-			list: data.picklists?.reactionType ?? [],
-			nameAttr: 'selected_reaction_types'
-		},
-		{
-			value: 'reactionName',
+		REACTION_NAME: {
 			label: 'Reaction Name',
-			icon: FlaskConical,
-			list: data.picklists?.reactionName ?? [],
-			nameAttr: 'selected_reaction_names'
+			nameAttr: 'reaction_name'
 		},
-		{
-			value: 'chemicalName',
+		REACTION_TYPE: {
+			label: 'Reaction Type',
+			nameAttr: 'reaction_type'
+		},
+		CHEMICAL_NAME: {
 			label: 'Chemical Name',
-			icon: Atom,
-			list: data.picklists?.chemicalName ?? [],
-			nameAttr: 'selected_chemicals'
+			nameAttr: 'chemical_name'
 		},
-		{
-			value: 'cas',
-			label: 'CAS Number',
-			icon: Atom,
-			list: data.picklists?.cas ?? [],
-			nameAttr: 'selected_cas'
+		CAS: {
+			label: 'Cas',
+			nameAttr: 'cas'
 		},
-		{
-			value: 'smiles',
-			label: 'SMILES',
-			icon: Atom,
-			list: data.picklists?.smiles ?? [],
-			nameAttr: 'selected_smiles'
+		SMILES: {
+			label: 'Smiles',
+			nameAttr: 'smiles'
+		},
+		DEVICES: {
+		 	label: 'Devices',
+		 	nameAttr: 'devices'
 		}
-	]);
+	}
 
-	const allCategories = Object.values(FilterCategoryConstants);
-	const initialSelectionsObject = Object.fromEntries(
-		allCategories.map((categoryKey) => {
-			const categorySpecificInitialData = data.initialFilters?.[categoryKey] ?? [];
-			return [categoryKey, initializeCategoryState(categoryKey, categorySpecificInitialData)];
+	// type of the accordion search form
+	interface AccordionItemConfig extends FilterDisplayConfig {
+		options: string[];
+	}
+
+	// merge accordion with picklists that were retrieved from Qlever per FilterCategory
+	const accordionItemsConfig = Object.fromEntries(
+		FilterCategoriesSorted.map((categoryKey) => {
+			const categorySpecificPicklist = picklists?.[categoryKey] ?? [];
+			const itemConfig: AccordionItemConfig = {
+				label: FilterDisplays[categoryKey].label,
+				nameAttr: FilterDisplays[categoryKey].nameAttr,
+				options: categorySpecificPicklist,
+			};
+			return [categoryKey, itemConfig];
 		})
-	) as Record<FilterCategory, SelectionState>;
-	let selections = $state<Record<FilterCategory, SelectionState>>(initialSelectionsObject);
+	) as Record<FilterCategory, AccordionItemConfig>;
 
-	let value = $state<string[]>([]);
+	// initially accordion is closed
+	let accordionValue = $state<string[]>([]);
+
+	/**
+	 * Resets the selected items for all categories to an empty array.
+	 */
+	function handleReset() {
+		for (const key of Object.keys(selectedItems)) {
+			selectedItems[key] = [];
+		}
+    }
 </script>
 
 <form
@@ -79,40 +94,29 @@
 	action="?/search"
 	class="bg-secondary-100 mx-auto w-full max-w-md space-y-4 rounded"
 >
-	<Accordion {value} onValueChange={(e) => (value = e.value)} multiple>
-		{#each accordionItemsConfig as item}
+	<Accordion {accordionValue} onValueChange={(e) => (accordionValue = e.value)} multiple>
+		{#each FilterCategoriesSorted as categoryKey}
 			<Accordion.Item
-				value={item.value}
-				classes="text-sm"
-				controlClasses={selections[item.value].active ? 'bg-primary-50' : ''}
+				value={categoryKey}
+				classes="text-xs text-wrap"
+				controlClasses={selectedItems[categoryKey] ? 'bg-primary-50' : ''}
 			>
-				<!-- Control -->
-				{#snippet lead()}<item.icon size={24} /><input
+			{#snippet lead()}
+			<Atom size={24} /><input
 						class="hidden"
-						name={item.nameAttr}
-						value={selections[item.value].display}
-					/>{/snippet}
-				{#snippet control()}{item.label}: {selections[item.value].display}{/snippet}
+						name={categoryKey}
+						value={selectedItems[categoryKey] ? selectedItems[categoryKey].join(',') : ''}
+					/>
+			{/snippet}
+				{#snippet control()}{accordionItemsConfig[categoryKey].label}: {selectedItems[categoryKey].join(',')}{/snippet}
 				<!-- Panel -->
 				{#snippet panel()}
-					{#each item.list as optionValue (optionValue)}
-						<label class="flex cursor-pointer items-center space-x-2">
-							<input
-								class="checkbox"
-								type="checkbox"
-								value={optionValue}
-								checked={selections[item.value].selected.has(optionValue)}
-								onchange={(e) =>
-									toggleGenericSelection(
-										selections,
-										item.value,
-										optionValue,
-										e.currentTarget.checked
-									)}
-							/>
-							<p class="break-words">{optionValue}</p>
-						</label>
-					{/each}
+					<SelectFilterCombox
+					    options={accordionItemsConfig[categoryKey].options}
+						categoryKey={categoryKey}
+						selectedItems={selectedItems}
+						transformedPicklist={transformedPicklists?.[categoryKey]}
+				    />
 				{/snippet}
 			</Accordion.Item>
 		{/each}
@@ -120,6 +124,9 @@
 	<div class="flex justify-start">
 		<button type="submit" class="btn preset-filled-primary-500 w-full">
 			<Search />Apply Search Filter
+		</button>
+		<button type="submit" class="btn" onclick={handleReset}>
+			<X />Reset
 		</button>
 	</div>
 </form>

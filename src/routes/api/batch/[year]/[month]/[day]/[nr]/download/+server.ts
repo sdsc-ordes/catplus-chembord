@@ -1,23 +1,19 @@
 import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { getZipFileName } from '$lib/utils/zipFileName';
+import { createZipStreamForPrefix } from '$lib/server/s3';
 
-export const GET: RequestHandler = async ({ url, locals }) => {
-	const prefixToZip = url.searchParams.get('prefix');
-
-	if (!prefixToZip || typeof prefixToZip !== 'string') {
-		throw error(400, 'Missing or invalid "prefix" query parameter');
-	}
-
+export const GET: RequestHandler = async ({ params, request }) => {
+	const path = `batch/${params.year}/${params.month}/${params.day}/${params.nr}/`
 	try {
 		// Call the utility function from locals
-		const zipStream = await locals.s3.createZipFile(prefixToZip);
+		const zipStream = await createZipStreamForPrefix(path);
 
 		// Generate a filename for the download
-		const zipFileName = getZipFileName(prefixToZip);
+		const zipFileName = getZipFileName(path);
 
 		// Return the stream directly in the Response
-		return new Response(zipStream as ReadableStream<any>, { // Cast stream type if necessary for Response constructor
+		return new Response(zipStream as ReadableStream<any>, {
 			status: 200,
 			headers: {
 				'Content-Type': 'application/zip',
@@ -27,7 +23,7 @@ export const GET: RequestHandler = async ({ url, locals }) => {
 		});
 
 	} catch (err: any) {
-		console.error(`API Route: Error creating zip for prefix ${prefixToZip}:`, err);
+		console.error(`API Route: Error creating zip for prefix ${path}:`, err);
 		// Handle errors thrown by createZipFile (e.g., "No files found")
 		if (err.message?.includes('No files found')) {
 			 throw error(404, err.message);
