@@ -58,6 +58,7 @@ export const actions: Actions = {
 		const formData = await request.formData();
 
 		const targetUrl = new URL(url.origin + url.pathname);
+		console.log("Target URL for search action:", targetUrl.toString());
 
 		const searchParams = Object.fromEntries(
 			FilterCategoriesSorted.map((categoryKey) => {
