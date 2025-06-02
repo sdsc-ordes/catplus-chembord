@@ -29,7 +29,7 @@ export const SparqlFilterQueries: Record<FilterCategory, string> = {
     SMILES: `PREFIX allores: <http://purl.allotrope.org/ontologies/result#> SELECT DISTINCT ?smiles WHERE { ?s allores:AFR_0002295 ?smiles .}`,
     REACTION_NAME: `PREFIX cat: <http://example.org/cat#> SELECT DISTINCT ?reactionName WHERE { ?s cat:reactionName ?reactionName .}`,
     REACTION_TYPE: `PREFIX cat: <http://example.org/cat#> SELECT DISTINCT ?reactionType WHERE { ?s cat:reactionType ?reactionType .}`,
-    CAMPAIGN_NAME: `PREFIX cat: <http://example.org/cat#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX schema: <https://schema.org/> SELECT DISTINCT ?o1 WHERE {?Campaign a cat:Campaign . OPTIONAL {?Campaign schema:name ?o1}}`,
+    CAMPAIGN_NAME: `PREFIX cat: <http://example.org/cat#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX schema: <https://schema.org/> SELECT DISTINCT ?campaignName WHERE {?Campaign a cat:Campaign ; schema:name ?campaignName}`,
 };
 
 // Search Result Column Types
