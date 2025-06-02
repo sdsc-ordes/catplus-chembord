@@ -22,6 +22,7 @@ export const AWS_ACCESS_KEY_ID = getEnvVar('AWS_ACCESS_KEY_ID');
 export const AWS_SECRET_ACCESS_KEY = getEnvVar('AWS_SECRET_ACCESS_KEY');
 export const S3_BUCKET_NAME = getEnvVar('S3_BUCKET_NAME');
 export const AWS_S3_ENDPOINT = getEnvVar('AWS_S3_ENDPOINT');
+export const QLEVER_URL = getEnvVar('QLEVER_URL');
 
 // Setup S3 Client
 export const S3_CLIENT = new S3Client({
