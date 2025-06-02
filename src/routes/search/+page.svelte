@@ -33,13 +33,15 @@
 	const transformedCampaignNames = transformArrayToLabelValue(picklists.CAMPAIGN_NAME || []);
 	const transformedReactionNames = transformArrayToLabelValue(picklists.REACTION_NAME || []);
 	const transformedSmiles = transformArrayToLabelValue(picklists.SMILES || []);
+	const transformedDevices = transformArrayToLabelValue(picklists.DEVICES || []);
 	const transformedPicklists: Record<FilterCategory, LabelValueOption[]> = {
 		CAS: transformedCasNumbers,
 		REACTION_TYPE: transformedReactionTypes,
 		CHEMICAL_NAME: transformedChemicalNames,
 		CAMPAIGN_NAME: transformedCampaignNames,
 		REACTION_NAME: transformedReactionNames,
-		SMILES: transformedSmiles
+		SMILES: transformedSmiles,
+		DEVICES: transformedDevices,
 	};
 </script>
 

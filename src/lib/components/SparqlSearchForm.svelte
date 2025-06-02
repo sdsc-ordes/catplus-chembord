@@ -51,6 +51,10 @@
 		SMILES: {
 			label: 'Smiles',
 			nameAttr: 'smiles'
+		},
+		DEVICES: {
+		 	label: 'Devices',
+		 	nameAttr: 'devices'
 		}
 	}
 
@@ -94,7 +98,7 @@
 		{#each FilterCategoriesSorted as categoryKey}
 			<Accordion.Item
 				value={categoryKey}
-				classes="text-sm"
+				classes="text-xs text-wrap"
 				controlClasses={selectedItems[categoryKey] ? 'bg-primary-50' : ''}
 			>
 			{#snippet lead()}

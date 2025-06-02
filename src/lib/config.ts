@@ -10,7 +10,8 @@ export type FilterCategory =
     | 'REACTION_NAME'
     | 'CHEMICAL_NAME'
     | 'CAS'
-    | 'SMILES';
+    | 'SMILES'
+    | 'DEVICES';
 
 // Search Categories Sorted
 export const FilterCategoriesSorted: FilterCategory[] = [
@@ -20,6 +21,7 @@ export const FilterCategoriesSorted: FilterCategory[] = [
     'CHEMICAL_NAME',
     'CAS',
     'SMILES',
+    'DEVICES',
 ];
 
 // Sparql Queries for Search Filter Categories
@@ -30,6 +32,7 @@ export const SparqlFilterQueries: Record<FilterCategory, string> = {
     REACTION_NAME: `PREFIX cat: <http://example.org/cat#> SELECT DISTINCT ?reactionName WHERE { ?s cat:reactionName ?reactionName .}`,
     REACTION_TYPE: `PREFIX cat: <http://example.org/cat#> SELECT DISTINCT ?reactionType WHERE { ?s cat:reactionType ?reactionType .}`,
     CAMPAIGN_NAME: `PREFIX cat: <http://example.org/cat#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX schema: <https://schema.org/> SELECT DISTINCT ?campaignName WHERE {?Campaign a cat:Campaign ; schema:name ?campaignName}`,
+    DEVICES: `PREFIX cat: <http://example.org/cat#> PREFIX schema: <https://schema.org/> PREFIX allores: <http://purl.allotrope.org/ontologies/result#> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> SELECT DISTINCT ?name WHERE {{ ?s1 a allores:AFR_0002567 ; allores:AFR_0002568 ?name .} UNION { ?s1 rdf:type cat:AddAction ; allores:AFR_0001723 ?name .}}`
 };
 
 // Search Result Column Types
