@@ -1,6 +1,8 @@
 <script lang="ts">
     import ContentLayout from '$lib/components/ContentLayout.svelte';
     import { base } from '$app/paths';
+	import { QLEVER_UI_URL } from '$lib/config';
+	import { ExternalLink } from '@lucide/svelte';
 </script>
 
 {#snippet sidebar()}
@@ -22,6 +24,14 @@
 			/>
 			<p class="text-sm text-gray-500">Datainfrastructure of Cat Plus</p>
 		</div>
+		<div class="card preset-filled-surface-100-900 w-full max-w-md p-4 text-center">
+			<img
+				src="{base}/qlever.png"
+				alt="Qlever"
+				class="rounded-lg"
+			/>
+			<p class="text-sm text-gray-500">Qlever as Sparql Endpoint for Cat Plus</p>
+		</div>
 	</section>
 {/snippet}
 
@@ -38,7 +48,22 @@
 		<li>Chemical Name</li>
 		<li>CAS Number</li>
 		<li>SMILES</li>
+		<li>Device</li>
 	</ul>
+	<h2 class="mb-6 p-4 text-xl font-bold">Search with Sparql</h2>
+	<p class="leading-normal">
+		You can use our
+		<a
+			href="{QLEVER_UI_URL}"
+			target="_blank"
+			class="inline-flex items-center text-primary-500 hover:text-primary-600 align-baseline"
+		>
+			<ExternalLink class="h-4 w-4" />
+			<span class="ml-1">Sparql Endpoint</span>
+		</a>
+		to query the data directly via Sparql.
+	</p>
+
 {/snippet}
 
 <ContentLayout {sidebar} {main} />
