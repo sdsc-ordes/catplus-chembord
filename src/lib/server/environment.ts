@@ -20,7 +20,7 @@ export const AWS_ACCESS_KEY_ID = getEnvVar('AWS_ACCESS_KEY_ID');
 export const AWS_SECRET_ACCESS_KEY = getEnvVar('AWS_SECRET_ACCESS_KEY');
 export const S3_BUCKET_NAME = getEnvVar('S3_BUCKET_NAME');
 export const AWS_S3_ENDPOINT = getEnvVar('AWS_S3_ENDPOINT');
-export const QLEVER_API_URL = getEnvVar('QLEVER_URL');
+export const QLEVER_API_URL = getEnvVar('QLEVER_API_URL');
 
 // Helper functions for validation
 export function isS3Configured(): boolean {
