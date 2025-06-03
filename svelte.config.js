@@ -23,7 +23,7 @@ const config = {
 		// Support for base path when deployed behind reverse proxy
 		// Set BASE_PATH environment variable (e.g., '/chemboard') for path-based routing
 		paths: {
-			base: process.env.BASE_PATH || '',
+			base: process.env.BASE_PATH || '/chemboard',
 			// assets path omitted - will use same path as base for relative assets
 		},
 		csrf: {

@@ -8,6 +8,7 @@
 	import { RESULTS_PER_PAGE } from '$lib/config';
 	import type { S3FileInfo } from '$lib/server/s3';
 	import { Pagination } from '@skeletonlabs/skeleton-svelte';
+	import { base } from '$app/paths';
 
 	interface ResultItemBase {
 		prefix: string;
@@ -36,7 +37,7 @@
         detailedContent = null;
         try {
             // Adjust the URL to your actual API endpoint structure
-            const response = await fetch(`api/${campaignPath}`);
+            const response = await fetch(`${base}/api/${campaignPath}`);
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({ message: `HTTP error! status: ${response.status}` }));
                 throw new Error(errorData.message || `Failed to fetch details. Status: ${response.status}`);

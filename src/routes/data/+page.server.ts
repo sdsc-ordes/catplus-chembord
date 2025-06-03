@@ -18,7 +18,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
             results: campaignResults,
         };
     } catch (err) {
-        console.error("Error using S3 locals:", err);
+        console.error("Error using S3:", err);
         throw error(500, "Failed to access S3 data");
     }
 };
