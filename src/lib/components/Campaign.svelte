@@ -4,6 +4,7 @@
     import { formatBytes} from '$lib/utils/displayFile';
     import { type S3FileInfoWithUrl } from '$lib/server/s3';
     import { getZipFileName } from '$lib/utils/zipFileName';
+    import { base } from '$app/paths';
     let {
         isLoading = false,
         error = null,
@@ -46,7 +47,7 @@
         <Archive />
         <span>{title}</span>
 		<a
-			href={`/api/${activeCampaign}download`}
+			href={`${base}/api/${activeCampaign}download`}
 			class="btn btn-sm variant-outline-secondary hover:text-primary-500"
 			title="Download all files in this folder as ZIP"
 			download={getZipFileName(activeCampaign)}
