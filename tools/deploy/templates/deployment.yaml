@@ -43,11 +43,16 @@ spec:
             configMapKeyRef:
               name: #@ data.values.name + "-config"
               key: BASE_PATH
-        - name: QLEVER_URL 
+        - name: QLEVER_API_URL
           valueFrom:
             configMapKeyRef:
               name: #@ data.values.name + "-config"
-              key: QLEVER_URL 
+              key: QLEVER_API_URL
+        - name: QLEVER_UI_URL
+          valueFrom:
+            configMapKeyRef:
+              name: #@ data.values.name + "-config"
+              key: QLEVER_UI_URL
         - name: AWS_REGION
           valueFrom:
             secretKeyRef:

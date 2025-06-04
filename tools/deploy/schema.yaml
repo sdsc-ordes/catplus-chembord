@@ -30,9 +30,12 @@ app:
   #@schema/desc "Base path for reverse proxy deployment (e.g., '/chemboard' for path-based routing). Leave empty for root deployment."
   #@schema/example "/chemboard"
   basePath: ""
-  #@schema/desc "URL of the Qlever SPARQL endpoint."
+  #@schema/desc "URL of the Qlever SPARQL API endpoint."
   #@schema/example "https://catplus.ch/sparql/default"
-  qleverUrl: ""
+  qleverApiUrl: ""
+  #@schema/desc "URL of the Qlever SPARQL UI endpoint."
+  #@schema/example "https://catplus.ch/default"
+  qleverUiUrl: ""
 
 ingress:
   #@schema/desc "Whether to create an Ingress resource"

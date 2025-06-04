@@ -1,4 +1,5 @@
 // Configuration
+import { env as publicEnv } from '$env/dynamic/public';
 
 // Results per page
 export const RESULTS_PER_PAGE = 5;
@@ -74,3 +75,5 @@ export const BaseResultSparqlQuery = {
     baseClause: `PREFIX obo: <http://purl.obolibrary.org/obo/> PREFIX allores: <http://purl.allotrope.org/ontologies/result#> PREFIX cat: <http://example.org/cat#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX schema: <https://schema.org/> SELECT ?cu ?cp ?rt ?rn ?sm ?ca ?cn WHERE { ?s a cat:Campaign ; cat:hasBatch ?b; cat:hasChemical ?c ; schema:name ?cp ; schema:contentURL ?cu . ?b cat:reactionType ?rt ; cat:reactionName ?rn . ?c allores:AFR_0002295 ?sm ; allores:AFR_0002292 ?cn ; cat:casNumber ?ca . `,
     orderByClause: `} ORDER BY ?cu`
 }
+
+export const QLEVER_UI_URL = publicEnv.PUBLIC_QLEVER_UI_URL || process.env.QLEVER_UI_URL;
