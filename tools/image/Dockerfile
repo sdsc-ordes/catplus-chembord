@@ -4,6 +4,7 @@ FROM node:20-alpine AS build
 ENV NODE_ENV=production
 ENV PORT=3000
 ENV BASE_PATH="/chemboard"
+ENV ORIGIN="http://chemboard"
 
 # Install pnpm
 RUN npm install -g pnpm
