@@ -43,6 +43,11 @@ spec:
             configMapKeyRef:
               name: #@ data.values.name + "-config"
               key: BASE_PATH
+        - name: ORIGIN
+          valueFrom:
+            configMapKeyRef:
+              name: #@ data.values.name + "-config"
+              key: ORIGIN
         - name: QLEVER_API_URL
           valueFrom:
             configMapKeyRef:
