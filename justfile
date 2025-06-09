@@ -31,17 +31,16 @@ install:
     pnpm install
 
 # Build the application for production
-# Depends on 'install'. 'export BASE_PATH' from above will be used here.
+# Depends on 'install'.
 build: install
     @echo "🚀 Building the application..."
     pnpm build
     @echo "✅ Build complete."
 
 # Run the production server
-# Depends on 'build'. 'export BASE_PATH' from above will be used here.
+# Depends on 'build'.
 run: build
     @echo "▶️  Starting production server..."
-    @echo "Listening on http://0.0.0.0:3000{{BASE_PATH}}"
     node --env-file=.env ./build/index.js
 
 # Run the local development server
@@ -57,10 +56,6 @@ check-env:
     @echo "--- End of check ---"
 
 # --- Aliases and Modules (your other recipes are fine) ---
-alias fmt := format
-format *args:
-    treefmt {{args}}
-
 alias dev := develop
 # Enter a Nix development shell.
 develop *args:
