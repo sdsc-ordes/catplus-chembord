@@ -1,7 +1,7 @@
 <script lang="ts">
     import ContentLayout from '$lib/components/ContentLayout.svelte';
     import { base } from '$app/paths';
-	import { QLEVER_UI_URL } from '$lib/config';
+	import { publicConfig } from '$lib/config';
 	import { ExternalLink } from '@lucide/svelte';
 </script>
 
@@ -54,14 +54,22 @@
 	<p class="leading-normal">
 		You can use our
 		<a
-			href="{QLEVER_UI_URL}"
+			href="{publicConfig.PUBLIC_QLEVER_UI_URL}"
 			target="_blank"
 			class="inline-flex items-center text-primary-500 hover:text-primary-600 align-baseline"
 		>
 			<ExternalLink class="h-4 w-4" />
 			<span class="ml-1">Sparql Endpoint</span>
 		</a>
-		to query the data directly via Sparql.
+		to query the data directly via Sparql. See the
+		<a
+		href="{publicConfig.PUBLIC_CATPLUS_ONTOLOGY_URL}"
+		target="_blank"
+		class="inline-flex items-center text-primary-500 hover:text-primary-600 align-baseline"
+		>
+			<ExternalLink class="h-4 w-4" />
+			<span class="ml-1">Catplus Ontology</span>
+		</a> for more information on our data model.
 	</p>
 
 {/snippet}
