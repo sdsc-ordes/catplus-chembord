@@ -1,6 +1,5 @@
 import { GetObjectCommand, ListObjectsV2Command, S3Client } from '@aws-sdk/client-s3';
-import { S3_BUCKET_NAME, AWS_REGION,
-    AWS_S3_ENDPOINT, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY } from '$lib/server/environment';
+import { AppServerConfig } from '$lib/server/environment';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import archiver from 'archiver'; // Library for creating zip archives
 import { PassThrough } from 'stream'; // Node.js stream utility
@@ -29,15 +28,15 @@ interface S3FileInfoWithUrl extends S3FileInfo {
  * @returns A Promise resolving to a new array of file objects.
  */
 async function getObjectStream(key: string): Promise<NodeJS.ReadableStream | undefined> {
-    const command = new GetObjectCommand({ Bucket: S3_BUCKET_NAME, Key: key });
+    const command = new GetObjectCommand({ Bucket: AppServerConfig.S3.S3_BUCKET_NAME, Key: key });
     try {
         const s3Client = new S3Client({
-            region: AWS_REGION,
-            endpoint: AWS_S3_ENDPOINT,
+            region: AppServerConfig.S3.AWS_REGION,
+            endpoint: AppServerConfig.S3.AWS_S3_ENDPOINT,
             forcePathStyle: true,
             credentials: {
-                accessKeyId: AWS_ACCESS_KEY_ID,
-                secretAccessKey: AWS_SECRET_ACCESS_KEY,
+                accessKeyId: AppServerConfig.S3.AWS_ACCESS_KEY_ID,
+                secretAccessKey: AppServerConfig.S3.AWS_SECRET_ACCESS_KEY,
             }
         });
         const response = await s3Client.send(command);
@@ -126,17 +125,17 @@ export async function createZipStreamForPrefix(prefix: string): Promise<PassThro
  */
 export async function listFilesInBucket(prefix: string): Promise<S3FileInfo[]> {
     const command = new ListObjectsV2Command({
-        Bucket: S3_BUCKET_NAME,
+        Bucket: AppServerConfig.S3.S3_BUCKET_NAME,
         Prefix: prefix,
     });
     try {
         const s3Client = new S3Client({
-            region: AWS_REGION,
-            endpoint: AWS_S3_ENDPOINT,
+            region: AppServerConfig.S3.AWS_REGION,
+            endpoint: AppServerConfig.S3.AWS_S3_ENDPOINT,
             forcePathStyle: true,
             credentials: {
-                accessKeyId: AWS_ACCESS_KEY_ID,
-                secretAccessKey: AWS_SECRET_ACCESS_KEY,
+                accessKeyId: AppServerConfig.S3.AWS_ACCESS_KEY_ID,
+                secretAccessKey: AppServerConfig.S3.AWS_SECRET_ACCESS_KEY,
             }
         });
         const response = await s3Client.send(command);
@@ -190,16 +189,16 @@ export async function addPresignedUrlsToFiles(
         }
 
         const command = new GetObjectCommand({
-            Bucket: S3_BUCKET_NAME,
+            Bucket: AppServerConfig.S3.S3_BUCKET_NAME,
             Key: file.Key,
         });
         const s3Client = new S3Client({
-            region: AWS_REGION,
-            endpoint: AWS_S3_ENDPOINT,
+            region: AppServerConfig.S3.AWS_REGION,
+            endpoint: AppServerConfig.S3.AWS_S3_ENDPOINT,
             forcePathStyle: true,
             credentials: {
-                accessKeyId: AWS_ACCESS_KEY_ID,
-                secretAccessKey: AWS_SECRET_ACCESS_KEY,
+                accessKeyId: AppServerConfig.S3.AWS_ACCESS_KEY_ID,
+                secretAccessKey: AppServerConfig.S3.AWS_SECRET_ACCESS_KEY,
             }
         });
 
