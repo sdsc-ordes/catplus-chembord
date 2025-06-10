@@ -1,13 +1,13 @@
-// Environment configuration for AWS S3 access
-// This file provides a consistent interface for environment variables
-// that works during both build time and runtime
-import { env as secrets } from '$env/dynamic/private' ;
+// Environment configuration
+import { env } from '$env/dynamic/private' ;
+import { logger } from '$lib/server/logger';
+import { getValueByPath } from '$lib/utils/getObjectValue';
 
 // Simple environment variable loading that works in both dev and production
 function getEnvVar(name: string): string {
   // In production builds, always use process.env
-  if (secrets && secrets[name]) {
-    return secrets[name];
+  if (env && env[name]) {
+    return env[name];
   } else if (process && process.env && process.env[name]) {
     return process.env[name]
   } else {
@@ -15,35 +15,88 @@ function getEnvVar(name: string): string {
   }
 }
 
-export const AWS_REGION = getEnvVar('AWS_REGION');;
-export const AWS_ACCESS_KEY_ID = getEnvVar('AWS_ACCESS_KEY_ID');
-export const AWS_SECRET_ACCESS_KEY = getEnvVar('AWS_SECRET_ACCESS_KEY');
-export const S3_BUCKET_NAME = getEnvVar('S3_BUCKET_NAME');
-export const AWS_S3_ENDPOINT = getEnvVar('AWS_S3_ENDPOINT');
-export const QLEVER_API_URL = getEnvVar('QLEVER_API_URL');
-
-// Helper functions for validation
-export function isS3Configured(): boolean {
-  return Boolean(AWS_REGION && S3_BUCKET_NAME);
-}
-
-export function hasS3Credentials(): boolean {
-  return Boolean(AWS_ACCESS_KEY_ID && AWS_SECRET_ACCESS_KEY);
-}
-
-export function validateQleverUrl(): boolean {
-  // Checks if the Qlever URL is set and valid
-  if (!QLEVER_API_URL) {
-    throw new Error('Missing required environment variable: QLEVER_API_URL');
+export const AppServerConfig = {
+  // Required application settings
+  SVELTE: {
+    BASE_PATH: getEnvVar("BASE_PATH"),
+    ORIGIN: getEnvVar("ORIGIN"),
+    PROTOCOL_HEADER: getEnvVar("PROTOCOL_HEADER"),
+    ADDRESS_HEADER: getEnvVar("ADDRESS_HEADER"),
+    HOST_HEADER: getEnvVar("HOST_HEADER"),
+  },
+  S3: {
+    AWS_REGION: getEnvVar("AWS_REGION"),
+    AWS_ACCESS_KEY_ID: getEnvVar("AWS_ACCESS_KEY_ID"),
+    AWS_SECRET_ACCESS_KEY: getEnvVar("AWS_SECRET_ACCESS_KEY"),
+    S3_BUCKET_NAME: getEnvVar("S3_BUCKET_NAME"),
+    AWS_S3_ENDPOINT: getEnvVar("AWS_S3_ENDPOINT"),
+  },
+  QLEVER: {
+    QLEVER_API_URL: getEnvVar("QLEVER_API_URL") || getEnvVar("QLEVER_API_URL"),
   }
-}
+};
 
-export function validateS3Config(): void {
-  if (!AWS_REGION) {
-    throw new Error('Missing required environment variable: AWS_REGION');
+// --- Validation Logic ---
+
+/**
+ * Validates all required and conditionally required environment variables at server startup.
+ * Throws a single, comprehensive error if validation fails.
+ * This should be called once from a central location, like `hooks.server.ts`.
+ */
+export function validateConfiguration(): void {
+  // Svelte configuration that must be present.
+  const svelteRequiredPaths = [
+    'SVELTE.BASE_PATH',
+    'SVELTE.ORIGIN',
+    'SVELTE.PROTOCOL_HEADER',
+    'SVELTE.ADDRESS_HEADER',
+    'SVELTE.HOST_HEADER',
+  ];
+
+  // Define S3 variables that are required *if S3 is configured*.
+  const s3RequiredPaths = [
+    'S3.AWS_REGION',
+    'S3.AWS_ACCESS_KEY_ID',
+    'S3.AWS_SECRET_ACCESS_KEY',
+    'S3.S3_BUCKET_NAME',
+    'S3.AWS_S3_ENDPOINT',
+  ];
+
+  // Define Qlever UI variables that are required.
+  const qleverRequiredPaths = [
+    'QLEVER.QLEVER_API_URL',
+  ];
+
+  const missingVars: string[] = [];
+
+  // Check if svelte is configured correctly by looking for the base path, etc.
+  svelteRequiredPaths.forEach(path => {
+    if (!getValueByPath(AppServerConfig, path)) {
+      missingVars.push(path);
+    }
+  });
+
+  // Check qlever ui configuration
+  qleverRequiredPaths.forEach(path => {
+    if (!getValueByPath(AppServerConfig, path)) {
+      missingVars.push(path);
+    }
+  });
+
+  // Check if S3 is configured by looking for the S3 bucket name.
+  s3RequiredPaths.forEach(path => {
+    if (!getValueByPath(AppServerConfig, path)) {
+      missingVars.push(path);
+    }
+  });
+
+  // --- Final Check and Error Handling ---
+  if (missingVars.length > 0) {
+    const uniqueMissingVars = Array.from(new Set(missingVars));
+    const errorMessage = `Missing required environment variables: ${uniqueMissingVars.join(', ')}. Server cannot start.`;
+    logger.fatal({ missing: uniqueMissingVars }, errorMessage);
+    throw new Error(errorMessage);
   }
 
-  if (!S3_BUCKET_NAME) {
-    throw new Error('Missing required environment variable: S3_BUCKET_NAME');
-  }
+  logger.info('All required environment variables are set.');
 }
