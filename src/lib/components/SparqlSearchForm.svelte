@@ -102,13 +102,27 @@
 				controlClasses={selectedItems[categoryKey] ? 'bg-primary-50' : ''}
 			>
 			{#snippet lead()}
-			<Atom size={24} /><input
-						class="hidden"
-						name={categoryKey}
-						value={selectedItems[categoryKey] ? selectedItems[categoryKey].join(',') : ''}
-					/>
+			<input
+			    class="checkbox"
+				name="column_{categoryKey}"
+				type="checkbox"
+				checked={selectedItems[categoryKey] && selectedItems[categoryKey].length > 0}
+				value=true
+			/>
+			<input
+				class="hidden"
+				name={categoryKey}
+				value={selectedItems[categoryKey] ? selectedItems[categoryKey].join(',') : ''}
+			/>
 			{/snippet}
-				{#snippet control()}{accordionItemsConfig[categoryKey].label}: {selectedItems[categoryKey].join(',')}{/snippet}
+				{#snippet control()}
+				{accordionItemsConfig[categoryKey].label}:
+				<ul>
+					{#each selectedItems[categoryKey] as itemLabel}
+					<li>{itemLabel}</li>
+					{/each}
+				</ul>
+				{/snippet}
 				<!-- Panel -->
 				{#snippet panel()}
 					<SelectFilterCombox
