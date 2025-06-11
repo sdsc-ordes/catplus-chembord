@@ -1,40 +1,42 @@
-import { AWS_REGION, S3_BUCKET_NAME, AWS_S3_ENDPOINT, QLEVER_API_URL,
-	validateS3Config, validateQleverUrl, hasS3Credentials } from '$lib/server/environment';
-import { QLEVER_UI_URL } from '$lib/config';
+import { validateConfiguration } from '$lib/server/environment';
+import { validatePublicConfiguration } from '$lib/config';
 import type { ServerInit } from '@sveltejs/kit';
-import type { Handle, HandleServerError, HandleClientError, HandleFetch } from '@sveltejs/kit';
-import { json } from '@sveltejs/kit';
-import { base } from '$app/paths';
+import type { Handle } from '@sveltejs/kit';
+import { logger } from '$lib/server/logger';
+import type { HandleServerError } from '@sveltejs/kit';
+
+export const handleError: HandleServerError = ({ error, event }) => {
+  const errorId = crypto.randomUUID();
+
+  // Log the error with context from the event
+  logger.error(
+    {
+      errorId,
+      error,
+      url: event.url.toString(),
+      method: event.request.method,
+    },
+    'An unhandled server error occurred.'
+  );
+
+  // Return a simplified error message to the client for security
+  return {
+    message: `An unexpected error occurred. Please provide this ID if you contact support: ${errorId}`,
+    errorId: errorId,
+  };
+};
+
 
 // init hook runs only once when the application starts
 export const init: ServerInit = async () => {
-	console.log("Init Hook");
-	// Validate essential configuration
-	try {
-    validateQleverUrl();
-		validateS3Config();
-	} catch (error: any) {
-		console.error(`HOOKS: ${error.message}`);
-		throw error;
-	}
-
-	// Log configuration status
-	console.log(`Init Hook: QLEVER_API_URL is set to: ${QLEVER_API_URL}`);
-	console.log("Init Hook: BASE_PATH is set to:", base);
-	console.log(`Init Hook: QLEVER_UI_URL is set to: ${QLEVER_UI_URL}`);
-	console.log(`Init Hook: S3 Configuration - Region: ${AWS_REGION}, Bucket: ${S3_BUCKET_NAME}`);
-	console.log(`Init Hook: AWS credentials ${hasS3Credentials() ? 'PRESENT' : 'MISSING'}`);
-
-	// Log if using custom endpoint
-	if (AWS_S3_ENDPOINT) {
-		console.log(`Init Hook: Using custom S3 endpoint: ${AWS_S3_ENDPOINT}`);
-	}
+	validateConfiguration();
+	validatePublicConfiguration();
 };
 
 // Logs every request
 export const handle: Handle = async ({ event, resolve }) => {
 	// currently this is only logging requests
-	console.log("HANDLE request", event.request.url)
+	logger.info(event.request.url)
 	const response = await resolve(event);
 	return response;
 };

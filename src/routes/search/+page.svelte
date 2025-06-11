@@ -9,12 +9,19 @@
 	const results = data.results;
 	const picklists: Record<FilterCategory, string[]> = data.picklists;
 	const initialFilters: Record<FilterCategory, string[]> = data.initialFilters;
+	const resultTableHeaders: FilterCategory[] = data.resultTableHeaders;
 
 
 	// Table Headers of Qlever Results
-	const HeadersQleverResults: string[] = [
-		"Campaign Path", "Campaign Name", "Reaction Type", "Reaction Type", "Chemicals (Name, Cas, Smiles)"
-	]
+	const columnHeaders: Record<FilterCategory, string> = {
+		CAMPAIGN_NAME: "Campaign Name",
+		REACTION_TYPE: "Reaction Type",
+		REACTION_NAME: "Reaction Name",
+		CHEMICAL_NAME: "Chemical Name",
+		CAS: "CAS",
+		SMILES: "Smiles",
+		DEVICES: "Devices",
+	}
 
 	interface LabelValueOption {
 		label: string;
@@ -56,7 +63,7 @@
 {#snippet main()}
 <DisplayResults
     results={results}
-	tableHeaders={HeadersQleverResults}
+	tableHeaders={columnHeaders}
 />
 {/snippet}
 

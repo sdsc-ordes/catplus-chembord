@@ -30,12 +30,20 @@ app:
   #@schema/desc "Base path for reverse proxy deployment (e.g., '/chemboard' for path-based routing). Leave empty for root deployment."
   #@schema/example "/chemboard"
   basePath: ""
+  #@schema/desc "Absolute url of the instance"
+  #@schema/example "http://localhost:3000"
+  origin: ""
   #@schema/desc "URL of the Qlever SPARQL API endpoint."
   #@schema/example "https://catplus.ch/sparql/default"
   qleverApiUrl: ""
   #@schema/desc "URL of the Qlever SPARQL UI endpoint."
   #@schema/example "https://catplus.ch/default"
   qleverUiUrl: ""
+  #@schema/desc "Results per page"
+  resultsPerPage: 10
+  #@schema/desc "Catplus Ontology Homepage Url"
+  #@schema/example "https://sdsc-ordes.github.io/catplus-ontology/"
+  CatplusOntologyUrl: "https://sdsc-ordes.github.io/catplus-ontology/"
 
 ingress:
   #@schema/desc "Whether to create an Ingress resource"

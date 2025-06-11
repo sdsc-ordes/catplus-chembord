@@ -1,4 +1,4 @@
-import { QLEVER_API_URL } from '$lib/server/environment';
+import { AppServerConfig } from '$lib/server/environment';
 import { parseCsvToObjects, parseTolist } from '$lib/utils/csvParser';
 
 /**
@@ -11,7 +11,7 @@ import { parseCsvToObjects, parseTolist } from '$lib/utils/csvParser';
 async function queryQlever(query: string): Promise<string> {
     const encodedQuery = encodeURIComponent(query);
 
-    const fullUrl = `${QLEVER_API_URL}?query=${encodedQuery}`;
+    const fullUrl = `${AppServerConfig.QLEVER.QLEVER_API_URL}?query=${encodedQuery}`;
 
     try {
         const response = await fetch(fullUrl, {
