@@ -1,8 +1,6 @@
 // Configuration
 import { env as publicEnv } from '$env/dynamic/public';
-
-// Results per page
-export const RESULTS_PER_PAGE = 5;
+import { getValueByPath } from '$lib/utils/getObjectValue';
 
 // Search Filter Categories as type
 export type FilterCategory =
@@ -69,11 +67,48 @@ export const SparqlVariables: Record<ResultTableColumns, string> = {
     CHEMICAL_NAME: "cn",
     CAS: "ca",
     SMILES: "sm",
+    DEVICES: "dv",
 }
 
-export const BaseResultSparqlQuery = {
-    baseClause: `PREFIX obo: <http://purl.obolibrary.org/obo/> PREFIX allores: <http://purl.allotrope.org/ontologies/result#> PREFIX cat: <http://example.org/cat#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX schema: <https://schema.org/> SELECT ?cu ?cp ?rt ?rn ?sm ?ca ?cn WHERE { ?s a cat:Campaign ; cat:hasBatch ?b; cat:hasChemical ?c ; schema:name ?cp ; schema:contentURL ?cu . ?b cat:reactionType ?rt ; cat:reactionName ?rn . ?c allores:AFR_0002295 ?sm ; allores:AFR_0002292 ?cn ; cat:casNumber ?ca . `,
-    orderByClause: `} ORDER BY ?cu`
+export const ResultSparqlQueryBlocks = {
+    prefixClause: `PREFIX obo: <http://purl.obolibrary.org/obo/> PREFIX allores: <http://purl.allotrope.org/ontologies/result#> PREFIX cat: <http://example.org/cat#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX schema: <https://schema.org/>`,
+    selectClause: `SELECT ?cu`,
+    whereClause: `WHERE { ?s a cat:Campaign ; cat:hasBatch ?b; cat:hasChemical ?c ; schema:name ?cp ; schema:contentURL ?cu . ?b cat:reactionType ?rt ; cat:reactionName ?rn . ?c allores:AFR_0002295 ?sm ; allores:AFR_0002292 ?cn ; cat:casNumber ?ca .`,
+    filterClause: `}`,
+    groupByClause: `GROUP BY ?cu`,
 }
 
-export const QLEVER_UI_URL = publicEnv.PUBLIC_QLEVER_UI_URL || process.env.QLEVER_UI_URL;
+export const publicConfig = {
+  PUBLIC_QLEVER_UI_URL: publicEnv.PUBLIC_QLEVER_UI_URL || process.env.PUBLIC_QLEVER_UI_URL,
+  PUBLIC_CATPLUS_ONTOLOGY_URL: publicEnv.PUBLIC_QLEVER_UI_URL || process.env.PUBLIC_CATPLUS_ONTOLOGY_URL,
+  PUBLIC_RESULTS_PER_PAGE: publicEnv.PUBLIC_RESULTS_PER_PAGE || process.env.PUBLIC_RESULTS_PER_PAGE,
+}
+
+export function validatePublicConfiguration(): void {
+    const requiredPaths = [
+        'PUBLIC_QLEVER_UI_URL',
+        'PUBLIC_CATPLUS_ONTOLOGY_URL',
+        'PUBLIC_RESULTS_PER_PAGE',
+    ];
+
+    const missingVars: string[] = [];
+
+    // Loop through and check all required variables.
+    // Check if svelte is configured correctly by looking for the base path, etc.
+    requiredPaths.forEach(path => {
+        if (!getValueByPath(publicConfig, path)) {
+        missingVars.push(path);
+        }
+    })
+
+    // --- Final Check and Error Handling ---
+    if (missingVars.length > 0) {
+        const uniqueMissingVars = Array.from(new Set(missingVars));
+        const errorMessage = `Missing required public environment variables: ${uniqueMissingVars.join(', ')}.`;
+        console.error(errorMessage);
+        throw new Error(errorMessage);
+    }
+
+    // --- Success Logging ---
+    console.info('Public Configuration validated successfully');
+}

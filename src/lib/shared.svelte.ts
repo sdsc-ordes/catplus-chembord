@@ -1,9 +1,6 @@
 import {
     type FilterCategory, FilterCategoriesSorted
 } from '$lib/config';
-import {
-    initializeCategoryState, toggleGenericSelection, type SelectionState, updateSelections
-} from '$lib/utils/searchFormSelectUtils';
 
 const initialEmptySelectionsWithAllKeys = Object.fromEntries(
   FilterCategoriesSorted.map(categoryKey => [categoryKey, [] as string[]])

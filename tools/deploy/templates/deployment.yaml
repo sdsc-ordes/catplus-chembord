@@ -43,12 +43,27 @@ spec:
             configMapKeyRef:
               name: #@ data.values.name + "-config"
               key: BASE_PATH
+        - name: ORIGIN
+          valueFrom:
+            configMapKeyRef:
+              name: #@ data.values.name + "-config"
+              key: ORIGIN
         - name: QLEVER_API_URL
           valueFrom:
             configMapKeyRef:
               name: #@ data.values.name + "-config"
               key: QLEVER_API_URL
-        - name: QLEVER_UI_URL
+        - name: PUBLIC_QLEVER_UI_URL
+          valueFrom:
+            configMapKeyRef:
+              name: #@ data.values.name + "-config"
+              key: PUBLIC_QLEVER_UI_URL
+        - name: PUBLIC_RESULTS_PER_PAGE
+          valueFrom:
+            configMapKeyRef:
+              name: #@ data.values.name + "-config"
+              key: PUBLIC_RESULTS_PER_PAGE
+        - name: PUBLIC_CATPLUS_ONTOLOGY_URL
           valueFrom:
             configMapKeyRef:
               name: #@ data.values.name + "-config"

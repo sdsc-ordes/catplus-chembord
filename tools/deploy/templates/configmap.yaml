@@ -12,6 +12,7 @@ data:
   NODE_ENV: 'production'
   PORT: '3000'
   HOST: '0.0.0.0'
+  ORIGIN: #@ data.values.app.origin
   BASE_PATH: #@ data.values.app.basePath
   QLEVER_API_URL: #@ data.values.app.qleverApiUrl
   QLEVER_UI_URL: #@ data.values.app.qleverUiUrl

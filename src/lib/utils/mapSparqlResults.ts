@@ -1,4 +1,5 @@
-import type { QleverRawResult } from '$lib/config/sparqlQueries'
+import type { QleverRawResult } from '$lib/config'
+import { logger } from '$lib/server/logger';
 
 // Mapped Qlever result with prefix instead of content URL
 interface MappedQleverResult {
