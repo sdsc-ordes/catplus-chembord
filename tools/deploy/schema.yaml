@@ -43,7 +43,7 @@ app:
   resultsPerPage: 10
   #@schema/desc "Catplus Ontology Homepage Url"
   #@schema/example "https://sdsc-ordes.github.io/catplus-ontology/"
-  CatplusOntologyUrl: "https://sdsc-ordes.github.io/catplus-ontology/"
+  catplusOntologyUrl: "https://sdsc-ordes.github.io/catplus-ontology/"
 
 ingress:
   #@schema/desc "Whether to create an Ingress resource"

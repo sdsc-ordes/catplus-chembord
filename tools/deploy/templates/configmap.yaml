@@ -16,3 +16,5 @@ data:
   BASE_PATH: #@ data.values.app.basePath
   QLEVER_API_URL: #@ data.values.app.qleverApiUrl
   QLEVER_UI_URL: #@ data.values.app.qleverUiUrl
+  CATPLUS_ONTOLOGY_URL: #@ data.values.app.catplusOntologyUrl
+  RESULTS_PER_PAGE: #@ data.values.app.resultsPerPage
