@@ -53,6 +53,16 @@ spec:
             configMapKeyRef:
               name: #@ data.values.name + "-config"
               key: QLEVER_UI_URL
+        - name: PUBLIC_RESULTS_PER_PAGE
+          valueFrom:
+            configMapKeyRef:
+              name: #@ data.values.name + "-config"
+              key: RESULTS_PER_PAGE
+        - name: PUBLIC_CATPLUS_ONTOLOGY_URL
+          valueFrom:
+            configMapKeyRef:
+              name: #@ data.values.name + "-config"
+              key: CATPLUS_ONTOLOGY_URL
         - name: AWS_REGION
           valueFrom:
             secretKeyRef:
