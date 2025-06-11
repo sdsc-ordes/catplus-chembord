@@ -40,7 +40,7 @@ app:
   #@schema/example "https://catplus.ch/default"
   qleverUiUrl: ""
   #@schema/desc "Results per page"
-  resultsPerPage: 10
+  resultsPerPage: "10"
   #@schema/desc "Catplus Ontology Homepage Url"
   #@schema/example "https://sdsc-ordes.github.io/catplus-ontology/"
   catplusOntologyUrl: "https://sdsc-ordes.github.io/catplus-ontology/"
