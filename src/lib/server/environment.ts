@@ -17,13 +17,6 @@ function getEnvVar(name: string): string {
 
 export const AppServerConfig = {
   // Required application settings
-  SVELTE: {
-    BASE_PATH: getEnvVar("BASE_PATH"),
-    ORIGIN: getEnvVar("ORIGIN"),
-    PROTOCOL_HEADER: getEnvVar("PROTOCOL_HEADER"),
-    ADDRESS_HEADER: getEnvVar("ADDRESS_HEADER"),
-    HOST_HEADER: getEnvVar("HOST_HEADER"),
-  },
   S3: {
     AWS_REGION: getEnvVar("AWS_REGION"),
     AWS_ACCESS_KEY_ID: getEnvVar("AWS_ACCESS_KEY_ID"),
@@ -44,15 +37,6 @@ export const AppServerConfig = {
  * This should be called once from a central location, like `hooks.server.ts`.
  */
 export function validateConfiguration(): void {
-  // Svelte configuration that must be present.
-  const svelteRequiredPaths = [
-    'SVELTE.BASE_PATH',
-    'SVELTE.ORIGIN',
-    'SVELTE.PROTOCOL_HEADER',
-    'SVELTE.ADDRESS_HEADER',
-    'SVELTE.HOST_HEADER',
-  ];
-
   // Define S3 variables that are required *if S3 is configured*.
   const s3RequiredPaths = [
     'S3.AWS_REGION',
@@ -68,13 +52,6 @@ export function validateConfiguration(): void {
   ];
 
   const missingVars: string[] = [];
-
-  // Check if svelte is configured correctly by looking for the base path, etc.
-  svelteRequiredPaths.forEach(path => {
-    if (!getValueByPath(AppServerConfig, path)) {
-      missingVars.push(path);
-    }
-  });
 
   // Check qlever ui configuration
   qleverRequiredPaths.forEach(path => {
