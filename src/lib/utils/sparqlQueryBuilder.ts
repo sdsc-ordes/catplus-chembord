@@ -51,9 +51,8 @@ export function createFilterQuery(
     const prefixClause = ResultSparqlQueryBlocks.prefixClause
     const selectClause = `${ResultSparqlQueryBlocks.selectClause} ${sparqlReturns}`;
     const whereClause = `${ResultSparqlQueryBlocks.whereClause}`;
-    const groupByClause = `${ResultSparqlQueryBlocks.groupByClause} ${sparqlReturns}`;
 
-    const sparqlQuery = `${prefixClause} ${selectClause} ${whereClause} ${filterClause} ${groupByClause}`;
+    const sparqlQuery = `${prefixClause} ${selectClause} ${whereClause} ${filterClause}`;
     return {
         sparqlQuery: sparqlQuery,
         resultColumns: resultColumns,
