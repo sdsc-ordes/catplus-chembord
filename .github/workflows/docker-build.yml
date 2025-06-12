@@ -1,0 +1,37 @@
+name: Build and Push Docker Image
+
+on:
+  push:
+    branches:
+      - main # Or whatever your main branch is
+    tags:
+      - 'v*.*.*' # Also build on version tags like v1.2.3
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest # This is a native amd64 machine
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./tools/image/Dockerfile # Path to your Dockerfile
+          platforms: linux/amd64 # Build for your server's architecture
+          push: true
+          tags: |
+            ghcr.io/sdsc-ordes/catplus-chemboard:latest
+            ghcr.io/sdsc-ordes/catplus-chemboard:${{ github.sha }}
