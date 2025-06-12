@@ -30,8 +30,8 @@ export const SparqlFilterQueries: Record<FilterCategory, string> = {
     SMILES: `PREFIX allores: <http://purl.allotrope.org/ontologies/result#> SELECT DISTINCT ?smiles WHERE { ?s allores:AFR_0002295 ?smiles .}`,
     REACTION_NAME: `PREFIX cat: <http://example.org/catplus/ontology/> SELECT DISTINCT ?reactionName WHERE { ?s cat:reactionName ?reactionName .}`,
     REACTION_TYPE: `PREFIX cat: <http://example.org/catplus/ontology/> SELECT DISTINCT ?reactionType WHERE { ?s cat:reactionType ?reactionType .}`,
-    CAMPAIGN_NAME: `PREFIX cat: <http://example.org/catplus/ontology/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX schema: <https://schema.org/> SELECT DISTINCT ?campaignName WHERE {?Campaign a cat:Campaign ; schema:name ?campaignName}`,
-    DEVICES: `PREFIX cat: <http://example.org/catplus/ontology/> PREFIX schema: <https://schema.org/> PREFIX allores: <http://purl.allotrope.org/ontologies/result#> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> SELECT DISTINCT ?name WHERE {{ ?s1 a allores:AFR_0002567 ; allores:AFR_0002568 ?name .} UNION { ?s1 rdf:type cat:AddAction ; allores:AFR_0001723 ?name .}}`
+    CAMPAIGN_NAME: `PREFIX cat: <http://example.org/catplus/ontology/> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX schema: <https://schema.org/> SELECT DISTINCT ?campaignName WHERE {?Campaign rdf:type cat:Campaign ; schema:name ?campaignName}`,
+    DEVICES: `PREFIX cat: <http://example.org/catplus/ontology/> PREFIX allores: <http://purl.allotrope.org/ontologies/result#> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> SELECT DISTINCT ?name WHERE {{ ?s1 a allores:AFR_0002567 ; allores:AFR_0002568 ?name .} UNION { ?s1 rdf:type cat:AddAction ; allores:AFR_0001723 ?name .}}`
 };
 
 // Search Result Column Types
@@ -50,37 +50,36 @@ export const ResultTableColumnsSorted: ResultTableColumns[] = [
 
 // Qlever raw results
 export interface QleverRawResult {
-    cu: string;
-    cp: string;
-    rn: string;
-    rt: string;
-    cn: string;
-    ca: string;
-    sm: string;
+    contentUrl: string;
+    campaignName: string;
+    reactionName: string;
+    reactionType: string;
+    chemicalName: string;
+    casNumber: string;
+    smiles: string;
 }
 
 export const SparqlVariables: Record<ResultTableColumns, string> = {
-    CONTENT_URL: "cu",
-    CAMPAIGN_NAME: "cp",
-    REACTION_TYPE: "rt",
-    REACTION_NAME: "rn",
-    CHEMICAL_NAME: "cn",
-    CAS: "ca",
-    SMILES: "sm",
-    DEVICES: "dv",
+    CONTENT_URL: "contentUrl",
+    CAMPAIGN_NAME: "campaignName",
+    REACTION_TYPE: "reactionType",
+    REACTION_NAME: "reactionName",
+    CHEMICAL_NAME: "chemicalName",
+    CAS: "casNumber",
+    SMILES: "siles",
+    DEVICES: "device",
 }
 
 export const ResultSparqlQueryBlocks = {
-    prefixClause: `PREFIX obo: <http://purl.obolibrary.org/obo/> PREFIX allores: <http://purl.allotrope.org/ontologies/result#> PREFIX cat: <http://example.org/catplus/ontology/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX schema: <https://schema.org/>`,
-    selectClause: `SELECT ?cu`,
-    whereClause: `WHERE { ?s a cat:Campaign ; cat:hasBatch ?b; cat:hasChemical ?c ; schema:name ?cp ; schema:contentURL ?cu . ?b cat:reactionType ?rt ; cat:reactionName ?rn . ?c allores:AFR_0002295 ?sm ; allores:AFR_0002292 ?cn ; cat:casNumber ?ca .`,
+    prefixClause: `PREFIX allores: <http://purl.allotrope.org/ontologies/result#> PREFIX cat: <http://example.org/catplus/ontology/> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX schema: <https://schema.org/>`,
+    selectClause: `SELECT DISTINCT ?contentUrl`,
+    whereClause: `WHERE { ?s rdf:type cat:Campaign ; cat:hasBatch ?batch ; cat:hasChemical ?chemical ; schema:name ?campaignName ; schema:contentUrl ?contentUrl . ?batch cat:reactionType ?reactionType ; cat:reactionName ?reactionName . ?chemical allores:AFR_0002295 ?smiles ; allores:AFR_0002292 ?chemicalName ; cat:casNumber ?casNumber .`,
     filterClause: `}`,
-    groupByClause: `GROUP BY ?cu`,
 }
 
 export const publicConfig = {
   PUBLIC_QLEVER_UI_URL: publicEnv.PUBLIC_QLEVER_UI_URL || process.env.PUBLIC_QLEVER_UI_URL,
-  PUBLIC_CATPLUS_ONTOLOGY_URL: publicEnv.PUBLIC_QLEVER_UI_URL || process.env.PUBLIC_CATPLUS_ONTOLOGY_URL,
+  PUBLIC_CATPLUS_ONTOLOGY_URL: publicEnv.PUBLIC_CATPLUS_ONTOLOGY_URL || process.env.PUBLIC_CATPLUS_ONTOLOGY_URL,
   PUBLIC_RESULTS_PER_PAGE: publicEnv.PUBLIC_RESULTS_PER_PAGE || process.env.PUBLIC_RESULTS_PER_PAGE,
 }
 
