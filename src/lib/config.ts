@@ -25,13 +25,13 @@ export const FilterCategoriesSorted: FilterCategory[] = [
 
 // Sparql Queries for Search Filter Categories
 export const SparqlFilterQueries: Record<FilterCategory, string> = {
-    CAS: `PREFIX cat: <http://example.org/cat#> SELECT DISTINCT ?casNumber WHERE { ?s cat:casNumber ?casNumber .}`,
+    CAS: `PREFIX cat: <http://example.org/catplus/ontology> SELECT DISTINCT ?casNumber WHERE { ?s cat:casNumber ?casNumber .}`,
     CHEMICAL_NAME: `PREFIX allores: <http://purl.allotrope.org/ontologies/result#> SELECT DISTINCT ?chemicalName WHERE { ?s allores:AFR_0002292 ?chemicalName .}`,
     SMILES: `PREFIX allores: <http://purl.allotrope.org/ontologies/result#> SELECT DISTINCT ?smiles WHERE { ?s allores:AFR_0002295 ?smiles .}`,
-    REACTION_NAME: `PREFIX cat: <http://example.org/cat#> SELECT DISTINCT ?reactionName WHERE { ?s cat:reactionName ?reactionName .}`,
-    REACTION_TYPE: `PREFIX cat: <http://example.org/cat#> SELECT DISTINCT ?reactionType WHERE { ?s cat:reactionType ?reactionType .}`,
-    CAMPAIGN_NAME: `PREFIX cat: <http://example.org/cat#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX schema: <https://schema.org/> SELECT DISTINCT ?campaignName WHERE {?Campaign a cat:Campaign ; schema:name ?campaignName}`,
-    DEVICES: `PREFIX cat: <http://example.org/cat#> PREFIX schema: <https://schema.org/> PREFIX allores: <http://purl.allotrope.org/ontologies/result#> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> SELECT DISTINCT ?name WHERE {{ ?s1 a allores:AFR_0002567 ; allores:AFR_0002568 ?name .} UNION { ?s1 rdf:type cat:AddAction ; allores:AFR_0001723 ?name .}}`
+    REACTION_NAME: `PREFIX cat: <http://example.org/catplus/ontology/> SELECT DISTINCT ?reactionName WHERE { ?s cat:reactionName ?reactionName .}`,
+    REACTION_TYPE: `PREFIX cat: <http://example.org/catplus/ontology/> SELECT DISTINCT ?reactionType WHERE { ?s cat:reactionType ?reactionType .}`,
+    CAMPAIGN_NAME: `PREFIX cat: <http://example.org/catplus/ontology/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX schema: <https://schema.org/> SELECT DISTINCT ?campaignName WHERE {?Campaign a cat:Campaign ; schema:name ?campaignName}`,
+    DEVICES: `PREFIX cat: <http://example.org/catplus/ontology/> PREFIX schema: <https://schema.org/> PREFIX allores: <http://purl.allotrope.org/ontologies/result#> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> SELECT DISTINCT ?name WHERE {{ ?s1 a allores:AFR_0002567 ; allores:AFR_0002568 ?name .} UNION { ?s1 rdf:type cat:AddAction ; allores:AFR_0001723 ?name .}}`
 };
 
 // Search Result Column Types
@@ -71,7 +71,7 @@ export const SparqlVariables: Record<ResultTableColumns, string> = {
 }
 
 export const ResultSparqlQueryBlocks = {
-    prefixClause: `PREFIX obo: <http://purl.obolibrary.org/obo/> PREFIX allores: <http://purl.allotrope.org/ontologies/result#> PREFIX cat: <http://example.org/cat#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX schema: <https://schema.org/>`,
+    prefixClause: `PREFIX obo: <http://purl.obolibrary.org/obo/> PREFIX allores: <http://purl.allotrope.org/ontologies/result#> PREFIX cat: <http://example.org/catplus/ontology/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX schema: <https://schema.org/>`,
     selectClause: `SELECT ?cu`,
     whereClause: `WHERE { ?s a cat:Campaign ; cat:hasBatch ?b; cat:hasChemical ?c ; schema:name ?cp ; schema:contentURL ?cu . ?b cat:reactionType ?rt ; cat:reactionName ?rn . ?c allores:AFR_0002295 ?sm ; allores:AFR_0002292 ?cn ; cat:casNumber ?ca .`,
     filterClause: `}`,
