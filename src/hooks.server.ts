@@ -4,6 +4,7 @@ import type { ServerInit } from '@sveltejs/kit';
 import type { Handle } from '@sveltejs/kit';
 import { logger } from '$lib/server/logger';
 import type { HandleServerError } from '@sveltejs/kit';
+import { base } from '$app/paths';
 
 export const handleError: HandleServerError = ({ error, event }) => {
   const errorId = crypto.randomUUID();
@@ -31,6 +32,8 @@ export const handleError: HandleServerError = ({ error, event }) => {
 export const init: ServerInit = async () => {
 	validateConfiguration();
 	validatePublicConfiguration();
+  logger.info(base, "env: base path")
+  logger.info(`${process.env.ORIGIN}${base}`, "site available at")
 };
 
 // Logs every request
