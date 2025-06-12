@@ -1,0 +1,5 @@
+PREFIX cat: <http://example.org/catplus/ontology/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX schema: <https://schema.org/>
+SELECT DISTINCT ?campaignName
+WHERE {?Campaign rdf:type cat:Campaign ; schema:name ?campaignName}
