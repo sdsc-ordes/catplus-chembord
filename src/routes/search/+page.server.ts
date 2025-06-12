@@ -60,7 +60,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 
 	// create the sparql query with selected filters
 	const sparqlQueryWithFilters = createFilterQuery(initialFilters);
-	logger.debug(
+	logger.info(
 		{
 			sparqlQueryWithFilters: sparqlQueryWithFilters
 		},

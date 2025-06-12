@@ -1,0 +1,3 @@
+PREFIX cat: <http://example.org/catplus/ontology/>
+SELECT DISTINCT ?reactionType
+WHERE { ?s cat:reactionType ?reactionType .}

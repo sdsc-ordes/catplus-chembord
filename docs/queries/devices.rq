@@ -1,0 +1,6 @@
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX cat: <http://example.org/catplus/ontology/>
+PREFIX allores: <http://purl.allotrope.org/ontologies/result#>
+SELECT DISTINCT ?name
+WHERE {{ ?s1 rdf:type allores:AFR_0002567 ; allores:AFR_0002568 ?name .}
+UNION { ?s1 rdf:type cat:AddAction ; allores:AFR_0001723 ?name .}}

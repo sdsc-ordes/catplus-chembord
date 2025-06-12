@@ -1,0 +1,3 @@
+PREFIX allores: <http://purl.allotrope.org/ontologies/result#>
+SELECT DISTINCT ?smiles
+WHERE { ?s allores:AFR_0002295 ?smiles .}

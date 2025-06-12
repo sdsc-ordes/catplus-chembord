@@ -27,8 +27,8 @@ interface ConsolidatedQleverResult {
    * @returns S3 prefix
    * @example
    */
-export function s3LinkToPrefix(cu: string): string {
-    let s3Path = cu.replace('file:///data/', '');
+export function s3LinkToPrefix(contentUrl: string): string {
+    let s3Path = contentUrl.replace('file:///data/', '');
     const lastSlashIndex = s3Path.lastIndexOf('/');
     const prefix = s3Path.substring(0, lastSlashIndex + 1);
     return prefix;
@@ -46,11 +46,11 @@ export function mapQleverResults(results: QleverRawResult[]): MappedQleverResult
     }
     return results.map((result: QleverRawResult): MappedQleverResult => {
         const mappedResult: MappedQleverResult = {
-            prefix: s3LinkToPrefix(result.cu),
-            campaignName: result.cp,
-            reactionName: result.rn,
-            reactionType: result.rt,
-            chemicals: [result.cn, result.ca, result.sm].join(","),
+            prefix: s3LinkToPrefix(result.contentUrl),
+            campaignName: result.campaignName,
+            reactionName: result.reactionName,
+            reactionType: result.reactionType,
+            chemicals: [result.campaignName, result.casNumber, result.smiles].join(","),
         };
         return mappedResult;
     });
