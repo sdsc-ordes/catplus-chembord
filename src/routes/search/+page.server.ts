@@ -7,7 +7,7 @@ import { createFilterQuery } from '$lib/utils/sparqlQueryBuilder';
 import { groupMappedQleverResultsByPrefix} from '$lib/utils/mapSparqlResults';
 import { logger } from '$lib/server/logger';
 
-export const load: PageServerLoad = async ({ locals, url }) => {
+export const load: PageServerLoad = async ({ url }) => {
 
     //------------------------ Prepare the search form select options ------------------------
     // Use Promise.all to fetch all select options in parallel
@@ -23,7 +23,6 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 	// get picklists from Qlever as Array of objects with key and options as array of strings
     const picklistsArray = await Promise.all(picklistPromises);
 	logger.info(`Fetched ${picklistsArray.length} picklists from Qlever.`);
-	//console.log(picklistsArray)
 	logger.debug(
 		{
 			picklistsArray: picklistsArray,
