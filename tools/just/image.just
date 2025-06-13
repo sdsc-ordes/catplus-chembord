@@ -3,9 +3,6 @@ set shell := ["bash", "-cue"]
 root_dir := `git rev-parse --show-toplevel`
 ctr := env("CTR", "podman")
 
-# Define the target platform, defaulting to amd64 ---
-platform := env("PLATFORM", "linux/amd64")
-
 version := env("VERSION", "latest")
 image := "ghcr.io/sdsc-ordes/catplus-chemboard:" + version
 image_dir := root_dir + "/tools/image"
@@ -15,11 +12,10 @@ image_dir := root_dir + "/tools/image"
 default:
   just --list image --no-aliases
 
-# Build Docker images for a specific platform (for local testing)
+# Build Docker images (for local testing)
 build *args:
   cd {{root_dir}} && \
     {{ctr}} build \
-      --platform {{platform}} \
       -f "{{image_dir}}/Dockerfile" \
       --build-arg VERSION={{version}} \
       -t {{image}} \
@@ -37,10 +33,3 @@ run *args: build
       -p 3000:3000 \
       {{args}} \
       {{image}}
-
-# --- Push now handles the build-and-push action ---
-# This is the primary recipe you will use for releases.
-push *args: build
-  @echo "🐋 Pushing for {{platform}} and pushing to {{image}}"
-  cd {{root_dir}} && \
-    {{ctr}} push {{args}} {{image}}
