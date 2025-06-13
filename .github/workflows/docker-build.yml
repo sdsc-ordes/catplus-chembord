@@ -1,15 +1,21 @@
 name: Build and Push Docker Image
 
 on:
+  # Run when merging/pushing to the main branch or pushing a version tag
   push:
     branches:
-      - main # Or whatever your main branch is
+      - main
     tags:
-      - 'v*.*.*' # Also build on version tags like v1.2.3
+      - 'v*.*.*'
+
+  # Also run when a Pull Request is opened/updated against the main branch
+  pull_request:
+    branches:
+      - main
 
 jobs:
   build-and-push:
-    runs-on: ubuntu-latest # This is a native amd64 machine
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
@@ -25,13 +31,14 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push
+      - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: ./tools/image/Dockerfile # Path to your Dockerfile
-          platforms: linux/amd64 # Build for your server's architecture
-          push: true
+          file: ./tools/image/Dockerfile
+          platforms: linux/amd64
+          # Only push the image if the event is a 'push' (to main or a tag).
+          push: ${{ github.event_name == 'push' }}
           tags: |
             ghcr.io/sdsc-ordes/catplus-chemboard:latest
             ghcr.io/sdsc-ordes/catplus-chemboard:${{ github.sha }}
