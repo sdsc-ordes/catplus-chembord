@@ -65,11 +65,11 @@ export function mapQleverResults(
         // --- Handle the composite 'reaction' field ---
         const reactionParts: string[] = [];
 
-        if (columnsSet.has('REACTION_NAME')) {
-            reactionParts.push(result.reactionName);
-        }
         if (columnsSet.has('REACTION_TYPE')) {
             reactionParts.push(result.reactionType);
+        }
+        if (columnsSet.has('REACTION_NAME')) {
+            reactionParts.push(result.reactionName);
         }
 
         // --- Handle the composite 'chemicals' field ---
@@ -85,16 +85,17 @@ export function mapQleverResults(
             chemicalParts.push(result.smiles);
         }
 
-        // Only add the 'chemicals' property if any of its constituent parts were requested.
-        if (chemicalParts.length > 0) {
-            // .filter(Boolean) gracefully handles any null/undefined/empty string values
-            mappedResult.chemicals = chemicalParts.filter(Boolean).join(', ');
-        }
-
         // Only add the 'reaction' property if any of its constituent parts were requested.
         if (reactionParts.length > 0) {
             // .filter(Boolean) gracefully handles any null/undefined/empty string values
             mappedResult.reaction = reactionParts.filter(Boolean).join(', ');
+        }
+
+
+        // Only add the 'chemicals' property if any of its constituent parts were requested.
+        if (chemicalParts.length > 0) {
+            // .filter(Boolean) gracefully handles any null/undefined/empty string values
+            mappedResult.chemicals = chemicalParts.filter(Boolean).join(', ');
         }
 
         // Cast the dynamically built object to the final MappedQleverResult type.
