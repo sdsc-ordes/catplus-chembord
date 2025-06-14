@@ -25,7 +25,7 @@ export const FilterCategoriesSorted: FilterCategory[] = [
 
 // Sparql Queries for Search Filter Categories
 export const SparqlFilterQueries: Record<FilterCategory, string> = {
-    CAS: `PREFIX cat: <http://example.org/catplus/ontology> SELECT DISTINCT ?casNumber WHERE { ?s cat:casNumber ?casNumber .}`,
+    CAS: `PREFIX cat: <http://example.org/catplus/ontology/> SELECT DISTINCT ?casNumber WHERE { ?s cat:casNumber ?casNumber .}`,
     CHEMICAL_NAME: `PREFIX allores: <http://purl.allotrope.org/ontologies/result#> SELECT DISTINCT ?chemicalName WHERE { ?s allores:AFR_0002292 ?chemicalName .}`,
     SMILES: `PREFIX allores: <http://purl.allotrope.org/ontologies/result#> SELECT DISTINCT ?smiles WHERE { ?s allores:AFR_0002295 ?smiles .}`,
     REACTION_NAME: `PREFIX cat: <http://example.org/catplus/ontology/> SELECT DISTINCT ?reactionName WHERE { ?s cat:reactionName ?reactionName .}`,
