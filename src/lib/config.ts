@@ -66,7 +66,7 @@ export const SparqlVariables: Record<ResultTableColumns, string> = {
     REACTION_NAME: "reactionName",
     CHEMICAL_NAME: "chemicalName",
     CAS: "casNumber",
-    SMILES: "siles",
+    SMILES: "smiles",
     DEVICES: "device",
 }
 
@@ -75,6 +75,7 @@ export const ResultSparqlQueryBlocks = {
     selectClause: `SELECT DISTINCT ?contentUrl`,
     whereClause: `WHERE { ?s rdf:type cat:Campaign ; cat:hasBatch ?batch ; cat:hasChemical ?chemical ; schema:name ?campaignName ; schema:contentUrl ?contentUrl . ?batch cat:reactionType ?reactionType ; cat:reactionName ?reactionName . ?chemical allores:AFR_0002295 ?smiles ; allores:AFR_0002292 ?chemicalName ; cat:casNumber ?casNumber .`,
     filterClause: `}`,
+    groupByClause: `GROUP BY ?contentUrl`,
 }
 
 export const publicConfig = {

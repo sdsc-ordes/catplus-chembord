@@ -16,24 +16,30 @@ export interface ResultQueryAndHeader {
  * @returns A string representing the SPARQL Query
  */
 export function createFilterQuery(
-    filters: FiltersObject,
+    filters: FiltersObject, resultColumns: FilterCategory[]
 ): ResultQueryAndHeader {
     const filterConditions: string[] = [];
     const resultVariables: string[] = [];
-    const resultColumns: FilterCategory[] = [];
+
+
+    for (const columnName of resultColumns) {
+        // In the first loop, columnName will be 'CAMPAIGN_NAME'
+        const sparqlVar = SparqlVariables[columnName as FilterCategory];
+        // Check if a mapping exists to avoid pushing "undefined"
+        if (sparqlVar) {
+            resultVariables.push(`?${sparqlVar}`);
+        }
+    }
 
     // Iterate over the keys present in the input filters object
     for (const key in filters) {
         // Check if the key is a genuine property of the filters object
         if (Object.prototype.hasOwnProperty.call(filters, key)) {
-            const columnKey = key;
             const filterValues = filters[key as FilterCategory];
-            const sparqlVar = SparqlVariables[columnKey as FilterCategory];
+            const sparqlVar = SparqlVariables[key as FilterCategory];
 
             // Proceed only if we have some values to filter by
             if (sparqlVar && filterValues && filterValues.length > 0) {
-                resultVariables.push(`?${sparqlVar}`)
-                resultColumns.push(key as FilterCategory);
                 filterValues.forEach(value => {
                     // Escape single quotes within the filter value to prevent SPARQL syntax errors
                     const escapedValue = value.replace(/'/g, "\\'");
@@ -43,7 +49,7 @@ export function createFilterQuery(
             }
         }
     }
-    logger.debug(resultVariables, "resultVariables");
+    logger.info(resultVariables, "resultVariables");
     const sparqlReturns = resultVariables ? resultVariables.join(' ') : '';
     const filterClause = filterConditions.length > 0
         ? `FILTER (${filterConditions.join(' || ')}) ${ResultSparqlQueryBlocks.filterClause}`
@@ -51,8 +57,9 @@ export function createFilterQuery(
     const prefixClause = ResultSparqlQueryBlocks.prefixClause
     const selectClause = `${ResultSparqlQueryBlocks.selectClause} ${sparqlReturns}`;
     const whereClause = `${ResultSparqlQueryBlocks.whereClause}`;
+    const groupByClause = `${ResultSparqlQueryBlocks.groupByClause} ${sparqlReturns}`;
 
-    const sparqlQuery = `${prefixClause} ${selectClause} ${whereClause} ${filterClause}`;
+    const sparqlQuery = `${prefixClause} ${selectClause} ${whereClause} ${filterClause} ${groupByClause}`;
     return {
         sparqlQuery: sparqlQuery,
         resultColumns: resultColumns,

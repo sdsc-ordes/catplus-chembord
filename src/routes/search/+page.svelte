@@ -2,6 +2,7 @@
 	import ContentLayout from '$lib/components/ContentLayout.svelte';
 	import DisplayResults from '$lib/components/DisplayResults.svelte';
 	import SparqlSearchForm from '$lib/components/SparqlSearchForm.svelte';
+	import { createDynamicTableHeaders } from '$lib/utils/mapSparqlResults'
 	import { type FilterCategory } from '$lib/config';
 
 	let { data } = $props();
@@ -9,8 +10,7 @@
 	const results = data.results;
 	const picklists: Record<FilterCategory, string[]> = data.picklists;
 	const initialFilters: Record<FilterCategory, string[]> = data.initialFilters;
-	const resultTableHeaders: FilterCategory[] = data.resultTableHeaders;
-
+	const resultColumns: FilterCategory[] = data.resultColumns as FilterCategory[];
 
 	// Table Headers of Qlever Results
 	const columnHeaders: Record<FilterCategory, string> = {
@@ -22,6 +22,8 @@
 		SMILES: "Smiles",
 		DEVICES: "Devices",
 	}
+
+	export const resultTableHeaders = createDynamicTableHeaders(resultColumns, columnHeaders);
 
 	interface LabelValueOption {
 		label: string;
@@ -63,7 +65,7 @@
 {#snippet main()}
 <DisplayResults
     results={results}
-	tableHeaders={columnHeaders}
+	tableHeaders={resultTableHeaders}
 />
 {/snippet}
 

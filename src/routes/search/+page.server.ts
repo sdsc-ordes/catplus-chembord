@@ -56,9 +56,12 @@ export const load: PageServerLoad = async ({ url }) => {
 		},
 		'Filters from URL search params'
 	);
+	// get result columns from the url
+	const resultColumns = url.searchParams.get('columns')?.split(',') || [];
+    logger.info({resultcolumns: resultColumns}, "Result columns from URL params")
 
 	// create the sparql query with selected filters
-	const sparqlQueryWithFilters = createFilterQuery(initialFilters);
+	const sparqlQueryWithFilters = createFilterQuery(initialFilters, resultColumns as FilterCategory[]);
 	logger.info(
 		{
 			sparqlQueryWithFilters: sparqlQueryWithFilters
@@ -67,8 +70,10 @@ export const load: PageServerLoad = async ({ url }) => {
 	);
 
 	// execute sparql search on Qlever
-	const sparqlResult: Record<string, string>[] = await getSparqlQueryResult(sparqlQueryWithFilters.sparqlQuery);
-	logger.debug(
+	const sparqlResult: Record<string, string>[] = await getSparqlQueryResult(
+		sparqlQueryWithFilters.sparqlQuery
+	);
+	logger.info(
 		{
 			sparqlResult: sparqlResult
 		},
@@ -76,14 +81,20 @@ export const load: PageServerLoad = async ({ url }) => {
 	);
 
 	// map the sparql result in the result table (with s3 prefixes)
-	const resultTable = groupMappedQleverResultsByPrefix(sparqlResult);
+	const resultTable = groupMappedQleverResultsByPrefix(sparqlResult, resultColumns);
+	logger.info(
+		{
+			resultTable: resultTable
+		},
+		'grouped by campaign'
+	);
 
 	// Return results, selections and options
 	return {
 		results: resultTable,
 		picklists: pickListsMap,
 		initialFilters: initialFilters,
-		resultTableHeaders: sparqlQueryWithFilters.resultColumns,
+		resultColumns: resultColumns,
 	};
 };
 

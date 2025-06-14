@@ -19,6 +19,10 @@
 		results,
 		tableHeaders
 	} = $props();
+	$inspect("results", results);
+	$inspect("headers", tableHeaders);
+
+	const headers = ["Campaign"].concat(Object.values(tableHeaders));
 
 	// Pagination of Campaigns
 	let page = $state(1);
@@ -86,7 +90,7 @@
 		<table class="table caption-bottom">
 			<thead>
 				<tr>
-					{#each tableHeaders as header}
+					{#each headers as header}
 					<th>{header}</th>
 					{/each}
 				</tr>
@@ -100,7 +104,15 @@
 					>
 					{#each Object.values(result) as value, key}
 						<td>
-							{value}
+							{#if Array.isArray(value)}
+								<ul class="list-disc pl-5">
+									{#each value as item}
+										<li>{item}</li>
+									{/each}
+								</ul>
+							{:else}
+								{value}
+							{/if}
 						</td>
 					{/each}
 					</tr>

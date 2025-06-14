@@ -1,12 +1,10 @@
-import type { QleverRawResult } from '$lib/config'
-import { logger } from '$lib/server/logger';
+import type { QleverRawResult, FilterCategory } from '$lib/config'
 
 // Mapped Qlever result with prefix instead of content URL
 interface MappedQleverResult {
     prefix: string;
     campaignName: string;
-    reactionName: string;
-    reactionType: string;
+    reaction: string;
     chemicals: string;
 }
 
@@ -14,8 +12,7 @@ interface MappedQleverResult {
 interface ConsolidatedQleverResult {
     prefix: string;
     campaignName: string | string[];
-    reactionName: string | string[];
-    reactionType: string | string[];
+    reaction: string | string[];
     chemicals: string | string[];
 }
 
@@ -35,24 +32,73 @@ export function s3LinkToPrefix(contentUrl: string): string {
 }
 
 /**
-   * Maps an array of Qlever results to their display version
-   * @param results - An array of source user objects.
-   * @returns An array of transformed display result objects.
-   */
-export function mapQleverResults(results: QleverRawResult[]): MappedQleverResult[] {
+ * Maps an array of Qlever results to their display version, dynamically
+ * including only the columns specified.
+ * @param results - An array of source user objects.
+ * @param columns - An array of FilterCategory keys to include in the result.
+ * @returns An array of transformed display result objects.
+ */
+export function mapQleverResults(
+    results: QleverRawResult[],
+    columns: FilterCategory[]
+): MappedQleverResult[] {
     if (!Array.isArray(results)) {
         console.error('Input must be an array.');
         return [];
     }
+
+    // For efficient lookups, convert the columns array to a Set.
+    const columnsSet = new Set(columns);
+
     return results.map((result: QleverRawResult): MappedQleverResult => {
-        const mappedResult: MappedQleverResult = {
-            prefix: s3LinkToPrefix(result.contentUrl),
-            campaignName: result.campaignName,
-            reactionName: result.reactionName,
-            reactionType: result.reactionType,
-            chemicals: [result.campaignName, result.casNumber, result.smiles].join(","),
+        // Start building the result. 'prefix' seems to be a required base property.
+        // We use Partial<> here because properties will be added conditionally.
+        const mappedResult: Partial<MappedQleverResult> = {
+            prefix: s3LinkToPrefix(result.contentUrl)
         };
-        return mappedResult;
+
+        // --- Handle direct 1-to-1 mappings ---
+        if (columnsSet.has('CAMPAIGN_NAME')) {
+            mappedResult.campaignName = result.campaignName;
+        }
+
+        // --- Handle the composite 'reaction' field ---
+        const reactionParts: string[] = [];
+
+        if (columnsSet.has('REACTION_NAME')) {
+            reactionParts.push(result.reactionName);
+        }
+        if (columnsSet.has('REACTION_TYPE')) {
+            reactionParts.push(result.reactionType);
+        }
+
+        // --- Handle the composite 'chemicals' field ---
+        const chemicalParts: string[] = [];
+
+        if (columnsSet.has('CHEMICAL_NAME')) {
+            chemicalParts.push(result.chemicalName);
+        }
+        if (columnsSet.has('CAS')) {
+            chemicalParts.push(result.casNumber);
+        }
+        if (columnsSet.has('SMILES')) {
+            chemicalParts.push(result.smiles);
+        }
+
+        // Only add the 'chemicals' property if any of its constituent parts were requested.
+        if (chemicalParts.length > 0) {
+            // .filter(Boolean) gracefully handles any null/undefined/empty string values
+            mappedResult.chemicals = chemicalParts.filter(Boolean).join(', ');
+        }
+
+        // Only add the 'reaction' property if any of its constituent parts were requested.
+        if (reactionParts.length > 0) {
+            // .filter(Boolean) gracefully handles any null/undefined/empty string values
+            mappedResult.reaction = reactionParts.filter(Boolean).join(', ');
+        }
+
+        // Cast the dynamically built object to the final MappedQleverResult type.
+        return mappedResult as MappedQleverResult;
     });
 }
 
@@ -66,10 +112,10 @@ export function mapQleverResults(results: QleverRawResult[]): MappedQleverResult
  * @returns A Record where keys are prefixes (string) and values are ConsolidatedQleverResult objects.
  */
 export function groupMappedQleverResultsByPrefix(
-    rawResults: QleverRawResult[]
+    rawResults: QleverRawResult[], resultColumns: FilterCategory[]
 ): ConsolidatedQleverResult[] {
     // Transform the raw results into the display format
-    const mappedResults: MappedQleverResult[] = mapQleverResults(rawResults);
+    const mappedResults: MappedQleverResult[] = mapQleverResults(rawResults, resultColumns);
 
     // Group the mapped results by the 'prefix' property
     const groupedByPrefix = mappedResults.reduce<Record<string, MappedQleverResult[]>>((accumulator, currentItem) => {
@@ -119,4 +165,63 @@ export function groupMappedQleverResultsByPrefix(
         }
     }
     return Object.values(consolidatedOutput);
+}
+
+/**
+ * Creates a dynamic set of table headers, combining reaction and chemical
+ * columns into single, descriptive headers.
+ *
+ * @param {FilterCategory[]} resultColumns - The columns to display.
+ * @param {Record<FilterCategory, string>} allColumnHeaders - All possible headers.
+ * @returns {Record<string, string>} - The final headers for the table.
+ */
+export function createDynamicTableHeaders(
+    resultColumns: FilterCategory[],
+    allColumnHeaders: Record<FilterCategory, string>
+): Record<string, string> {
+    const finalHeaders: Record<string, string> = {};
+
+    // For efficient lookups
+    const columnsSet = new Set(resultColumns);
+
+    // --- Define the groups ---
+    const reactionGroup = {
+        REACTION_TYPE: "Type",
+        REACTION_NAME: "Name",
+    };
+
+    const chemicalGroup = {
+        CHEMICAL_NAME: "Name",
+        CAS: "CAS",
+        SMILES: "Smiles",
+    };
+
+    // --- Process Reaction Group ---
+    const presentReactionParts = Object.entries(reactionGroup)
+        .filter(([key]) => columnsSet.has(key as FilterCategory))
+        .map(([, value]) => value); // Get the display part, e.g., "Name", "Type"
+
+    if (presentReactionParts.length > 0) {
+        finalHeaders.REACTION_GROUP = `Reaction (${presentReactionParts.join(", ")})`;
+    }
+
+    // --- Process Chemical Group ---
+    const presentChemicalParts = Object.entries(chemicalGroup)
+        .filter(([key]) => columnsSet.has(key as FilterCategory))
+        .map(([, value]) => value);
+
+    if (presentChemicalParts.length > 0) {
+        finalHeaders.CHEMICAL_GROUP = `Chemical (${presentChemicalParts.join(", ")})`;
+    }
+
+    // --- Process Remaining Columns ---
+    const groupedKeys = new Set([...Object.keys(reactionGroup), ...Object.keys(chemicalGroup)]);
+
+    resultColumns.forEach(columnKey => {
+        if (!groupedKeys.has(columnKey)) {
+            finalHeaders[columnKey] = allColumnHeaders[columnKey];
+        }
+    });
+
+    return finalHeaders;
 }

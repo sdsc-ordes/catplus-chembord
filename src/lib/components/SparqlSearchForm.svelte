@@ -11,8 +11,9 @@
 		picklists: Record<FilterCategory, string[]>;
 		initialFilters: Record<FilterCategory, string[]>;
 		transformedPicklists?: Record<FilterCategory, { label: string; value: string }[]>;
+		initialResultColumns: FilterCategory[];
 	};
-	let { picklists, initialFilters, transformedPicklists }: Props = $props();
+	let { picklists, initialFilters, transformedPicklists, initialResultColumns }: Props = $props();
 
 	// type used in the configuration of search filters
 	interface FilterDisplayConfig {
