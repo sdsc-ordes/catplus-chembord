@@ -11,9 +11,9 @@
 		picklists: Record<FilterCategory, string[]>;
 		initialFilters: Record<FilterCategory, string[]>;
 		transformedPicklists?: Record<FilterCategory, { label: string; value: string }[]>;
-		initialResultColumns: FilterCategory[];
+		resultColumns: FilterCategory[];
 	};
-	let { picklists, initialFilters, transformedPicklists, initialResultColumns }: Props = $props();
+	let { picklists, initialFilters, transformedPicklists, resultColumns }: Props = $props();
 
 	// type used in the configuration of search filters
 	interface FilterDisplayConfig {
@@ -107,7 +107,7 @@
 			    class="checkbox"
 				name="column_{categoryKey}"
 				type="checkbox"
-				checked={selectedItems[categoryKey] && selectedItems[categoryKey].length > 0}
+				checked={resultColumns.includes(categoryKey) || selectedItems[categoryKey] && selectedItems[categoryKey].length > 0}
 				value=true
 			/>
 			<input

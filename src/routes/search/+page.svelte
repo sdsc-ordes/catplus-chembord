@@ -59,6 +59,7 @@
     picklists={picklists}
 	initialFilters={initialFilters}
 	transformedPicklists={transformedPicklists}
+	resultColumns={resultColumns}
 />
 {/snippet}
 
