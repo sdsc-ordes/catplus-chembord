@@ -2,16 +2,42 @@ PREFIX allores: <http://purl.allotrope.org/ontologies/result#>
 PREFIX cat: <http://example.org/catplus/ontology/>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX schema: <https://schema.org/>
-SELECT DISTINCT ?contentUrl ?campaignName ?reactionType ?reactionName ?casNumber ?smiles ?chemicalName 
+
+SELECT ?contentUrl ?campaignName ?reactionType ?reactionName ?chemicalName ?casNumber ?smiles
 WHERE {
-  ?s rdf:type cat:Campaign ;
-     cat:hasBatch ?batch ;
+  # STEP 2: The outer query takes each ?s from the subquery result
+  # and finds all the associated details for it.
+  ?s cat:hasBatch ?batch ;
      cat:hasChemical ?chemical ;
      schema:name ?campaignName ;
      schema:contentUrl ?contentUrl .
   ?batch cat:reactionType ?reactionType ;
          cat:reactionName ?reactionName .
   ?chemical allores:AFR_0002295 ?smiles ;
-     allores:AFR_0002292 ?chemicalName ;
-     cat:casNumber ?casNumber .
+            allores:AFR_0002292 ?chemicalName ;
+            cat:casNumber ?casNumber .
+
+  # --- Subquery Starts Here ---
+  # STEP 1: This inner query runs first. Its only job is to find the
+  # unique campaigns (?s) that match the filter, and then apply pagination.
+  {
+    SELECT DISTINCT ?s WHERE {
+      ?s rdf:type cat:Campaign ;
+         cat:hasBatch ?batch ;
+         cat:hasChemical ?chemical ;
+		 schema:contentUrl ?contentUrl .
+      ?batch cat:reactionType ?reactionType ;
+             cat:reactionName ?reactionName .
+      ?chemical allores:AFR_0002295 ?smiles .
+      # The FILTER must be inside the subquery to apply before the LIMIT.
+      FILTER (?reactionType = 'N-methylation' || ?reactionName = 'Caffeine synthesis' || ?smiles = 'CO')
+    }
+	ORDER BY ASC(?contentUrl)
+    LIMIT 3
+    OFFSET 0
+  }
+  #--- Subquery Ends Here ---
 }
+GROUP BY ?contentUrl ?campaignName ?reactionType ?reactionName ?chemicalName ?casNumber ?smiles
+# This sorts the final results that are returned to the user.
+ORDER BY ASC(?contentUrl)

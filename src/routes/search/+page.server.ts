@@ -58,22 +58,22 @@ export const load: PageServerLoad = async ({ url }) => {
 	);
 	// get result columns from the url
 	const resultColumns = url.searchParams.get('columns')?.split(',') || [];
-    logger.info({resultcolumns: resultColumns}, "Result columns from URL params")
+    logger.debug({resultcolumns: resultColumns}, "Result columns from URL params")
 
 	// create the sparql query with selected filters
-	const sparqlQueryWithFilters = createFilterQuery(initialFilters, resultColumns as FilterCategory[]);
-	logger.info(
-		{
-			sparqlQueryWithFilters: sparqlQueryWithFilters
-		},
-		'Prepared SPARQL query with filters'
+	const sparqlQueryWithFilters = createFilterQuery(
+		initialFilters,
+		resultColumns as FilterCategory[],
+		3,
+		0,
 	);
+    logger.info({ sparqlQuery: sparqlQueryWithFilters.sparqlQuery}, "Generated SPARQL Query");
 
 	// execute sparql search on Qlever
 	const sparqlResult: Record<string, string>[] = await getSparqlQueryResult(
 		sparqlQueryWithFilters.sparqlQuery
 	);
-	logger.info(
+	logger.debug(
 		{
 			sparqlResult: sparqlResult
 		},
@@ -82,7 +82,7 @@ export const load: PageServerLoad = async ({ url }) => {
 
 	// map the sparql result in the result table (with s3 prefixes)
 	const resultTable = groupMappedQleverResultsByPrefix(sparqlResult, resultColumns);
-	logger.info(
+	logger.debug(
 		{
 			resultTable: resultTable
 		},

@@ -170,59 +170,67 @@ export function groupMappedQleverResultsByPrefix(
 
 /**
  * Creates a dynamic set of table headers, combining reaction and chemical
- * columns into single, descriptive headers.
+ * columns into single, descriptive headers while preserving the input order.
  *
- * @param {FilterCategory[]} resultColumns - The columns to display.
+ * @param {FilterCategory[]} resultColumns - The columns to display, in the desired order.
  * @param {Record<FilterCategory, string>} allColumnHeaders - All possible headers.
- * @returns {Record<string, string>} - The final headers for the table.
+ * @returns {Record<string, string>} - The final headers for the table, correctly ordered.
  */
 export function createDynamicTableHeaders(
     resultColumns: FilterCategory[],
     allColumnHeaders: Record<FilterCategory, string>
 ): Record<string, string> {
     const finalHeaders: Record<string, string> = {};
-
-    // For efficient lookups
-    const columnsSet = new Set(resultColumns);
+    const columnsSet = new Set(resultColumns); // For efficient 'has' checks
 
     // --- Define the groups ---
-    const reactionGroup = {
+    const reactionGroupMap = {
         REACTION_TYPE: "Type",
         REACTION_NAME: "Name",
     };
-
-    const chemicalGroup = {
+    const chemicalGroupMap = {
         CHEMICAL_NAME: "Name",
         CAS: "CAS",
         SMILES: "Smiles",
     };
 
-    // --- Process Reaction Group ---
-    const presentReactionParts = Object.entries(reactionGroup)
-        .filter(([key]) => columnsSet.has(key as FilterCategory))
-        .map(([, value]) => value); // Get the display part, e.g., "Name", "Type"
+    const reactionKeys = new Set(Object.keys(reactionGroupMap) as FilterCategory[]);
+    const chemicalKeys = new Set(Object.keys(chemicalGroupMap) as FilterCategory[]);
 
-    if (presentReactionParts.length > 0) {
-        finalHeaders.REACTION_GROUP = `Reaction (${presentReactionParts.join(", ")})`;
-    }
+    // --- Keep track of which combined headers we have already added ---
+    let reactionGroupAdded = false;
+    let chemicalGroupAdded = false;
 
-    // --- Process Chemical Group ---
-    const presentChemicalParts = Object.entries(chemicalGroup)
-        .filter(([key]) => columnsSet.has(key as FilterCategory))
-        .map(([, value]) => value);
+    // --- Iterate through the resultColumns to maintain the desired order ---
+    for (const columnKey of resultColumns) {
+        // Is it a reaction key, and have we NOT added the combined header yet?
+        if (reactionKeys.has(columnKey) && !reactionGroupAdded) {
+            const presentParts = Object.entries(reactionGroupMap)
+                .filter(([key]) => columnsSet.has(key as FilterCategory))
+                .map(([, value]) => value);
 
-    if (presentChemicalParts.length > 0) {
-        finalHeaders.CHEMICAL_GROUP = `Chemical (${presentChemicalParts.join(", ")})`;
-    }
+            if (presentParts.length > 0) {
+                finalHeaders.REACTION_GROUP = `Reaction (${presentParts.join(", ")})`;
+                reactionGroupAdded = true; // Mark as added so we don't add it again
+            }
+        }
+        // Is it a chemical key, and have we NOT added the combined header yet?
+        else if (chemicalKeys.has(columnKey) && !chemicalGroupAdded) {
+            const presentParts = Object.entries(chemicalGroupMap)
+                .filter(([key]) => columnsSet.has(key as FilterCategory))
+                .map(([, value]) => value);
 
-    // --- Process Remaining Columns ---
-    const groupedKeys = new Set([...Object.keys(reactionGroup), ...Object.keys(chemicalGroup)]);
-
-    resultColumns.forEach(columnKey => {
-        if (!groupedKeys.has(columnKey)) {
+            if (presentParts.length > 0) {
+                finalHeaders.CHEMICAL_GROUP = `Chemical (${presentParts.join(", ")})`;
+                chemicalGroupAdded = true; // Mark as added
+            }
+        }
+        // Is it a standalone column?
+        else if (!reactionKeys.has(columnKey) && !chemicalKeys.has(columnKey)) {
             finalHeaders[columnKey] = allColumnHeaders[columnKey];
         }
-    });
+        // Otherwise, it's part of a group we've already handled, so we do nothing.
+    }
 
     return finalHeaders;
 }

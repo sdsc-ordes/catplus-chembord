@@ -70,13 +70,52 @@ export const SparqlVariables: Record<ResultTableColumns, string> = {
     DEVICES: "device",
 }
 
-export const ResultSparqlQueryBlocks = {
-    prefixClause: `PREFIX allores: <http://purl.allotrope.org/ontologies/result#> PREFIX cat: <http://example.org/catplus/ontology/> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX schema: <https://schema.org/>`,
-    selectClause: `SELECT DISTINCT ?contentUrl`,
-    whereClause: `WHERE { ?s rdf:type cat:Campaign ; cat:hasBatch ?batch ; cat:hasChemical ?chemical ; schema:name ?campaignName ; schema:contentUrl ?contentUrl . ?batch cat:reactionType ?reactionType ; cat:reactionName ?reactionName . ?chemical allores:AFR_0002295 ?smiles ; allores:AFR_0002292 ?chemicalName ; cat:casNumber ?casNumber .`,
-    filterClause: `}`,
-    groupByClause: `GROUP BY ?contentUrl`,
+// Defines the properties for each queryable element
+interface SparqlConfig {
+    var: string; // The SPARQL variable name (e.g., ?campaignName)
+    pattern: string; // The triple pattern to find this variable
+    isGroupKey: boolean; // Is this a single-valued property to GROUP BY?
+    isFilterable?: boolean; // Can this be used in the subquery filter? (Defaults to true)
 }
+
+// The new, more powerful configuration object
+export const SparqlQueryConfig: Record<FilterCategory, SparqlConfig> = {
+    CAMPAIGN_NAME: {
+        var: '?campaignName',
+        pattern: '?s schema:name ?campaignName .',
+        isGroupKey: true,
+    },
+    REACTION_TYPE: {
+        var: '?reactionType',
+        pattern: '?batch cat:reactionType ?reactionType .',
+        isGroupKey: true,
+    },
+    REACTION_NAME: {
+        var: '?reactionName',
+        pattern: '?batch cat:reactionName ?reactionName .',
+        isGroupKey: true,
+    },
+    CHEMICAL_NAME: {
+        var: '?chemicalName',
+        pattern: '?chemical allores:AFR_0002292 ?chemicalName .',
+        isGroupKey: true,
+    },
+    CAS: {
+        var: '?casNumber',
+        pattern: '?chemical cat:casNumber ?casNumber .',
+        isGroupKey: true,
+    },
+    SMILES: {
+        var: '?smiles',
+        pattern: '?chemical allores:AFR_0002295 ?smiles .',
+        isGroupKey: true,
+    },
+    DEVICES: {
+        var: '?device',
+        pattern: '?s cat:hasDevice ?device .',
+        isGroupKey: true,
+    }
+};
 
 export const publicConfig = {
   PUBLIC_QLEVER_UI_URL: publicEnv.PUBLIC_QLEVER_UI_URL || process.env.PUBLIC_QLEVER_UI_URL,
