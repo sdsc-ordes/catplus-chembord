@@ -90,21 +90,41 @@
 	const encodedQuery = encodeURIComponent(query);
 	const qleverUrl = `${publicConfig.PUBLIC_QLEVER_UI_URL}?query=${encodedQuery}`;
 	console.log(qleverUrl);
+
+	let showQuery = $state(false);
 </script>
 
 <div class="bg-tertiary-50 space-y-4 rounded p-4">
 	<h1 class="bg-tertiary-50 mb-4 p-4 text-2xl font-bold text-gray-800">
 		Results ({resultsTotal})
 	</h1>
-	<a
-	    href={qleverUrl}
-		target="_blank"
-		class="inline-flex items-center text-primary-500 hover:text-primary-600 align-baseline"
-	>
-	    query in Qlever UI
-		<ExternalLink class="h-4 w-4" />
-	</a>
-	<div class="text-xs font-mono bg-white"><pre><code>{query}</code></pre></div>
+	<p class="text-sm">
+		You can execute the query at the QleverUI: be aware that the results will not be aggregated yet:
+	</p>
+	<div class="flex items-center justify-start space-x-6">
+		<a
+			href={qleverUrl}
+			target="_blank"
+			class="inline-flex items-center text-primary-500 hover:text-primary-600"
+		>
+			Copy query to Qlever UI
+			<ExternalLink class="ml-1 h-4 w-4" />
+		</a>
+		<div class="flex items-center space-x-2">
+			<input
+				type="checkbox"
+				id="show-query-checkbox"
+				bind:checked={showQuery}
+				class="checkbox"
+			/>
+			<label for="show-query-checkbox" class="cursor-pointer text-sm">Show SPARQL Query</label>
+		</div>
+	</div>
+	{#if query && showQuery}
+		<div class="text-xs font-mono bg-white w-fit p-2">
+			<pre><code>{query}</code></pre>
+		</div>
+	{/if}
 	<div class="table-wrap bg-tertiary-50 overflow-x-auto rounded-lg shadow">
 		<table class="table caption-bottom">
 			<thead>
