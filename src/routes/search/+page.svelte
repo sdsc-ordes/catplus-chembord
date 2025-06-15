@@ -13,7 +13,7 @@
 	const resultColumns: FilterCategory[] = data.resultColumns as FilterCategory[];
 	const resultsTotal: number = data.resultsTotal;
 	const sparqlQuery: string = data.sparqlQuery;
-	$inspect(sparqlQuery);
+	$inspect("initial Filters", initialFilters);
 
 	// Table Headers of Qlever Results
 	const columnHeaders: Record<FilterCategory, string> = {
@@ -55,7 +55,6 @@
 		SMILES: transformedSmiles,
 		DEVICES: transformedDevices,
 	};
-	$inspect(results);
 </script>
 
 {#snippet sidebar()}

@@ -19,7 +19,6 @@
 		tableHeaders,
 		query,
 	} = $props();
-	console.log(typeof(resultsTotal));
 
 	const headers = ["Campaign"].concat(Object.values(tableHeaders));
 
@@ -67,15 +66,9 @@
 	}
 
 	async function handlePageChange(e: CustomEvent<{ page: number }>) {
-		console.log("handle page change", e);
-		// Get the current URL's search parameters
 		const searchParams = new URLSearchParams(page.url.search);
-
-		// Set the new offset and ensure page is updated for the pagination component
 		searchParams.set('page', e.page);
 
-		// Navigate to the new URL and force all `load` functions to re-run.
-		// This is the key to "reloading" the data for the new page.
 		await goto(`?${searchParams.toString()}`);
 	}
 
@@ -89,7 +82,6 @@
 	// Encode the query string for display
 	const encodedQuery = encodeURIComponent(query);
 	const qleverUrl = `${publicConfig.PUBLIC_QLEVER_UI_URL}?query=${encodedQuery}`;
-	console.log(qleverUrl);
 
 	let showQuery = $state(false);
 </script>
