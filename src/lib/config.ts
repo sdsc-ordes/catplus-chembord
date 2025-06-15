@@ -120,7 +120,7 @@ export const SparqlQueryConfig: Record<FilterCategory, SparqlConfig> = {
 export const publicConfig = {
   PUBLIC_QLEVER_UI_URL: publicEnv.PUBLIC_QLEVER_UI_URL || process.env.PUBLIC_QLEVER_UI_URL,
   PUBLIC_CATPLUS_ONTOLOGY_URL: publicEnv.PUBLIC_CATPLUS_ONTOLOGY_URL || process.env.PUBLIC_CATPLUS_ONTOLOGY_URL,
-  PUBLIC_RESULTS_PER_PAGE: publicEnv.PUBLIC_RESULTS_PER_PAGE || process.env.PUBLIC_RESULTS_PER_PAGE,
+  PUBLIC_RESULTS_PER_PAGE: parseInt(publicEnv.PUBLIC_RESULTS_PER_PAGE || process.env.PUBLIC_RESULTS_PER_PAGE),
 }
 
 export function validatePublicConfiguration(): void {

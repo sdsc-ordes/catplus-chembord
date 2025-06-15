@@ -6,11 +6,14 @@
 	import { type FilterCategory } from '$lib/config';
 
 	let { data } = $props();
-
-	const results = data.results;
+    // make sure the data is reladed after a page change
+	const results = $derived(data.results);
 	const picklists: Record<FilterCategory, string[]> = data.picklists;
 	const initialFilters: Record<FilterCategory, string[]> = data.initialFilters;
 	const resultColumns: FilterCategory[] = data.resultColumns as FilterCategory[];
+	const resultsTotal: number = data.resultsTotal;
+	const sparqlQuery: string = data.sparqlQuery;
+	$inspect(sparqlQuery);
 
 	// Table Headers of Qlever Results
 	const columnHeaders: Record<FilterCategory, string> = {
@@ -52,6 +55,7 @@
 		SMILES: transformedSmiles,
 		DEVICES: transformedDevices,
 	};
+	$inspect(results);
 </script>
 
 {#snippet sidebar()}
@@ -66,7 +70,9 @@
 {#snippet main()}
 <DisplayResults
     results={results}
+	resultsTotal={resultsTotal}
 	tableHeaders={resultTableHeaders}
+	query={sparqlQuery}
 />
 {/snippet}
 

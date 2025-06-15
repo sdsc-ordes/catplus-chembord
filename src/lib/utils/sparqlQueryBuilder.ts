@@ -4,8 +4,10 @@ import { logger } from '$lib/server/logger';
 export type FiltersObject = Partial<Record<FilterCategory, string[]>>;
 
 export interface ResultQueryAndHeader {
-    sparqlQuery: string;
+    resultsQuery: string;
+    countQuery: string;
     resultColumns: FilterCategory[];
+    displayQuery: string;
 };
 
 /**
@@ -17,7 +19,7 @@ export interface ResultQueryAndHeader {
  * @param offset - The starting offset for pagination.
  * @returns A string representing the SPARQL Query.
  */
-export function createFilterQuery(
+export function createSparqlQueries(
     filters: FiltersObject,
     resultColumns: FilterCategory[],
     limit: number,
@@ -60,7 +62,12 @@ export function createFilterQuery(
     }
 
     // --- Assemble the final query ---
-    const prefixes = `PREFIX allores: <http://purl.allotrope.org/ontologies/result#> PREFIX cat: <http://example.org/catplus/ontology/> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX schema: <https://schema.org/>`;
+    const prefixes = `
+PREFIX allores: <http://purl.allotrope.org/ontologies/result#>
+PREFIX cat: <http://example.org/catplus/ontology/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX schema: <https://schema.org/>
+    `;
 
     // Add base patterns for the inner query to link data for filtering
     innerWherePatterns.add('?s rdf:type cat:Campaign .');
@@ -70,32 +77,46 @@ export function createFilterQuery(
     innerWherePatterns.add('?s schema:contentUrl ?contentUrl .');
 
 
-    const sparqlQuery = `
-        ${prefixes}
-        SELECT ?contentUrl ${selectParts.join(' ')}
-        WHERE {
-            ?s schema:contentUrl ?contentUrl .
-            ${Array.from(outerWherePatterns).join(' ')}
-            {
-                SELECT DISTINCT ?s WHERE {
-                    ${Array.from(innerWherePatterns).join(' ')}
-                    ${filterConditions.join(' ')}
-                }
-                ORDER BY ASC(?contentUrl)
-                LIMIT ${limit}
-                OFFSET ${offset}
-            }
+    const resultsQuery = `
+${prefixes}
+SELECT ?contentUrl ${selectParts.join(' ')}
+WHERE {
+    ?s schema:contentUrl ?contentUrl .
+    ${Array.from(outerWherePatterns).join(' ')}
+    {
+        SELECT DISTINCT ?s WHERE {
+            ${Array.from(innerWherePatterns).join('\n            ')}
+            ${filterConditions.join('\n')}
         }
-        GROUP BY ?contentUrl ${groupByVars.join(' ')}
         ORDER BY ASC(?contentUrl)
+        LIMIT ${limit}
+        OFFSET ${offset}
+    }
+}
+GROUP BY ?contentUrl ${groupByVars.join(' ')}
+ORDER BY ASC(?contentUrl)
+    `;
+    const displayQuery = resultsQuery.trim(); //.trim().replace(/^\s+/gm, '');
+
+    const countQuery = `
+        ${prefixes}
+        SELECT (COUNT(DISTINCT ?s) AS ?total)
+        WHERE {
+            ${Array.from(innerWherePatterns).join(' ')}
+            ${filterConditions.join(' ')}
+        }
     `;
 
-    logger.info({ sparqlQuery }, "Generated SPARQL Query");
-    const cleanedQuery = sparqlQuery.replace(/\s+/g, ' ').trim();
-    logger.info({ sparqlQuery: cleanedQuery }, "Cleaned SPARQL Query");
+    logger.info({ resultsQuery }, "Generated SPARQL Results Query");
+    const cleanedResultsQuery = resultsQuery.replace(/\s+/g, ' ').trim();
+    const cleanedCountQuery = countQuery.replace(/\s+/g, ' ').trim();
+    logger.info({ sparqlQuery: cleanedResultsQuery }, "Cleaned SPARQL Query");
+    logger.info({ countQuery: cleanedCountQuery }, "Generated SPARQL Count Query");
 
     return {
-        sparqlQuery: cleanedQuery,
+        resultsQuery: cleanedResultsQuery,
+        countQuery: cleanedCountQuery,
         resultColumns: resultColumns,
+        displayQuery: displayQuery,
     };
 }
