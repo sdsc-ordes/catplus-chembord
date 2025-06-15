@@ -86,7 +86,7 @@ WHERE {
     {
         SELECT DISTINCT ?s WHERE {
             ${Array.from(innerWherePatterns).join('\n            ')}
-            ${filterConditions.join('\n')}
+            ${filterConditions.join('\n            ')}
         }
         ORDER BY ASC(?contentUrl)
         LIMIT ${limit}
