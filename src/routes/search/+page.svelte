@@ -1,10 +1,12 @@
 <script lang="ts">
 	import ContentLayout from '$lib/components/ContentLayout.svelte';
-	import DisplayResults from '$lib/components/DisplayResults.svelte';
+	import DisplayResults from '$lib/components/DisplayQleverResults.svelte';
 	import ResultsHeaderSearch from '$lib/components/ResultsHeaderSearch.svelte';
 	import SparqlSearchForm from '$lib/components/SparqlSearchForm.svelte';
 	import { createDynamicTableHeaders } from '$lib/utils/mapSparqlResults'
 	import { type FilterCategory } from '$lib/config';
+	import { goto } from '$app/navigation';
+	import { page } from '$app/state';
 
 	let { data } = $props();
     // make sure the data is reladed after a page change
@@ -55,6 +57,13 @@
 		SMILES: transformedSmiles,
 		DEVICES: transformedDevices,
 	};
+
+	async function handlePageChange(e: CustomEvent<{ page: number }>) {
+		const searchParams = new URLSearchParams(page.url.search);
+		searchParams.set('page', e.page);
+
+		await goto(`?${searchParams.toString()}`, {invalidateAll: true});
+	}
 </script>
 
 {#snippet sidebar()}
@@ -77,7 +86,7 @@
 		results={results}
 		resultsTotal={resultsTotal}
 		tableHeaders={resultTableHeaders}
-		query={sparqlQuery}
+		handlePageChange={handlePageChange}
 	/>
 {/snippet}
 

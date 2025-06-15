@@ -1,12 +1,14 @@
 <script lang="ts" generics="ResultItemType extends ResultItemBase">
+	import IconArrowLeft from '@lucide/svelte/icons/arrow-left';
+	import IconArrowRight from '@lucide/svelte/icons/arrow-right';
+	import IconEllipsis from '@lucide/svelte/icons/ellipsis';
+	import IconFirst from '@lucide/svelte/icons/chevrons-left';
+	import IconLast from '@lucide/svelte/icons/chevron-right';
 	import Campaign from '$lib/components/Campaign.svelte';
 	import { publicConfig } from '$lib/config';
 	import type { S3FileInfo } from '$lib/server/s3';
 	import { Pagination } from '@skeletonlabs/skeleton-svelte';
 	import { base } from '$app/paths';
-	import { goto } from '$app/navigation';
-	import { page } from '$app/state';
-	import { ExternalLink } from '@lucide/svelte';
 
 	interface ResultItemBase {
 		prefix: string;
@@ -15,16 +17,13 @@
 	// get props from data loader
 	let {
 		results,
-		resultsTotal,
-		tableHeaders,
-		query,
+		tableHeaders
 	} = $props();
 
-	const headers = ["Campaign"].concat(Object.values(tableHeaders));
-
 	// Pagination of Campaigns
-	let currentPage = $state(1);
-	let pageSize = publicConfig.PUBLIC_RESULTS_PER_PAGE;
+	let page = $state(1);
+	let size = publicConfig.PUBLIC_RESULTS_PER_PAGE;
+	const slicedResults = $derived((r: ResultItemType[]) => r.slice((page - 1) * size, page * size));
 
 	// State for the fetched detailed data for the main content
 	let detailedContent = $state<S3FileInfo[] | null>(null);
@@ -54,9 +53,9 @@
     }
 
     function handleRowClick(result: ResultItemType) {
-        activeResultItem = result;
+        activeResultItem = result; // Visually mark as active in sidebar
         if (result && result.prefix) {
-            fetchDetails(result.prefix);
+            fetchDetails(result.prefix); // Fetch full details for the main content
         } else {
             // Reset main content if row is invalid or deselected (if implementing deselection)
             detailedContent = null;
@@ -65,24 +64,17 @@
         }
 	}
 
-	async function handlePageChange(e: CustomEvent<{ page: number }>) {
-		const searchParams = new URLSearchParams(page.url.search);
-		searchParams.set('page', e.page);
-
-		await goto(`?${searchParams.toString()}`, {invalidateAll: true});
+	function handlePageChange(e: Event) {
+		page = e.page;
+		activeResultItem = slicedResults(results)[0];
+		handleRowClick(activeResultItem);
 	}
 
     $effect(() => {
-		// This effect runs whenever the `results` array changes
-		if (results && results.length > 0) {
-			// Automatically select the first item of the list
-			const firstItem = results[0];
-			handleRowClick(firstItem);
-		} else {
-			// If the new page has no results, clear the details view
-			activeResultItem = null;
-			detailedContent = null;
-		}
+        if (results.length > 0 && activeResultItem === null) {
+            const firstItem = results[0];
+            handleRowClick(firstItem); // Use your existing handler
+        }
     });
 </script>
 
@@ -91,13 +83,13 @@
 		<table class="table caption-bottom">
 			<thead>
 				<tr>
-					{#each headers as header}
+					{#each tableHeaders as header}
 					<th>{header}</th>
 					{/each}
 				</tr>
 			</thead>
 			<tbody class="[&>tr]:hover:bg-tertiary-100">
-				{#each results as result, i}
+				{#each slicedResults(results) as result, i}
 					<tr
 						onclick={() => handleRowClick(result)}
 						class="cursor-pointer"
@@ -105,15 +97,7 @@
 					>
 					{#each Object.values(result) as value, key}
 						<td>
-							{#if Array.isArray(value)}
-								<ul class="list-disc pl-5">
-									{#each value as item}
-										<li>{item}</li>
-									{/each}
-								</ul>
-							{:else}
-								{value}
-							{/if}
+							{value}
 						</td>
 					{/each}
 					</tr>
@@ -124,12 +108,11 @@
 	<footer class="">
 		<Pagination
 			data={results}
-			{currentPage}
-			onPageChange={(e) => handlePageChange(e)}
-			pageSize={pageSize}
+			{page}
+			onPageChange={handlePageChange}
+			pageSize={size}
 			siblingCount={4}
-			count={resultsTotal}
-			alternative
+            alternative
 		/>
 	</footer>
 </div>
