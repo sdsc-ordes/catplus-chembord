@@ -3,6 +3,7 @@
 	import ContentLayout from '$lib/components/ContentLayout.svelte';
 	import DisplayResults from '$lib/components/DisplayResults.svelte';
 	import S3SearchForm from '$lib/components/S3SearchForm.svelte';
+	import ResultsHeaderData from '$lib/components/ResultsHeaderData.svelte';
 	import type { CampaignResult } from '$lib/utils/groupCampaigns.js';
 
 	// Get prefix from parameters
@@ -23,6 +24,9 @@
 {/snippet}
 
 {#snippet main()}
+<ResultsHeaderData
+    resultsTotal={results.length}
+/>
 <DisplayResults
     results={results}
 	tableHeaders={HeadersS3Results}

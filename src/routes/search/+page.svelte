@@ -1,6 +1,7 @@
 <script lang="ts">
 	import ContentLayout from '$lib/components/ContentLayout.svelte';
 	import DisplayResults from '$lib/components/DisplayResults.svelte';
+	import ResultsHeaderSearch from '$lib/components/ResultsHeaderSearch.svelte';
 	import SparqlSearchForm from '$lib/components/SparqlSearchForm.svelte';
 	import { createDynamicTableHeaders } from '$lib/utils/mapSparqlResults'
 	import { type FilterCategory } from '$lib/config';
@@ -13,7 +14,6 @@
 	const resultColumns: FilterCategory[] = data.resultColumns as FilterCategory[];
 	const resultsTotal: number = data.resultsTotal;
 	const sparqlQuery: string = data.sparqlQuery;
-	$inspect("initial Filters", initialFilters);
 
 	// Table Headers of Qlever Results
 	const columnHeaders: Record<FilterCategory, string> = {
@@ -67,12 +67,18 @@
 {/snippet}
 
 {#snippet main()}
-<DisplayResults
-    results={results}
-	resultsTotal={resultsTotal}
-	tableHeaders={resultTableHeaders}
-	query={sparqlQuery}
-/>
+	<ResultsHeaderSearch
+		resultsTotal={resultsTotal}
+		initialFilters={initialFilters}
+		resultColumns={resultColumns}
+		query={sparqlQuery}
+	/>
+	<DisplayResults
+		results={results}
+		resultsTotal={resultsTotal}
+		tableHeaders={resultTableHeaders}
+		query={sparqlQuery}
+	/>
 {/snippet}
 
 <ContentLayout {sidebar} {main} />

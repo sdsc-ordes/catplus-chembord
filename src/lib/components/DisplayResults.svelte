@@ -54,9 +54,9 @@
     }
 
     function handleRowClick(result: ResultItemType) {
-        activeResultItem = result; // Visually mark as active in sidebar
+        activeResultItem = result;
         if (result && result.prefix) {
-            fetchDetails(result.prefix); // Fetch full details for the main content
+            fetchDetails(result.prefix);
         } else {
             // Reset main content if row is invalid or deselected (if implementing deselection)
             detailedContent = null;
@@ -69,54 +69,24 @@
 		const searchParams = new URLSearchParams(page.url.search);
 		searchParams.set('page', e.page);
 
-		await goto(`?${searchParams.toString()}`);
+		await goto(`?${searchParams.toString()}`, {invalidateAll: true});
 	}
 
     $effect(() => {
-        if (results.length > 0 && activeResultItem === null) {
-            const firstItem = results[0];
-            handleRowClick(firstItem); // Use your existing handler
-        }
+		// This effect runs whenever the `results` array changes
+		if (results && results.length > 0) {
+			// Automatically select the first item of the list
+			const firstItem = results[0];
+			handleRowClick(firstItem);
+		} else {
+			// If the new page has no results, clear the details view
+			activeResultItem = null;
+			detailedContent = null;
+		}
     });
-
-	// Encode the query string for display
-	const encodedQuery = encodeURIComponent(query);
-	const qleverUrl = `${publicConfig.PUBLIC_QLEVER_UI_URL}?query=${encodedQuery}`;
-
-	let showQuery = $state(false);
 </script>
 
 <div class="bg-tertiary-50 space-y-4 rounded p-4">
-	<h1 class="bg-tertiary-50 mb-4 p-4 text-2xl font-bold text-gray-800">
-		Results ({resultsTotal})
-	</h1>
-	<p class="text-sm">
-		You can execute the query at the QleverUI: be aware that the results will not be aggregated yet:
-	</p>
-	<div class="flex items-center justify-start space-x-6">
-		<a
-			href={qleverUrl}
-			target="_blank"
-			class="inline-flex items-center text-primary-500 hover:text-primary-600"
-		>
-			Copy query to Qlever UI
-			<ExternalLink class="ml-1 h-4 w-4" />
-		</a>
-		<div class="flex items-center space-x-2">
-			<input
-				type="checkbox"
-				id="show-query-checkbox"
-				bind:checked={showQuery}
-				class="checkbox"
-			/>
-			<label for="show-query-checkbox" class="cursor-pointer text-sm">Show SPARQL Query</label>
-		</div>
-	</div>
-	{#if query && showQuery}
-		<div class="text-xs font-mono bg-white w-fit p-2">
-			<pre><code>{query}</code></pre>
-		</div>
-	{/if}
 	<div class="table-wrap bg-tertiary-50 overflow-x-auto rounded-lg shadow">
 		<table class="table caption-bottom">
 			<thead>
