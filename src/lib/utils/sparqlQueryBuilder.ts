@@ -33,7 +33,11 @@ export function createSparqlQueries(
 
     // Always include these base patterns for connecting data
     outerWherePatterns.add('?s cat:hasBatch ?batch .');
-    outerWherePatterns.add('?s cat:hasChemical ?chemical .');
+    outerWherePatterns.add(`{?s cat:hasChemical ?chemical . ?s a cat:Campaign}  UNION {?action cat:hasBatch ?batch .
+	?action cat:hasSample* ?sample .
+	?sample cat:hasChemical ?chemical .
+			}
+    `);
 
     // Build the SELECT and GROUP BY clauses based on requested columns
     for (const column of resultColumns) {
@@ -72,14 +76,18 @@ PREFIX schema: <https://schema.org/>
     // Add base patterns for the inner query to link data for filtering
     innerWherePatterns.add('?s rdf:type cat:Campaign .');
     innerWherePatterns.add('?s cat:hasBatch ?batch .');
-    innerWherePatterns.add('?s cat:hasChemical ?chemical .');
+    innerWherePatterns.add(`{?s cat:hasChemical ?chemical . ?s a cat:Campaign}  UNION {?action cat:hasBatch ?batch .
+	?action cat:hasSample* ?sample .
+	?sample cat:hasChemical ?chemical .
+			}
+    `);
     // Add pattern for sorting
     innerWherePatterns.add('?s schema:contentUrl ?contentUrl .');
 
 
     const resultsQuery = `
 ${prefixes}
-SELECT 
+SELECT
     ?contentUrl
     ${selectParts.join('\n    ')}
 WHERE {
