@@ -15,7 +15,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 
         // transform the result into object
         const campaignResults: CampaignResult[] = prefixesToCampaignResults(prefixes)
-        logger.debug({campaignResults}, "campaignResults")
+        logger.info({campaignResults}, "campaignResults")
         return {
             results: campaignResults,
             resultTotal: count,
