@@ -19,20 +19,23 @@
 </script>
 
 {#snippet sidebar()}
-<S3SearchForm
-    prefix={prefix}
-/>
+	<S3SearchForm
+		prefix={prefix}
+	/>
 {/snippet}
 
 {#snippet main()}
-<ResultsHeaderData
-    resultsTotal={results.length}
-/>
-<DisplayS3Results
-	results={results}
-	resultsTotal={resultsTotal}
-	tableHeaders={HeadersS3Results}
-/>
+	<ResultsHeaderData
+		resultsTotal={resultsTotal}
+	/>
+
+	{#if resultsTotal}
+		<DisplayS3Results
+			results={results}
+			resultsTotal={resultsTotal}
+			tableHeaders={HeadersS3Results}
+		/>
+	{/if}
 {/snippet}
 
 <ContentLayout {sidebar} {main} />

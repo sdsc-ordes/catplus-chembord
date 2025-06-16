@@ -92,8 +92,4 @@
     <div class="p-6 text-center text-surface-500">
         <p>Preparing details for {activeCampaign}...</p>
     </div>
-{:else}
-    <div class="flex items-center justify-center h-full text-surface-500">
-        <p class="text-lg">Please select an item from the sidebar to view its details.</p>
-    </div>
 {/if}

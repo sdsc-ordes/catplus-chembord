@@ -4,21 +4,25 @@ import { redirect } from '@sveltejs/kit';
 import { type CampaignResult, prefixesToCampaignResults } from '$lib/utils/groupCampaigns';
 import { findLeafPrefixes } from '$lib/server/s3';
 import { logger } from '$lib/server/logger';
+import { error } from '@sveltejs/kit';
 
 export const load: PageServerLoad = async ({ locals, url }) => {
-	const prefix = url.searchParams.get('prefix') || 'batch/';
+    try {
+        const prefix = url.searchParams.get('prefix') || 'batch/';
 
-    // get all prefixes from S3 for selected prefix
-    const { prefixes, count } = await findLeafPrefixes(prefix, 5);
-    logger.info({prefixes, count}, "folder path")
+        const { prefixes, count } = await findLeafPrefixes(prefix, 5);
+        logger.info({prefixes, count}, `got campaign prefixes for start prefix ${prefix}`)
 
-    // transform the result into object
-    const campaignResults: CampaignResult[] = prefixesToCampaignResults(prefixes)
-    logger.info({campaignResults}, "campaignResults")
-    return {
-        results: campaignResults,
-        resultTotal: count,
-    };
+        // transform the result into object
+        const campaignResults: CampaignResult[] = prefixesToCampaignResults(prefixes)
+        logger.debug({campaignResults}, "campaignResults")
+        return {
+            results: campaignResults,
+            resultTotal: count,
+        };
+    } catch (err: any) {
+        throw new Error(err)
+    }
 };
 
 export const actions: Actions = {

@@ -12,6 +12,7 @@
 	// get props from data loader
 	let {
 		results,
+		resultsTotal,
 		tableHeaders
 	} = $props();
 
