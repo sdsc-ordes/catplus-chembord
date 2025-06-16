@@ -4,7 +4,6 @@ import { redirect } from '@sveltejs/kit';
 import { type CampaignResult, prefixesToCampaignResults } from '$lib/utils/groupCampaigns';
 import { findLeafPrefixes } from '$lib/server/s3';
 import { logger } from '$lib/server/logger';
-import { error } from '@sveltejs/kit';
 
 export const load: PageServerLoad = async ({ locals, url }) => {
     try {
