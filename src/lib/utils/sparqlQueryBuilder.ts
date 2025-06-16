@@ -79,10 +79,12 @@ PREFIX schema: <https://schema.org/>
 
     const resultsQuery = `
 ${prefixes}
-SELECT ?contentUrl ${selectParts.join(' ')}
+SELECT 
+    ?contentUrl
+    ${selectParts.join('\n    ')}
 WHERE {
     ?s schema:contentUrl ?contentUrl .
-    ${Array.from(outerWherePatterns).join(' ')}
+    ${Array.from(outerWherePatterns).join('\n    ')}
     {
         SELECT DISTINCT ?s WHERE {
             ${Array.from(innerWherePatterns).join('\n            ')}
@@ -96,7 +98,7 @@ WHERE {
 GROUP BY ?contentUrl ${groupByVars.join(' ')}
 ORDER BY ASC(?contentUrl)
     `;
-    const displayQuery = resultsQuery.trim(); //.trim().replace(/^\s+/gm, '');
+    const displayQuery = resultsQuery.trim();
 
     const countQuery = `
         ${prefixes}
