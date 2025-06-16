@@ -15,11 +15,7 @@
 	const resultsTotal: number = data.resultTotal;
 
 	// Result Display
-	const HeadersS3Results: string[] = ["Date"]
-
-	function handlePageChange(e: Event) {
-		console.log("page change")
-	}
+	const HeadersS3Results: string[] = ["Campaign", "Date"]
 </script>
 
 {#snippet sidebar()}
@@ -36,7 +32,6 @@
 	results={results}
 	resultsTotal={resultsTotal}
 	tableHeaders={HeadersS3Results}
-	handlePageChange={handlePageChange}
 />
 {/snippet}
 

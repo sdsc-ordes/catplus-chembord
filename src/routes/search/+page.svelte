@@ -58,12 +58,6 @@
 		DEVICES: transformedDevices,
 	};
 
-	async function handlePageChange(e: CustomEvent<{ page: number }>) {
-		const searchParams = new URLSearchParams(page.url.search);
-		searchParams.set('page', e.page);
-
-		await goto(`?${searchParams.toString()}`, {invalidateAll: true});
-	}
 </script>
 
 {#snippet sidebar()}
@@ -86,7 +80,6 @@
 		results={results}
 		resultsTotal={resultsTotal}
 		tableHeaders={resultTableHeaders}
-		handlePageChange={handlePageChange}
 	/>
 {/snippet}
 

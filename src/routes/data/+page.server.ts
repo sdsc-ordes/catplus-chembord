@@ -7,10 +7,13 @@ import { logger } from '$lib/server/logger';
 
 export const load: PageServerLoad = async ({ locals, url }) => {
 	const prefix = url.searchParams.get('prefix') || 'batch/';
-    const { prefixes, count } = await findLeafPrefixes(prefix, 5);
-    const campaignResults: CampaignResult[] = prefixesToCampaignResults(prefixes)
 
+    // get all prefixes from S3 for selected prefix
+    const { prefixes, count } = await findLeafPrefixes(prefix, 5);
     logger.info({prefixes, count}, "folder path")
+
+    // transform the result into object
+    const campaignResults: CampaignResult[] = prefixesToCampaignResults(prefixes)
     logger.info({campaignResults}, "campaignResults")
     return {
         results: campaignResults,
