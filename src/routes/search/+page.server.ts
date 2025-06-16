@@ -3,11 +3,12 @@ import type { PageServerLoad } from './$types'
 import { redirect } from '@sveltejs/kit';
 import { getSearchOptionsList, getSparqlQueryResult } from '$lib/server/qlever';
 import { type FilterCategory, SparqlFilterQueries, FilterCategoriesSorted } from '$lib/config';
-import { createFilterQuery } from '$lib/utils/sparqlQueryBuilder';
+import { createSparqlQueries } from '$lib/utils/sparqlQueryBuilder';
 import { groupMappedQleverResultsByPrefix} from '$lib/utils/mapSparqlResults';
+import { publicConfig } from '$lib/config';
 import { logger } from '$lib/server/logger';
 
-export const load: PageServerLoad = async ({ locals, url }) => {
+export const load: PageServerLoad = async ({ url }) => {
 
     //------------------------ Prepare the search form select options ------------------------
     // Use Promise.all to fetch all select options in parallel
@@ -23,25 +24,14 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 	// get picklists from Qlever as Array of objects with key and options as array of strings
     const picklistsArray = await Promise.all(picklistPromises);
 	logger.info(`Fetched ${picklistsArray.length} picklists from Qlever.`);
-	//console.log(picklistsArray)
-	logger.debug(
-		{
-			picklistsArray: picklistsArray,
-		},
-		'Fetched picklist data from Qlever.'
-	);
+	logger.debug({picklistsArray: picklistsArray}, 'Fetched picklist data from Qlever.');
 
     // map to picklists dictionary with key: Array of options
 	const pickListsMap = picklistsArray.reduce<Record<string, string[]>>((acc, currentItem) => {
 		acc[currentItem.key] = currentItem.options;
 		return acc;
 	}, {});
-	logger.debug(
-		{
-			picklistsMap: pickListsMap
-		},
-		'Mapped picklist'
-	);
+	logger.debug({picklistsMap: pickListsMap}, 'Mapped picklist');
 
 	//------------------------ Get query parameters from search parameters ------------------------
 	// get selections from the url
@@ -51,40 +41,56 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 			return [categoryKey, categoryIntialFilters];
 		})
 	) as Record<FilterCategory, string[]>;
-	logger.debug(
-		{
-			initialFilters: initialFilters,
-		},
-		'Filters from URL search params'
-	);
+	logger.debug({initialFilters: initialFilters}, 'Filters from URL search params');
+	// get result columns from the url
+	const resultColumns = url.searchParams.get('columns')?.split(',') || [];
+    logger.debug({resultcolumns: resultColumns}, "Result columns from URL params")
+
+	// current page
+	const currentPage = Math.max(1, parseInt(url.searchParams.get('page') as string, 10) || 1);
+	const pageSize = publicConfig.PUBLIC_RESULTS_PER_PAGE;
+	const offset = (currentPage - 1)  * pageSize;
+    logger.info({currentPage: currentPage}, "current page");
+	logger.info({pageSize: pageSize}, "pageSize");
+	logger.info({offset: offset}, "offset");
 
 	// create the sparql query with selected filters
-	const sparqlQueryWithFilters = createFilterQuery(initialFilters);
-	logger.info(
-		{
-			sparqlQueryWithFilters: sparqlQueryWithFilters
-		},
-		'Prepared SPARQL query with filters'
+	const sparqlQueries = createSparqlQueries(
+		initialFilters,
+		resultColumns as FilterCategory[],
+		pageSize,
+		offset,
 	);
+    logger.info({ sparqlQuery: sparqlQueries.resultsQuery}, "Generated SPARQL Query");
+	logger.info({ countQuery: sparqlQueries.countQuery}, "Generated SPARQL Count Query");
+	logger.info({ displayQuery: sparqlQueries.displayQuery}, "SPARQL Display Query");
+
 
 	// execute sparql search on Qlever
-	const sparqlResult: Record<string, string>[] = await getSparqlQueryResult(sparqlQueryWithFilters.sparqlQuery);
-	logger.debug(
-		{
-			sparqlResult: sparqlResult
-		},
-		'Received sparqlResult from Qlever'
+	const sparqlResult: Record<string, string>[] = await getSparqlQueryResult(
+		sparqlQueries.resultsQuery
 	);
+	logger.debug({sparqlResult: sparqlResult}, 'Received sparqlResult from Qlever');
+
+	// execute sparql search on Qlever
+	const resultsCount: Record<string, string>[] = await getSparqlQueryResult(
+		sparqlQueries.countQuery
+	);
+	logger.info({resultCount: resultsCount}, 'Received result count from Qlever');
+	const resultsTotal = parseInt(resultsCount[0].total, 0);
 
 	// map the sparql result in the result table (with s3 prefixes)
-	const resultTable = groupMappedQleverResultsByPrefix(sparqlResult);
+	const resultTable = groupMappedQleverResultsByPrefix(sparqlResult, resultColumns);
+	logger.info({resultTable: resultTable}, 'grouped by campaign');
 
 	// Return results, selections and options
 	return {
 		results: resultTable,
 		picklists: pickListsMap,
 		initialFilters: initialFilters,
-		resultTableHeaders: sparqlQueryWithFilters.resultColumns,
+		resultColumns: resultColumns,
+		resultsTotal: resultsTotal,
+		sparqlQuery: sparqlQueries.displayQuery,
 	};
 };
 
@@ -100,18 +106,12 @@ export const actions: Actions = {
 
         // Convert the FormData to a plain object before logging
         const formDataObject = Object.fromEntries(formData);
-        logger.debug(
-            { formDataObject: formDataObject },
-            "data received on form submit"
-        );
+        logger.debug({ formDataObject: formDataObject }, "data received on form submit");
 
 		const resultColumns: FilterCategory[] = FilterCategoriesSorted.filter(categoryKey =>
 			formData.has(`column_${categoryKey}`)
 		);
-        logger.debug(
-            { resultColumns: resultColumns },
-            "result columns"
-        );
+        logger.debug({ resultColumns: resultColumns }, "result columns");
 
 		const searchParams = Object.fromEntries(
 			FilterCategoriesSorted.map((categoryKey) => {
@@ -127,10 +127,7 @@ export const actions: Actions = {
 			})
 		) as Record<FilterCategory, string[]>;
 
-		logger.debug(
-            { searchParams: searchParams },
-            "searchParams"
-        );
+		logger.debug({ searchParams: searchParams }, "searchParams");
 
 		//----------------- Build target url
 
@@ -152,10 +149,7 @@ export const actions: Actions = {
 				});
 			}
 		}
-		logger.debug(
-            { searchParams: searchParams },
-            "searchParams"
-        );
+		logger.debug({ searchParams: searchParams }, "searchParams");
 
 		// Use status 303 for GET redirect pattern
 		throw redirect(303, targetUrl.toString());

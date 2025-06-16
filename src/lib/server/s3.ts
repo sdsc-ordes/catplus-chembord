@@ -1,8 +1,9 @@
-import { GetObjectCommand, ListObjectsV2Command, S3Client } from '@aws-sdk/client-s3';
+import { GetObjectCommand, ListObjectsV2Command, S3Client, paginateListObjectsV2 } from '@aws-sdk/client-s3';
 import { AppServerConfig } from '$lib/server/environment';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import archiver from 'archiver'; // Library for creating zip archives
 import { PassThrough } from 'stream'; // Node.js stream utility
+import { logger } from '$lib/server/logger';
 
 /**
  * S3 File Object Info
@@ -161,6 +162,87 @@ export async function listFilesInBucket(prefix: string): Promise<S3FileInfo[]> {
         return fileInfoList;
     } catch (error: any) {
         console.error(`S3 Util: Error listing files with prefix ${prefix}:`, error);
+        throw error;
+    }
+}
+
+export interface DiscoveredPrefixes {
+    prefixes: string[];
+    count: number;
+}
+
+/**
+ * Iteratively discovers all common prefixes down to a specific depth.
+ * This is useful for finding all "leaf" folders in a nested structure.
+ *
+ * @param startPrefix The prefix to begin the search from (e.g., 'batch/').
+ * @param targetDepth The number of slashes '/' in the final desired prefixes.
+ * (e.g., 'batch/2024/05/16/22/' has a depth of 5).
+ * @returns A promise that resolves to an object with the sorted list of prefixes and their count.
+ */
+export async function findLeafPrefixes(
+    startPrefix: string,
+    targetDepth: number
+): Promise<DiscoveredPrefixes> {
+    const s3Client = new S3Client({
+        region: AppServerConfig.S3.AWS_REGION,
+        endpoint: AppServerConfig.S3.AWS_S3_ENDPOINT,
+        forcePathStyle: true,
+        credentials: {
+            accessKeyId: AppServerConfig.S3.AWS_ACCESS_KEY_ID,
+            secretAccessKey: AppServerConfig.S3.AWS_SECRET_ACCESS_KEY,
+        }
+    });
+
+    // Start with a list containing only the initial prefix
+    let prefixesToExplore = [startPrefix];
+
+    try {
+        // We determine the current depth by counting slashes in the startPrefix
+        const startDepth = (startPrefix.match(/\//g) || []).length;
+        logger.info({startPrefix, startDepth}, "prefix search")
+
+        // Loop from the current depth until we reach the target depth
+        for (let currentDepth = startDepth; currentDepth < targetDepth; currentDepth++) {
+            logger.info(`Discovering prefixes at depth ${currentDepth + 1}...`);
+
+            // Fetch all sub-prefixes for the current level in parallel
+            const promises = prefixesToExplore.map(prefix => {
+                const command = new ListObjectsV2Command({
+                    Bucket: AppServerConfig.S3.S3_BUCKET_NAME,
+                    Prefix: prefix,
+                    Delimiter: '/',
+                });
+                return s3Client.send(command);
+            });
+
+            const responses = await Promise.all(promises);
+
+            // Collect all the newly found "subfolders"
+            const nextLevelPrefixes = responses.flatMap(
+                response => response.CommonPrefixes?.map(p => p.Prefix!).filter(Boolean) || []
+            );
+
+            if (nextLevelPrefixes.length === 0) {
+                logger.warn(`No further prefixes found at depth ${currentDepth + 1}. Stopping.`);
+                prefixesToExplore = []; // Stop the loop
+                break;
+            }
+
+            prefixesToExplore = nextLevelPrefixes;
+            logger.info({prefixesToExplore}, "prefixes in between");
+        }
+
+        // The loop is finished, prefixesToExplore now holds our campaign-level prefixes
+        const finalPrefixes = prefixesToExplore.sort();
+
+        return {
+            prefixes: finalPrefixes,
+            count: finalPrefixes.length,
+        };
+
+    } catch (error: any) {
+        logger.error(`S3 Util: Error in findLeafPrefixes for prefix ${startPrefix}:`, error);
         throw error;
     }
 }

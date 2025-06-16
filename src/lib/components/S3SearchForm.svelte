@@ -7,8 +7,8 @@
     } = $props();
 </script>
 
-<div class="bg-secondary-50 space-y-4 rounded p-4">
-	<h1 class="mb-4 text-2xl font-bold text-gray-800">Campaign Data</h1>
+<div class="bg-secondary-50-800 space-y-4 rounded p-4">
+	<h1 class="mb-4 text-2xl font-bold text-surface-800-200">Campaign Data</h1>
 	<form method="POST" action="?/filter" class="card space-y-4 p-4">
 		<label class="label">
 			<span>Filter Campaigns by Prefix:</span>

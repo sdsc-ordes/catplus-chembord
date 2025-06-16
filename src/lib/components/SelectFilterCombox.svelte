@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { Inspect } from '@lucide/svelte';
     import { Combobox } from '@skeletonlabs/skeleton-svelte';
     import { selectedItems } from '$lib/shared.svelte';
 
@@ -8,11 +7,6 @@
         options,
         transformedPicklist
     } = $props();
-
-    $inspect("categoryKey", categoryKey);
-    $inspect("options", options);
-    $inspect("transformedPicklist", transformedPicklist);
-    $inspect("selectedItems", selectedItems);
 </script>
 
 <Combobox
@@ -27,10 +21,8 @@
 	inputBehavior="autocomplete"
 	selectionBehavior="preserve"
 	positioning="start"
-    classes=""
     optionClasses="text-xs"
     contentClasses="text-xs"
-    positionerClasses=""
     labelClasses="text-xs"
 	composite={true}
 />

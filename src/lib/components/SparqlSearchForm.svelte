@@ -11,8 +11,9 @@
 		picklists: Record<FilterCategory, string[]>;
 		initialFilters: Record<FilterCategory, string[]>;
 		transformedPicklists?: Record<FilterCategory, { label: string; value: string }[]>;
+		resultColumns: FilterCategory[];
 	};
-	let { picklists, initialFilters, transformedPicklists }: Props = $props();
+	let { picklists, initialFilters, transformedPicklists, resultColumns }: Props = $props();
 
 	// type used in the configuration of search filters
 	interface FilterDisplayConfig {
@@ -92,21 +93,21 @@
 <form
 	method="POST"
 	action="?/search"
-	class="bg-secondary-100 mx-auto w-full max-w-md space-y-4 rounded"
+	class="bg-secondary-50-800 mx-auto w-full max-w-md space-y-4 rounded"
 >
 	<Accordion {accordionValue} onValueChange={(e) => (accordionValue = e.value)} multiple>
 		{#each FilterCategoriesSorted as categoryKey}
 			<Accordion.Item
 				value={categoryKey}
 				classes="text-xs text-wrap"
-				controlClasses={selectedItems[categoryKey] ? 'bg-primary-50' : ''}
+				controlClasses={selectedItems[categoryKey] ? 'bg-primary-50-950' : ''}
 			>
 			{#snippet lead()}
 			<input
-			    class="checkbox"
+			    class="checkbox bg-surface-50-950"
 				name="column_{categoryKey}"
 				type="checkbox"
-				checked={selectedItems[categoryKey] && selectedItems[categoryKey].length > 0}
+				checked={resultColumns.includes(categoryKey) || selectedItems[categoryKey] && selectedItems[categoryKey].length > 0}
 				value=true
 			/>
 			<input

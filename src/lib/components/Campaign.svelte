@@ -33,7 +33,7 @@
 </script>
 
 {#if isLoading}
-    <div class="p-6 text-center text-gray-500 animate-pulse">
+    <div class="p-6 text-center text-surface-500 animate-pulse">
         <p>Loading details...</p>
         </div>
 {:else if error}
@@ -42,8 +42,8 @@
         <p>{error}</p>
     </div>
 {:else if campaignFiles && activeCampaign}
-    <div class="hover:bg-tertiary-100">
-    <h1 class="mb-6 flex items-center gap-x-2 text-2xl text-gray-800">
+    <div class="hover:bg-tertiary-100-900">
+    <h1 class="mb-6 flex items-center gap-x-2 text-2xl text-surface-800-200">
         <Archive />
         <span>{title}</span>
 		<a
@@ -70,7 +70,7 @@
                     {/each}
                 </tr>
             </thead>
-            <tbody class="[&>tr]:hover:bg-tertiary-100">
+            <tbody class="[&>tr]:hover:bg-tertiary-100-900">
                 {#each campaignFiles as file}
                     <tr>
                         <td>{file.name}</td>
@@ -89,11 +89,11 @@
         </table>
     </div>
 {:else if activeCampaign}
-    <div class="p-6 text-center text-gray-500">
+    <div class="p-6 text-center text-surface-500">
         <p>Preparing details for {activeCampaign}...</p>
     </div>
 {:else}
-    <div class="flex items-center justify-center h-full text-gray-500">
+    <div class="flex items-center justify-center h-full text-surface-500">
         <p class="text-lg">Please select an item from the sidebar to view its details.</p>
     </div>
 {/if}

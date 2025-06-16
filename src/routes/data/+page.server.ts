@@ -1,26 +1,21 @@
 import type { Actions } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types'
 import { redirect } from '@sveltejs/kit';
-import { error } from '@sveltejs/kit';
-import { groupFilesByCampaign, type CampaignResult } from '$lib/utils/groupCampaigns';
-import { listFilesInBucket, type S3FileInfo } from '$lib/server/s3';
-
+import { type CampaignResult, prefixesToCampaignResults } from '$lib/utils/groupCampaigns';
+import { findLeafPrefixes } from '$lib/server/s3';
+import { logger } from '$lib/server/logger';
 
 export const load: PageServerLoad = async ({ locals, url }) => {
 	const prefix = url.searchParams.get('prefix') || 'batch/';
+    const { prefixes, count } = await findLeafPrefixes(prefix, 5);
+    const campaignResults: CampaignResult[] = prefixesToCampaignResults(prefixes)
 
-    try {
-        // Access the S3 utilities from locals
-		const files: S3FileInfo[] = await listFilesInBucket(prefix);
-		let campaignResults: CampaignResult[] = groupFilesByCampaign(files);
-
-        return {
-            results: campaignResults,
-        };
-    } catch (err) {
-        console.error("Error using S3:", err);
-        throw error(500, "Failed to access S3 data");
-    }
+    logger.info({prefixes, count}, "folder path")
+    logger.info({campaignResults}, "campaignResults")
+    return {
+        results: campaignResults,
+        resultTotal: count,
+    };
 };
 
 export const actions: Actions = {

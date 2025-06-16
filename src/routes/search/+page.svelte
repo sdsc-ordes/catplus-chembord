@@ -1,16 +1,21 @@
 <script lang="ts">
 	import ContentLayout from '$lib/components/ContentLayout.svelte';
-	import DisplayResults from '$lib/components/DisplayResults.svelte';
+	import DisplayResults from '$lib/components/DisplayQleverResults.svelte';
+	import ResultsHeaderSearch from '$lib/components/ResultsHeaderSearch.svelte';
 	import SparqlSearchForm from '$lib/components/SparqlSearchForm.svelte';
+	import { createDynamicTableHeaders } from '$lib/utils/mapSparqlResults'
 	import { type FilterCategory } from '$lib/config';
+	import { goto } from '$app/navigation';
+	import { page } from '$app/state';
 
 	let { data } = $props();
-
-	const results = data.results;
+    // make sure the data is reladed after a page change
+	const results = $derived(data.results);
 	const picklists: Record<FilterCategory, string[]> = data.picklists;
 	const initialFilters: Record<FilterCategory, string[]> = data.initialFilters;
-	const resultTableHeaders: FilterCategory[] = data.resultTableHeaders;
-
+	const resultColumns: FilterCategory[] = data.resultColumns as FilterCategory[];
+	const resultsTotal: number = data.resultsTotal;
+	const sparqlQuery: string = data.sparqlQuery;
 
 	// Table Headers of Qlever Results
 	const columnHeaders: Record<FilterCategory, string> = {
@@ -22,6 +27,8 @@
 		SMILES: "Smiles",
 		DEVICES: "Devices",
 	}
+
+	export const resultTableHeaders = createDynamicTableHeaders(resultColumns, columnHeaders);
 
 	interface LabelValueOption {
 		label: string;
@@ -50,6 +57,13 @@
 		SMILES: transformedSmiles,
 		DEVICES: transformedDevices,
 	};
+
+	async function handlePageChange(e: CustomEvent<{ page: number }>) {
+		const searchParams = new URLSearchParams(page.url.search);
+		searchParams.set('page', e.page);
+
+		await goto(`?${searchParams.toString()}`, {invalidateAll: true});
+	}
 </script>
 
 {#snippet sidebar()}
@@ -57,14 +71,23 @@
     picklists={picklists}
 	initialFilters={initialFilters}
 	transformedPicklists={transformedPicklists}
+	resultColumns={resultColumns}
 />
 {/snippet}
 
 {#snippet main()}
-<DisplayResults
-    results={results}
-	tableHeaders={columnHeaders}
-/>
+	<ResultsHeaderSearch
+		resultsTotal={resultsTotal}
+		initialFilters={initialFilters}
+		resultColumns={resultColumns}
+		query={sparqlQuery}
+	/>
+	<DisplayResults
+		results={results}
+		resultsTotal={resultsTotal}
+		tableHeaders={resultTableHeaders}
+		handlePageChange={handlePageChange}
+	/>
 {/snippet}
 
 <ContentLayout {sidebar} {main} />
