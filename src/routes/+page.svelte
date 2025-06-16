@@ -6,7 +6,7 @@
 </script>
 
 {#snippet sidebar()}
-	<h1 class="mb-6 text-2xl font-bold text-gray-800">Cat Plus</h1>
+	<h1 class="mb-6 text-2xl font-bold text-surface-800-200">Cat Plus</h1>
 	<section class="space-y-4">
 		<div class="card preset-filled-surface-100-900 w-full max-w-md p-4 text-center">
 			<img
@@ -14,7 +14,7 @@
 				alt="SwissCat"
 				class="rounded-lg"
 			/>
-			<p class="text-sm text-gray-500">SwissCat+ Lab, EPFL, Lausanne, Switzerland</p>
+			<p class="text-sm text-surface-800-200">SwissCat+ Lab, EPFL, Lausanne, Switzerland</p>
 		</div>
 		<div class="card preset-filled-surface-100-900 w-full max-w-md p-4 text-center">
 			<img
@@ -22,7 +22,7 @@
 				alt="SwissCat"
 				class="rounded-lg"
 			/>
-			<p class="text-sm text-gray-500">Datainfrastructure of Cat Plus</p>
+			<p class="text-sm text-surface-800-200">Datainfrastructure of Cat Plus</p>
 		</div>
 		<div class="card preset-filled-surface-100-900 w-full max-w-md p-4 text-center">
 			<img
@@ -30,13 +30,13 @@
 				alt="Qlever"
 				class="rounded-lg"
 			/>
-			<p class="text-sm text-gray-500">Qlever as Sparql Endpoint for Cat Plus</p>
+			<p class="text-sm text-surface-800-200">Qlever as Sparql Endpoint for Cat Plus</p>
 		</div>
 	</section>
 {/snippet}
 
 {#snippet main()}
-	<h1 class="mb-6 p-4 text-2xl font-bold text-gray-800">An automated Catalysis Lab</h1>
+	<h1 class="mb-6 p-4 text-2xl font-bold text-surface-800-200">An automated Catalysis Lab</h1>
 	<h2 class="mb-6 p-4 text-xl font-bold"><a href="{base}/data" class="text-primary-500">Explore the data</a></h2>
 	<p>Explore the campaigns by year / month / day</p>
 	<h2 class="mb-6 p-4 text-xl font-bold"><a href="{base}/search" class="text-primary-500">Search in the Campaigns</a></h2>

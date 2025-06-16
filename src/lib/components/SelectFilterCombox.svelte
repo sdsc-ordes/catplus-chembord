@@ -21,10 +21,8 @@
 	inputBehavior="autocomplete"
 	selectionBehavior="preserve"
 	positioning="start"
-    classes=""
     optionClasses="text-xs"
     contentClasses="text-xs"
-    positionerClasses=""
     labelClasses="text-xs"
 	composite={true}
 />

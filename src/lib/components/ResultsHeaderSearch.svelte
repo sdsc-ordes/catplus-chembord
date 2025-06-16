@@ -19,7 +19,7 @@
     $inspect("resultColumns", resultColumns);
 </script>
 
-<h1 class="mb-4 p-4 text-xl font-bold text-gray-800">
+<h1 class="mb-4 p-4 text-xl font-bold text-surface-800-200">
     Results ({resultsTotal})
 </h1>
 <p>{initialFilers}</p>
@@ -41,13 +41,13 @@
             type="checkbox"
             id="show-query-checkbox"
             bind:checked={showQuery}
-            class="checkbox"
+            class="checkbox bg-surface-50-950"
         />
         <label for="show-query-checkbox" class="cursor-pointer text-sm">Show SPARQL Query</label>
     </div>
 </div>
 {#if query && showQuery}
-    <div class="text-xs font-mono bg-white w-fit p-2">
+    <div class="text-xs font-mono bg-primary w-fit p-2">
         <pre><code>{query}</code></pre>
     </div>
 {/if}

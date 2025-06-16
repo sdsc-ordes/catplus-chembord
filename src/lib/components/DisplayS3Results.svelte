@@ -78,8 +78,8 @@
     });
 </script>
 
-<div class="bg-tertiary-50 space-y-4 rounded p-4">
-	<div class="table-wrap bg-tertiary-50 overflow-x-auto rounded-lg shadow">
+<div class="bg-tertiary-50-800 space-y-4 rounded p-4">
+	<div class="table-wrap bg-tertiary-50-800 overflow-x-auto rounded-lg shadow">
 		<table class="table caption-bottom">
 			<thead>
 				<tr>
@@ -88,12 +88,12 @@
 					{/each}
 				</tr>
 			</thead>
-			<tbody class="[&>tr]:hover:bg-tertiary-100">
+			<tbody class="[&>tr]:hover:bg-tertiary-100-900">
 				{#each slicedResults(results) as result, i}
 					<tr
 						onclick={() => handleRowClick(result)}
 						class="cursor-pointer"
-						class:bg-tertiary-200={activeResultItem?.prefix === result.prefix}
+						class:bg-tertiary-200-800={activeResultItem?.prefix === result.prefix}
 					>
 					{#each Object.values(result) as value, key}
 						<td>

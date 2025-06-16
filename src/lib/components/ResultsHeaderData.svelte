@@ -4,6 +4,6 @@
 	} = $props();
 </script>
 
-<h1 class="mb-4 p-4 text-xl font-bold text-gray-800">
+<h1 class="mb-4 p-4 text-xl font-bold text-surface-800-200">
     Results ({resultsTotal})
 </h1>
