@@ -140,7 +140,6 @@ export async function listFilesInBucket(prefix: string): Promise<S3FileInfo[]> {
             }
         });
         const response = await s3Client.send(command);
-        const files = response.Contents?.map((item) => item.Key || '').filter(Boolean) as string[] || [];
         const fileInfoList: S3FileInfo[] = (response.Contents || [])
             .filter(s3Object => s3Object.Key)
             .map(s3Object => {
@@ -197,54 +196,48 @@ export async function findLeafPrefixes(
     // Start with a list containing only the initial prefix
     let prefixesToExplore = [startPrefix];
 
-    try {
-        // We determine the current depth by counting slashes in the startPrefix
-        const startDepth = (startPrefix.match(/\//g) || []).length;
-        logger.info({startPrefix, startDepth}, "prefix search")
+    // Determine the current depth by counting slashes in the startPrefix
+    const startDepth = (startPrefix.match(/\//g) || []).length;
+    logger.debug({startPrefix, startDepth}, "prefix search")
 
-        // Loop from the current depth until we reach the target depth
-        for (let currentDepth = startDepth; currentDepth < targetDepth; currentDepth++) {
-            logger.info(`Discovering prefixes at depth ${currentDepth + 1}...`);
+    // Loop from the current depth until we reach the target depth
+    for (let currentDepth = startDepth; currentDepth < targetDepth; currentDepth++) {
+        logger.debug(`Discovering prefixes at depth ${currentDepth + 1}...`);
 
-            // Fetch all sub-prefixes for the current level in parallel
-            const promises = prefixesToExplore.map(prefix => {
-                const command = new ListObjectsV2Command({
-                    Bucket: AppServerConfig.S3.S3_BUCKET_NAME,
-                    Prefix: prefix,
-                    Delimiter: '/',
-                });
-                return s3Client.send(command);
+        // Fetch all sub-prefixes for the current level in parallel
+        const promises = prefixesToExplore.map(prefix => {
+            const command = new ListObjectsV2Command({
+                Bucket: AppServerConfig.S3.S3_BUCKET_NAME,
+                Prefix: prefix,
+                Delimiter: '/',
             });
+            return s3Client.send(command);
+        });
 
-            const responses = await Promise.all(promises);
+        const responses = await Promise.all(promises);
 
-            // Collect all the newly found "subfolders"
-            const nextLevelPrefixes = responses.flatMap(
-                response => response.CommonPrefixes?.map(p => p.Prefix!).filter(Boolean) || []
-            );
+        // Collect all the newly found "subfolders"
+        const nextLevelPrefixes = responses.flatMap(
+            response => response.CommonPrefixes?.map(p => p.Prefix!).filter(Boolean) || []
+        );
 
-            if (nextLevelPrefixes.length === 0) {
-                logger.warn(`No further prefixes found at depth ${currentDepth + 1}. Stopping.`);
-                prefixesToExplore = []; // Stop the loop
-                break;
-            }
-
-            prefixesToExplore = nextLevelPrefixes;
-            logger.info({prefixesToExplore}, "prefixes in between");
+        if (nextLevelPrefixes.length === 0) {
+            logger.warn(`No further prefixes found at depth ${currentDepth + 1}. Stopping.`);
+            prefixesToExplore = []; // Stop the loop
+            break;
         }
 
-        // The loop is finished, prefixesToExplore now holds our campaign-level prefixes
-        const finalPrefixes = prefixesToExplore.sort();
-
-        return {
-            prefixes: finalPrefixes,
-            count: finalPrefixes.length,
-        };
-
-    } catch (error: any) {
-        logger.error(`S3 Util: Error in findLeafPrefixes for prefix ${startPrefix}:`, error);
-        throw error;
+        prefixesToExplore = nextLevelPrefixes;
+        logger.debug({prefixesToExplore}, "prefixes in between");
     }
+
+    // The loop is finished, prefixesToExplore now holds our campaign-level prefixes
+    const finalPrefixes = prefixesToExplore.sort();
+
+    return {
+        prefixes: finalPrefixes,
+        count: finalPrefixes.length,
+    };
 }
 
 /**

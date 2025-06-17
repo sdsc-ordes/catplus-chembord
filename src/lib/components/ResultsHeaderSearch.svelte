@@ -15,8 +15,6 @@
 	const qleverUrl = `${publicConfig.PUBLIC_QLEVER_UI_URL}?query=${encodedQuery}`;
 
 	let showQuery = $state(false);
-    $inspect("initialFilters", initialFilers);
-    $inspect("resultColumns", resultColumns);
 </script>
 
 <h1 class="mb-4 p-4 text-xl font-bold text-surface-800-200">

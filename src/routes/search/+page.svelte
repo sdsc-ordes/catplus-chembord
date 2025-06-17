@@ -5,8 +5,7 @@
 	import SparqlSearchForm from '$lib/components/SparqlSearchForm.svelte';
 	import { createDynamicTableHeaders } from '$lib/utils/mapSparqlResults'
 	import { type FilterCategory } from '$lib/config';
-	import { goto } from '$app/navigation';
-	import { page } from '$app/state';
+	import Error from '../+error.svelte';
 
 	let { data } = $props();
     // make sure the data is reladed after a page change
@@ -41,6 +40,7 @@
 			value: item,
 		}));
 	}
+
 	const transformedCasNumbers = transformArrayToLabelValue(picklists.CAS || []);
 	const transformedReactionTypes = transformArrayToLabelValue(picklists.REACTION_TYPE || []);
 	const transformedChemicalNames = transformArrayToLabelValue(picklists.CHEMICAL_NAME || []);
@@ -58,12 +58,6 @@
 		DEVICES: transformedDevices,
 	};
 
-	async function handlePageChange(e: CustomEvent<{ page: number }>) {
-		const searchParams = new URLSearchParams(page.url.search);
-		searchParams.set('page', e.page);
-
-		await goto(`?${searchParams.toString()}`, {invalidateAll: true});
-	}
 </script>
 
 {#snippet sidebar()}
@@ -86,7 +80,6 @@
 		results={results}
 		resultsTotal={resultsTotal}
 		tableHeaders={resultTableHeaders}
-		handlePageChange={handlePageChange}
 	/>
 {/snippet}
 

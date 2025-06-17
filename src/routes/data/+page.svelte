@@ -15,29 +15,27 @@
 	const resultsTotal: number = data.resultTotal;
 
 	// Result Display
-	const HeadersS3Results: string[] = ["Date"]
-
-	function handlePageChange(e: Event) {
-		console.log("page change")
-	}
+	const HeadersS3Results: string[] = ["Campaign", "Date"]
 </script>
 
 {#snippet sidebar()}
-<S3SearchForm
-    prefix={prefix}
-/>
+	<S3SearchForm
+		prefix={prefix}
+	/>
 {/snippet}
 
 {#snippet main()}
-<ResultsHeaderData
-    resultsTotal={results.length}
-/>
-<DisplayS3Results
-	results={results}
-	resultsTotal={resultsTotal}
-	tableHeaders={HeadersS3Results}
-	handlePageChange={handlePageChange}
-/>
+	<ResultsHeaderData
+		resultsTotal={resultsTotal}
+	/>
+
+	{#if resultsTotal}
+		<DisplayS3Results
+			results={results}
+			resultsTotal={resultsTotal}
+			tableHeaders={HeadersS3Results}
+		/>
+	{/if}
 {/snippet}
 
 <ContentLayout {sidebar} {main} />

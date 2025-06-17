@@ -1,9 +1,4 @@
 <script lang="ts" generics="ResultItemType extends ResultItemBase">
-	import IconArrowLeft from '@lucide/svelte/icons/arrow-left';
-	import IconArrowRight from '@lucide/svelte/icons/arrow-right';
-	import IconEllipsis from '@lucide/svelte/icons/ellipsis';
-	import IconFirst from '@lucide/svelte/icons/chevrons-left';
-	import IconLast from '@lucide/svelte/icons/chevron-right';
 	import Campaign from '$lib/components/Campaign.svelte';
 	import { publicConfig } from '$lib/config';
 	import type { S3FileInfo } from '$lib/server/s3';
@@ -17,6 +12,7 @@
 	// get props from data loader
 	let {
 		results,
+		resultsTotal,
 		tableHeaders
 	} = $props();
 

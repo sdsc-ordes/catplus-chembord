@@ -6,16 +6,22 @@ import { findLeafPrefixes } from '$lib/server/s3';
 import { logger } from '$lib/server/logger';
 
 export const load: PageServerLoad = async ({ locals, url }) => {
-	const prefix = url.searchParams.get('prefix') || 'batch/';
-    const { prefixes, count } = await findLeafPrefixes(prefix, 5);
-    const campaignResults: CampaignResult[] = prefixesToCampaignResults(prefixes)
+    try {
+        const prefix = url.searchParams.get('prefix') || 'batch/';
 
-    logger.info({prefixes, count}, "folder path")
-    logger.info({campaignResults}, "campaignResults")
-    return {
-        results: campaignResults,
-        resultTotal: count,
-    };
+        const { prefixes, count } = await findLeafPrefixes(prefix, 5);
+        logger.info({prefixes, count}, `got campaign prefixes for start prefix ${prefix}`)
+
+        // transform the result into object
+        const campaignResults: CampaignResult[] = prefixesToCampaignResults(prefixes)
+        logger.debug({campaignResults}, "campaignResults")
+        return {
+            results: campaignResults,
+            resultTotal: count,
+        };
+    } catch (err: any) {
+        throw new Error(err)
+    }
 };
 
 export const actions: Actions = {

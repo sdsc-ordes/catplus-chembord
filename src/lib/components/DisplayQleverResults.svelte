@@ -14,7 +14,6 @@
 		results,
 		resultsTotal,
 		tableHeaders,
-		handlePageChange,
 	} = $props();
 
 	const headers = ["Campaign"].concat(Object.values(tableHeaders));
@@ -60,6 +59,13 @@
             isLoadingDetails = false;
             detailError = null;
         }
+	}
+
+	async function handlePageChange(e: CustomEvent<{ page: number }>) {
+		const searchParams = new URLSearchParams(page.url.search);
+		searchParams.set('page', e.page);
+
+		await goto(`?${searchParams.toString()}`, {invalidateAll: true});
 	}
 
     $effect(() => {
