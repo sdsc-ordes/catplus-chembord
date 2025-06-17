@@ -3,41 +3,31 @@ PREFIX cat: <http://example.org/catplus/ontology/>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX schema: <https://schema.org/>
 
-SELECT ?contentUrl ?campaignName ?reactionType ?reactionName ?chemicalName ?casNumber ?smiles
+SELECT
+    ?contentUrl
+    ?reactionType
+    ?chemicalName
 WHERE {
-  # STEP 2: The outer query takes each ?s from the subquery result
-  # and finds all the associated details for it.
-  ?s cat:hasBatch ?batch ;
-     cat:hasChemical ?chemical ;
-     schema:name ?campaignName ;
-     schema:contentUrl ?contentUrl .
-  ?batch cat:reactionType ?reactionType ;
-         cat:reactionName ?reactionName .
-  ?chemical allores:AFR_0002295 ?smiles ;
-            allores:AFR_0002292 ?chemicalName ;
-            cat:casNumber ?casNumber .
-
-  # --- Subquery Starts Here ---
-  # STEP 1: This inner query runs first. Its only job is to find the
-  # unique campaigns (?s) that match the filter, and then apply pagination.
-  {
-    SELECT DISTINCT ?s WHERE {
-      ?s rdf:type cat:Campaign ;
-         cat:hasBatch ?batch ;
-         cat:hasChemical ?chemical ;
-		 schema:contentUrl ?contentUrl .
-      ?batch cat:reactionType ?reactionType ;
-             cat:reactionName ?reactionName .
-      ?chemical allores:AFR_0002295 ?smiles .
-      # The FILTER must be inside the subquery to apply before the LIMIT.
-      FILTER (?reactionType = 'N-methylation' || ?reactionName = 'Caffeine synthesis' || ?smiles = 'CO')
+    ?s schema:contentUrl ?contentUrl .
+    ?s cat:hasBatch ?batch .
+    {?s cat:hasChemical ?chemical . ?s a cat:Campaign}
+    UNION {?action cat:hasBatch ?batch . ?action cat:hasSample* ?sample . ?sample cat:hasChemical ?chemical .}
+    ?batch cat:reactionType ?reactionType .
+    ?chemical allores:AFR_0002292 ?chemicalName .
+    {
+        SELECT DISTINCT ?s WHERE {
+            ?batch cat:reactionType ?reactionType .
+            ?s rdf:type cat:Campaign .
+            ?s cat:hasBatch ?batch .
+            {?s cat:hasChemical ?chemical . ?s a cat:Campaign}
+            UNION {?action cat:hasBatch ?batch . ?action cat:hasSample* ?sample . ?sample cat:hasChemical ?chemical .}
+            ?s schema:contentUrl ?contentUrl .
+            FILTER (?reactionType IN ('N-methylation'))
+        }
+        ORDER BY ASC(?contentUrl)
+        LIMIT 3
+        OFFSET 0
     }
-	ORDER BY ASC(?contentUrl)
-    LIMIT 3
-    OFFSET 0
-  }
-  #--- Subquery Ends Here ---
 }
-GROUP BY ?contentUrl ?campaignName ?reactionType ?reactionName ?chemicalName ?casNumber ?smiles
-# This sorts the final results that are returned to the user.
+GROUP BY ?contentUrl ?reactionType ?chemicalName
 ORDER BY ASC(?contentUrl)
