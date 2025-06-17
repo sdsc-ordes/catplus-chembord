@@ -110,12 +110,8 @@ ORDER BY ASC(?contentUrl)
             ${filterConditions.join(' ')}
         }
     `;
-
-    logger.info({ resultsQuery }, "Generated SPARQL Results Query");
     const cleanedResultsQuery = resultsQuery.replace(/\s+/g, ' ').trim();
     const cleanedCountQuery = countQuery.replace(/\s+/g, ' ').trim();
-    logger.info({ sparqlQuery: cleanedResultsQuery }, "Cleaned SPARQL Query");
-    logger.info({ countQuery: cleanedCountQuery }, "Generated SPARQL Count Query");
 
     return {
         resultsQuery: cleanedResultsQuery,

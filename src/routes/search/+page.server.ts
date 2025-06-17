@@ -58,7 +58,7 @@ export const load: PageServerLoad = async ({ url }) => {
 			pageSize,
 			offset,
 		);
-		logger.info({ sparqlQueries }, "Generated SPARQL Queries");
+		logger.debug({ sparqlQueries }, "Generated SPARQL Queries");
 
 		// execute sparql search on Qlever
 		const sparqlResult: Record<string, string>[] = await getSparqlQueryResult(
