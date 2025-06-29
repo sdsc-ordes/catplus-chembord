@@ -6,7 +6,6 @@
 </script>
 
 {#snippet sidebar()}
-	<h1 class="mb-6 text-2xl font-bold text-surface-800-200">Cat Plus</h1>
 	<section class="space-y-4">
 		<div class="card preset-filled-surface-100-900 w-full max-w-md p-4 text-center">
 			<img
@@ -36,12 +35,13 @@
 {/snippet}
 
 {#snippet main()}
-	<h1 class="mb-6 p-4 text-2xl font-bold text-surface-800-200">An automated Catalysis Lab</h1>
-	<h2 class="mb-6 p-4 text-xl font-bold"><a href="{base}/data" class="text-primary-500">Explore the data</a></h2>
+<div class="space-y-6">
+	<h1 class="text-2xl font-bold text-surface-800-200">Cat+:An automated Catalysis Lab</h1>
+	<h2 class="text-xl font-bold"><a href="{base}/data" class="text-primary-500">Explore the data</a></h2>
 	<p>Explore the campaigns by year / month / day</p>
-	<h2 class="mb-6 p-4 text-xl font-bold"><a href="{base}/search" class="text-primary-500">Search in the Campaigns</a></h2>
+	<h2 class="text-xl font-bold"><a href="{base}/search" class="text-primary-500">Search in the Campaigns</a></h2>
 	<p>You can search Campaigns by a variety of search criteria:</p>
-	<ul class="mb-6 p-4 list-disc">
+	<ul class="list-disc list-inside space-y-2">
 		<li>Campaign Name</li>
 		<li>Reaction Type</li>
 		<li>Reaction Name</li>
@@ -50,7 +50,7 @@
 		<li>SMILES</li>
 		<li>Device</li>
 	</ul>
-	<h2 class="mb-6 p-4 text-xl font-bold">Search with Sparql</h2>
+	<h2 class="text-xl font-bold">Search with Sparql</h2>
 	<p class="leading-normal">
 		You can use our
 		<a
@@ -61,7 +61,9 @@
 			<ExternalLink class="h-4 w-4" />
 			<span class="ml-1">Sparql Endpoint</span>
 		</a>
-		to query the data directly via Sparql. See the
+		to query the data directly via Sparql.
+	</p>
+	<p>See the
 		<a
 		href="{publicConfig.PUBLIC_CATPLUS_ONTOLOGY_URL}"
 		target="_blank"
@@ -71,7 +73,7 @@
 			<span class="ml-1">Catplus Ontology</span>
 		</a> for more information on our data model.
 	</p>
-
+</div>
 {/snippet}
 
 <ContentLayout {sidebar} {main} />
