@@ -1,6 +1,7 @@
 <script lang="ts">
 	import '../app.css';
 	import Header from '$lib/components/Header.svelte';
+	import Footer from '$lib/components/Footer.svelte';
 
 	let { children } = $props();
 </script>
@@ -11,5 +12,5 @@
 		<Header />
 	</header>
 	{@render children()}
-	<footer class="p-4 text-center">Chemboard 2025</footer>
+	<Footer />
 </div>

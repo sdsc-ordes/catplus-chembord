@@ -121,6 +121,9 @@ export const publicConfig = {
   PUBLIC_QLEVER_UI_URL: publicEnv.PUBLIC_QLEVER_UI_URL || process.env.PUBLIC_QLEVER_UI_URL,
   PUBLIC_CATPLUS_ONTOLOGY_URL: publicEnv.PUBLIC_CATPLUS_ONTOLOGY_URL || process.env.PUBLIC_CATPLUS_ONTOLOGY_URL,
   PUBLIC_RESULTS_PER_PAGE: parseInt(publicEnv.PUBLIC_RESULTS_PER_PAGE || process.env.PUBLIC_RESULTS_PER_PAGE),
+  PUBLIC_SWISSCAT_URL: publicEnv.PUBLIC_SWISSCAT_URL || process.env.PUBLIC_SWISSCAT_URL,
+  PUBLIC_SDSC_URL: publicEnv.PUBLIC_SDSC_URL || process.env.PUBLIC_SDSC_URL,
+  PUBLIC_CHEMBOARD_GITHUB_URL: publicEnv.PUBLIC_CHEMBOARD_GITHUB_URL || process.env.PUBLIC_CHEMBOARD_GITHUB_URL,
 }
 
 export function validatePublicConfiguration(): void {
@@ -128,6 +131,9 @@ export function validatePublicConfiguration(): void {
         'PUBLIC_QLEVER_UI_URL',
         'PUBLIC_CATPLUS_ONTOLOGY_URL',
         'PUBLIC_RESULTS_PER_PAGE',
+        'PUBLIC_SWISSCAT_URL',
+        'PUBLIC_SDSC_URL',
+        'PUBLIC_CHEMBOARD_GITHUB_URL'
     ];
 
     const missingVars: string[] = [];
