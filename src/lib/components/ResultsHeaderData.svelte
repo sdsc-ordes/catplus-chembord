@@ -9,6 +9,6 @@
 </h1>
 {#if !resultsTotal}
 	<p>
-		No results have been found for this prefix: please try another search.
+		No results have been found.
 	</p>
 {/if}
