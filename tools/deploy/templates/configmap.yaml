@@ -18,3 +18,6 @@ data:
   QLEVER_UI_URL: #@ data.values.app.qleverUiUrl
   CATPLUS_ONTOLOGY_URL: #@ data.values.app.catplusOntologyUrl
   RESULTS_PER_PAGE: #@ data.values.app.resultsPerPage
+  SWISSCAT_URL: #@ data.values.app.swisscatUrl
+  SDSC_URL: #@ data.values.app.sdscUrl
+  CHEMBOARD_GITHUB_URL: #@ data.values.app.chemboardGithubUrl

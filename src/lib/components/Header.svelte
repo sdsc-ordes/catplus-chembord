@@ -4,6 +4,7 @@
 	import Home from '@lucide/svelte/icons/home';
 	import Database from '@lucide/svelte/icons/database';
 	import Search from '@lucide/svelte/icons/search';
+	import { publicConfig } from '$lib/config';
 </script>
 
 <AppBar 
@@ -21,7 +22,7 @@
 	{/snippet}
 	<span class="text-2xl font-bold">HT Chemboard</span>
 	{#snippet trail()}
-		<a href="https://github.com/sdsc-ordes/catplus-chemboard.git"
+		<a href="{publicConfig.PUBLIC_CHEMBOARD_GITHUB_URL}"
 		   target="_blank" rel="noopener" class="opacity-75 hover:opacity-100 transition-opacity">
 			<img
 				src="{base}/github-mark.png"

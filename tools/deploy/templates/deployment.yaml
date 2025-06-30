@@ -58,6 +58,21 @@ spec:
             configMapKeyRef:
               name: #@ data.values.name + "-config"
               key: QLEVER_UI_URL
+        - name: PUBLIC_SDSC_URL
+          valueFrom:
+            configMapKeyRef:
+              name: #@ data.values.name + "-config"
+              key: SDSC_URL
+        - name: PUBLIC_SWISSCAT_URL
+          valueFrom:
+            configMapKeyRef:
+              name: #@ data.values.name + "-config"
+              key: SWISSCAT_URL
+        - name: PUBLIC_CHEMBOARD_GITHUB_URL
+          valueFrom:
+            configMapKeyRef:
+              name: #@ data.values.name + "-config"
+              key: CHEMBOARD_GITHUB_URL
         - name: PUBLIC_CATPLUS_ONTOLOGY_URL
           valueFrom:
             configMapKeyRef:
