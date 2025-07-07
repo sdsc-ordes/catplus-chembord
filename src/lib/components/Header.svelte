@@ -20,9 +20,9 @@
 	    <a href="{base}/search" class="flex items-center mx-4 gap-x-2"><Search size={20} />Search</a>
 		<a href="{base}/data" class="flex items-center mx-4 gap-x-2"><Database size={20} />Data</a>
 	{/snippet}
-	<span class="text-2xl font-bold">HT Chemboard</span>
+	<span class="text-2xl font-bold">HT Chembord</span>
 	{#snippet trail()}
-		<a href="{publicConfig.PUBLIC_CHEMBOARD_GITHUB_URL}"
+		<a href="{publicConfig.PUBLIC_CHEMBORD_GITHUB_URL}"
 		   target="_blank" rel="noopener" class="opacity-75 hover:opacity-100 transition-opacity">
 			<img
 				src="{base}/github-mark.png"

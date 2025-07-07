@@ -21,7 +21,7 @@
     </div>
 
     <p class="text-sm text-surface-500 dark:text-surface-400">
-        Chemboard 2025
+        Chembord 2025
     </p>
 
 </footer>

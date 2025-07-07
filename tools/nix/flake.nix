@@ -1,5 +1,5 @@
 {
-  description = "catplus-chemboard";
+  description = "catplus-chembord";
 
   nixConfig = {
     extra-substituters = [

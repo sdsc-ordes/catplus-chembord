@@ -68,11 +68,11 @@ spec:
             configMapKeyRef:
               name: #@ data.values.name + "-config"
               key: SWISSCAT_URL
-        - name: PUBLIC_CHEMBOARD_GITHUB_URL
+        - name: PUBLIC_CHEMBORD_GITHUB_URL
           valueFrom:
             configMapKeyRef:
               name: #@ data.values.name + "-config"
-              key: CHEMBOARD_GITHUB_URL
+              key: CHEMBORD_GITHUB_URL
         - name: PUBLIC_CATPLUS_ONTOLOGY_URL
           valueFrom:
             configMapKeyRef:

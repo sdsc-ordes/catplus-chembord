@@ -1,4 +1,4 @@
-# Catplus Chemboard
+# Catplus Chembord
 
 Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
 
@@ -19,7 +19,7 @@ cp .env.example .env
 
 Then let docker run the container with variables loaded from the env file:
 ```bash
-docker run -p 3000:3000 --env-file .env ghcr.io/sdsc-ordes/catplus-chemboard:latest
+docker run -p 3000:3000 --env-file .env ghcr.io/sdsc-ordes/catplus-chembord:latest
 ```
 
 ## Development Environment
@@ -27,7 +27,7 @@ docker run -p 3000:3000 --env-file .env ghcr.io/sdsc-ordes/catplus-chemboard:lat
 ### Pre-requisites
 
 The development setup requires the following:
-* nix 
+* nix
 * just
 
 Additionally, we recommend using direnv to automatically activate the development environment when entering the project directory.
