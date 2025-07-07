@@ -3,8 +3,8 @@ FROM node:20-alpine AS build
 
 ENV NODE_ENV=production
 ENV PORT=3000
-ENV BASE_PATH="/chemboard"
-ENV ORIGIN="http://chemboard"
+ENV BASE_PATH="/chembord"
+ENV ORIGIN="http://chembord"
 
 # Install pnpm
 RUN npm install -g pnpm
@@ -50,8 +50,8 @@ ENV AWS_SECRET_ACCESS_KEY=""
 ENV S3_BUCKET_NAME=""
 ENV AWS_S3_ENDPOINT=""
 
-# Base path for reverse proxy deployment (e.g., '/chemboard' for path-based routing)
-ENV BASE_PATH="/chemboard"
+# Base path for reverse proxy deployment (e.g., '/chembord' for path-based routing)
+ENV BASE_PATH="/chembord"
 
 # Command to run the application
 CMD ["node", "build/index.js"]

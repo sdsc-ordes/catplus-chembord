@@ -123,7 +123,7 @@ export const publicConfig = {
   PUBLIC_RESULTS_PER_PAGE: parseInt(publicEnv.PUBLIC_RESULTS_PER_PAGE || process.env.PUBLIC_RESULTS_PER_PAGE),
   PUBLIC_SWISSCAT_URL: publicEnv.PUBLIC_SWISSCAT_URL || process.env.PUBLIC_SWISSCAT_URL,
   PUBLIC_SDSC_URL: publicEnv.PUBLIC_SDSC_URL || process.env.PUBLIC_SDSC_URL,
-  PUBLIC_CHEMBOARD_GITHUB_URL: publicEnv.PUBLIC_CHEMBOARD_GITHUB_URL || process.env.PUBLIC_CHEMBOARD_GITHUB_URL,
+  PUBLIC_CHEMBORD_GITHUB_URL: publicEnv.PUBLIC_CHEMBORD_GITHUB_URL || process.env.PUBLIC_CHEMBORD_GITHUB_URL,
 }
 
 export function validatePublicConfiguration(): void {
@@ -133,7 +133,7 @@ export function validatePublicConfiguration(): void {
         'PUBLIC_RESULTS_PER_PAGE',
         'PUBLIC_SWISSCAT_URL',
         'PUBLIC_SDSC_URL',
-        'PUBLIC_CHEMBOARD_GITHUB_URL'
+        'PUBLIC_CHEMBORD_GITHUB_URL'
     ];
 
     const missingVars: string[] = [];

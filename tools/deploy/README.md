@@ -1,6 +1,6 @@
-# CatPlus ChemBoard Kubernetes Deployment
+# CatPlus ChemBord Kubernetes Deployment
 
-This directory contains Kubernetes manifests for deploying catplus-chemboard using [ytt](https://carvel.dev/ytt/).
+This directory contains Kubernetes manifests for deploying catplus-chembord using [ytt](https://carvel.dev/ytt/).
 
 ## Quick Start
 
@@ -33,19 +33,19 @@ Define `values.yaml` for your deployment, for example:
 
 #@data/values
 ---
-name: catplus-chemboard
+name: catplus-chembord
 version: latest
-namespace: chemboard
+namespace: chembord
 
 image:
-  repository: ghcr.io/sdsc-ordes/catplus-chemboard
+  repository: ghcr.io/sdsc-ordes/catplus-chembord
   tag: latest
   pullPolicy: Always
 
 s3:
   region: us-east-1
   endpoint: https://s3.custom-endpoint.example.com
-  bucketName: catplus-chemboard-bucket
+  bucketName: catplus-chembord-bucket
   accessKeyId: ''
   secretAccessKey: ''
 

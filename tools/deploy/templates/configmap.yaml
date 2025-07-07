@@ -20,4 +20,4 @@ data:
   RESULTS_PER_PAGE: #@ data.values.app.resultsPerPage
   SWISSCAT_URL: #@ data.values.app.swisscatUrl
   SDSC_URL: #@ data.values.app.sdscUrl
-  CHEMBOARD_GITHUB_URL: #@ data.values.app.chemboardGithubUrl
+  CHEMBORD_GITHUB_URL: #@ data.values.app.chembordGithubUrl

@@ -1,4 +1,4 @@
-# manifests.just - Kubernetes manifests management for Cat+ Chemboard
+# manifests.just - Kubernetes manifests management for Cat+ Chembord
 set positional-arguments
 set shell := ["bash", "-cue"]
 root_dir := `git rev-parse --show-toplevel`

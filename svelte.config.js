@@ -10,7 +10,7 @@ const config = {
     kit: {
         adapter: adapter(),
         paths: {
-            base: '/chemboard',
+            base: '/chembord',
         },
         csrf: {
             checkOrigin: false
