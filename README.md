@@ -1,11 +1,52 @@
 # Catplus Chembord
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+## About
+
+### Part of a datasharing infrastructure
+
+The HT-Chembord is part of the CAT+ Datasharing infrastructure:
+
+It relies on these other repositories:
+
+- Ontology: [catplus-ontology](https://github.com/sdsc-ordes/catplus-ontology)
+- Converters: [catplus-converters](https://github.com/sdsc-ordes/catplus-converters)
+- Kubernetes Deployment (private, contact project leads): [catplus-manifests](https://github.com/sdsc-ordes/catplus-manifests) (includes argo workflows, qlever RDF database, UI, s3 integration)
+
+### Purpose
+
+The HT-Chemboard has two pages:
+- `data` route: allows to search the data that is stored on S3
+- `search` route: allows to search the data, by querying the Qlever instance of Cat+, that stores data that has been converted to S3.
+
+### Architecture
+
+This is a [sveltekit app](https://svelte.dev/) that has been setup with [Skeleton](https://www.skeleton.dev/).
+
+## Prerequisites
+
+The projects expects:
+- the S3 instance of the Cat+ project
+- a Qlever instance with files that have been converted by the [catplus-converters](https://github.com/sdsc-ordes/catplus-converters)
+
+The credentials for these infrastruture need to be provided in a `.env` file:
+
+```
+cp .env.example .env
+```
+
+Then fill in the credentials.
+
+Now you can start the ui locally:
+
+```
+just local
+```
+
+###
+
+In order to deploy it to Kubernetes you need manifests.
 
 
-## Quickstart
-
-The easy way to run the project is to use docker.
 
 First, define your .env file by copying the example:
 
