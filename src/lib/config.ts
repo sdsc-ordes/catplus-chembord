@@ -46,6 +46,7 @@ export const ResultTableColumnsSorted: ResultTableColumns[] = [
     'CHEMICAL_NAME',
     'CAS',
     'SMILES',
+    'DEVICES',
 ];
 
 // Qlever raw results
