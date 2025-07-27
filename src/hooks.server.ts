@@ -39,7 +39,8 @@ export const init: ServerInit = async () => {
 // Logs every request
 export const handle: Handle = async ({ event, resolve }) => {
 	// currently this is only logging requests
-	logger.info(event.request.url)
+	logger.info(event.request.url);
 	const response = await resolve(event);
+  logger.info(`Response status: ${response.status} for ${event.request.method} ${event.url.pathname}`);
 	return response;
 };
