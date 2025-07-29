@@ -18,6 +18,7 @@ async function queryQlever(query: string): Promise<string> {
     logger.debug({ encodedQuery }, 'Encoded SPARQL query for Qlever');
 
     const fullUrl = `${AppServerConfig.QLEVER.QLEVER_API_URL}?query=${encodedQuery}`;
+    logger.info({ fullUrl }, 'Full URL for Qlever query');
 
     try {
         const response = await fetch(fullUrl, {
@@ -26,6 +27,7 @@ async function queryQlever(query: string): Promise<string> {
                 'Accept': 'text/csv',
             },
         });
+        logger.info({ response }, 'Response from Qlever query');
         if (!response.ok) {
             const errorBody = await response.text();
             // Return a structured error object instead of throwing
