@@ -3,12 +3,12 @@ PREFIX allo-res: <http://purl.allotrope.org/ontologies/result#>
 PREFIX schema: <https://schema.org/>
 PREFIX cat: <http://example.org/catplus/ontology/>
 PREFIX purl: <http://purl.allotrope.org/ontologies/>
-SELECT DISTINCT ?contenturl ?deviceTypes ?chemicals ?peakIdentifiers 
-#peakIdentifiers should not be shown on UI, 
+SELECT DISTINCT ?contenturl ?deviceTypes ?chemicals ?peakIdentifiers
+#peakIdentifiers should not be shown on UI,
 #but should be used to fetch bravo/uv/ir/nmr files with that identifier,
 #to be shown on the UI for that campaign
 WHERE {
-  
+
   # Step 1: Pagination of contenturl
   {
     SELECT DISTINCT ?contenturl
@@ -20,7 +20,7 @@ WHERE {
     LIMIT 10
     OFFSET 0
   }
-  
+
   # Step 2: Get deviceType and reaction info per contenturl
   OPTIONAL {
     SELECT ?contenturl (GROUP_CONCAT(DISTINCT ?deviceType; separator=", ") AS ?deviceTypes )
@@ -35,7 +35,7 @@ WHERE {
     ?MeasurementAggregateDocument allo-res:AFR_0002083 ?SampleDocument .
 
     ?SampleDocument cat:hasProduct ?product .
-    
+
     ?synthAddAction cat:producesProduct ?product ;
                     cat:hasBatch ?batch .
 
@@ -44,7 +44,7 @@ WHERE {
   }
       GROUP BY ?contenturl
 }
-  
+
   # Step 3: Aggregate chemicals per contenturl
   OPTIONAL {
     SELECT ?contenturl (GROUP_CONCAT(DISTINCT CONCAT(?chemicalName, " [", ?casNumber, "] <", ?smiles, ">"); separator=" | ") AS ?chemicals)
@@ -62,7 +62,7 @@ WHERE {
     }
     GROUP BY ?contenturl
   }
-  
+
   # Step 4: Aggregate peakIdentifiers per contenturl
   OPTIONAL {
     SELECT ?contenturl (GROUP_CONCAT(DISTINCT ?peakIdentifier; separator=", ") AS ?peakIdentifiers)
