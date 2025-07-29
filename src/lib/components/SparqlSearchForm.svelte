@@ -104,13 +104,6 @@
 			>
 			{#snippet lead()}
 			<input
-			    class="checkbox bg-surface-50-950"
-				name="column_{categoryKey}"
-				type="checkbox"
-				checked={resultColumns.includes(categoryKey) || selectedItems[categoryKey] && selectedItems[categoryKey].length > 0}
-				value=true
-			/>
-			<input
 				class="hidden"
 				name={categoryKey}
 				value={selectedItems[categoryKey] ? selectedItems[categoryKey].join(',') : ''}
