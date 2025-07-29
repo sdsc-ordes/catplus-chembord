@@ -1,5 +1,10 @@
 import { AppServerConfig } from '$lib/server/environment';
 import { parseCsvToObjects, parseTolist } from '$lib/utils/csvParser';
+import { logger } from './logger';
+
+export type QueryResult =
+  | { success: true; data: string }
+  | { success: false; error: { message: string; statusCode?: number } };
 
 /**
  * Executes a SPARQL query against the QLever endpoint and returns the result as a Turtle string.
@@ -10,6 +15,7 @@ import { parseCsvToObjects, parseTolist } from '$lib/utils/csvParser';
  */
 async function queryQlever(query: string): Promise<string> {
     const encodedQuery = encodeURIComponent(query);
+    logger.debug({ encodedQuery }, 'Encoded SPARQL query for Qlever');
 
     const fullUrl = `${AppServerConfig.QLEVER.QLEVER_API_URL}?query=${encodedQuery}`;
 
@@ -20,17 +26,36 @@ async function queryQlever(query: string): Promise<string> {
                 'Accept': 'text/csv',
             },
         });
-
         if (!response.ok) {
             const errorBody = await response.text();
-            throw new Error(`Qlever query failed: ${response.status} ${response.statusText}. Body: ${errorBody.substring(0, 500)}`);
+            // Return a structured error object instead of throwing
+            logger.error({ response }, `Error on query: ${query}`);
+            return {
+                success: false,
+                error: {
+                    message: `Qlever query failed: ${response.statusText}. Body: ${errorBody.substring(0, 500)}`,
+                    statusCode: response.status,
+                },
+            };
         }
-
+        logger.info({ response }, `Qlever query executed successfully: ${query}`);
         const resultData = await response.text();
-        return resultData;
+        // Return a structured success object
+        return { success: true, data: resultData };
 
     } catch (error: any) {
-        throw new Error(`Failed to execute Qlever query: ${error.message}`);
+        logger.error({ query, error: {
+            message: error.message,
+            name: error.name,
+            stack: error.stack,
+            cause: error.cause,
+        }, url: AppServerConfig.QLEVER.QLEVER_API_URL }, `Qlever error on query: ${query}`);
+        return {
+            success: false,
+            error: {
+                message: `Failed to execute Qlever query: ${error.message}`,
+            },
+        };
     }
 }
 
