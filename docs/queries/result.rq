@@ -1,33 +1,84 @@
-PREFIX allores: <http://purl.allotrope.org/ontologies/result#>
-PREFIX cat: <http://example.org/catplus/ontology/>
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX res: <http://dbpedia.org/resource/>
+PREFIX allo-res: <http://purl.allotrope.org/ontologies/result#>
 PREFIX schema: <https://schema.org/>
-
-SELECT
-    ?contentUrl
-    ?reactionType
-    ?chemicalName
+PREFIX cat: <http://example.org/catplus/ontology/>
+PREFIX purl: <http://purl.allotrope.org/ontologies/>
+SELECT DISTINCT ?contenturl ?deviceTypes ?chemicals ?peakIdentifiers
+#peakIdentifiers should not be shown on UI,
+#but should be used to fetch bravo/uv/ir/nmr files with that identifier,
+#to be shown on the UI for that campaign
 WHERE {
-    ?s schema:contentUrl ?contentUrl .
-    ?s cat:hasBatch ?batch .
-    {?s cat:hasChemical ?chemical . ?s a cat:Campaign}
-    UNION {?action cat:hasBatch ?batch . ?action cat:hasSample* ?sample . ?sample cat:hasChemical ?chemical .}
-    ?batch cat:reactionType ?reactionType .
-    ?chemical allores:AFR_0002292 ?chemicalName .
-    {
-        SELECT DISTINCT ?s WHERE {
-            ?batch cat:reactionType ?reactionType .
-            ?s rdf:type cat:Campaign .
-            ?s cat:hasBatch ?batch .
-            {?s cat:hasChemical ?chemical . ?s a cat:Campaign}
-            UNION {?action cat:hasBatch ?batch . ?action cat:hasSample* ?sample . ?sample cat:hasChemical ?chemical .}
-            ?s schema:contentUrl ?contentUrl .
-            FILTER (?reactionType IN ('N-methylation'))
-        }
-        ORDER BY ASC(?contentUrl)
-        LIMIT 3
-        OFFSET 0
+
+  # Step 1: Pagination of contenturl
+  {
+    SELECT DISTINCT ?contenturl
+    WHERE {
+      ?LiquidChromatographyAggregateDocument schema:contentUrl ?contenturl .
+      ?LiquidChromatographyAggregateDocument a allo-res:AFR_0002524 .
     }
+    ORDER BY ?contenturl
+    LIMIT 10
+    OFFSET 0
+  }
+
+  # Step 2: Get deviceType and reaction info per contenturl
+  OPTIONAL {
+    SELECT ?contenturl (GROUP_CONCAT(DISTINCT ?deviceType; separator=", ") AS ?deviceTypes )
+	WHERE {
+    ?LiquidChromatographyAggregateDocument schema:contentUrl ?contenturl ;
+      allo-res:AFR_0002526 ?DeviceSystemDocument ;
+      cat:hasLiquidChromatography/allo-res:AFR_0002374 ?MeasurementAggregateDocument .
+
+    ?DeviceSystemDocument a cat:DeviceSystemDocument ;
+      allo-res:AFR_0002722/allo-res:AFR_0002568 ?deviceType .
+
+    ?MeasurementAggregateDocument allo-res:AFR_0002083 ?SampleDocument .
+
+    ?SampleDocument cat:hasProduct ?product .
+
+    ?synthAddAction cat:producesProduct ?product ;
+                    cat:hasBatch ?batch .
+
+    ?batch cat:reactionType ?reactionType ;
+           cat:reactionName ?reactionName .
+  }
+      GROUP BY ?contenturl
 }
-GROUP BY ?contentUrl ?reactionType ?chemicalName
-ORDER BY ASC(?contentUrl)
+
+  # Step 3: Aggregate chemicals per contenturl
+  OPTIONAL {
+    SELECT ?contenturl (GROUP_CONCAT(DISTINCT CONCAT(?chemicalName, " [", ?casNumber, "] <", ?smiles, ">"); separator=" | ") AS ?chemicals)
+    WHERE {
+      ?LiquidChromatographyAggregateDocument schema:contentUrl ?contenturl ;
+        cat:hasLiquidChromatography/allo-res:AFR_0002374 ?MeasurementAggregateDocument .
+
+      ?MeasurementAggregateDocument allo-res:AFR_0002083 ?SampleDocument .
+      ?SampleDocument cat:hasSample* ?sample .
+
+      ?chemical allo-res:AFR_0002292 ?chemicalName ;
+                cat:casNumber ?casNumber ;
+                allo-res:AFR_0002295 ?smiles .
+
+    }
+    GROUP BY ?contenturl
+  }
+
+  # Step 4: Aggregate peakIdentifiers per contenturl
+  OPTIONAL {
+    SELECT ?contenturl (GROUP_CONCAT(DISTINCT ?peakIdentifier; separator=", ") AS ?peakIdentifiers)
+    WHERE {
+      ?LiquidChromatographyAggregateDocument schema:contentUrl ?contenturl ;
+        cat:hasLiquidChromatography/allo-res:AFR_0002374 ?MeasurementAggregateDocument .
+
+      ?MeasurementAggregateDocument allo-res:AFR_0002659/allo-res:AFR_0000432/cat:peak/allo-res:AFR_0001164 ?peakIdentifier .
+    }
+    GROUP BY ?contenturl
+  }
+  #FILTER (?deviceType = "Autosampler")
+  FILTER (?chemicalName = "methyl iodide")
+  FILTER (?casNumber = "123-11-5")
+  FILTER (?reactionName = "Caffeine synthesis")
+  FILTER (?smiles = "[2H]C([2H])([2H])O[2H]" )
+  FILTER (?reactionType = "N-methylation")
+}
+ORDER BY ASC(?contenturl)
