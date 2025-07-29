@@ -32,6 +32,20 @@ export const load: PageServerLoad = async ({ url }) => {
 		}, {});
 		logger.debug({pickListsMap}, 'Mapped picklist');
 
+    } catch (err: any) {
+        logger.error({ originalError: err }, 'CRITICAL: Failed to load picklists for search form.');
+        return {
+            results: [],
+            picklists: {}, // Return empty picklists
+            initialFilters: {},
+            resultsTotal: 0,
+			resultColumns: [],
+			sparqlQuery: '',
+            errorMessage: 'The search option could not be loaded. Check the connection to Qlever: maybe Qlever Server is down.',
+        };
+    }
+
+	try {
 		//------------------------ Get query parameters from search parameters ------------------------
 		// get selections from the url
 		const initialFilters = Object.fromEntries(
@@ -41,9 +55,9 @@ export const load: PageServerLoad = async ({ url }) => {
 			})
 		) as Record<FilterCategory, string[]>;
 		logger.debug({initialFilters: initialFilters}, 'Filters from URL search params');
-		// get result columns from the url
-		const resultColumns = url.searchParams.get('columns')?.split(',') || [];
-		logger.debug({resultcolumns: resultColumns}, "Result columns from URL params")
+
+		const resultColumns: FilterCategory[] = FilterCategoriesSorted;
+		logger.debug({ resultColumns: resultColumns }, "result columns");
 
 		// current page
 		const currentPage = Math.max(1, parseInt(url.searchParams.get('page') as string, 10) || 1);
@@ -59,9 +73,10 @@ export const load: PageServerLoad = async ({ url }) => {
 			offset,
 		);
 		logger.debug({ sparqlQueries }, "Generated SPARQL Queries");
-
 		// execute sparql search on Qlever
-		const sparqlResult: Record<string, string>[] = await getSparqlQueryResult(
+		logger.debug({sparqlQueries: sparqlQueries.resultsQuery}, 'Executing SPARQL query on Qlever');
+
+        const sparqlResult: Record<string, string>[] = await getSparqlQueryResult(
 			sparqlQueries.resultsQuery
 		);
 		logger.debug({sparqlResult: sparqlResult}, 'Received sparqlResult from Qlever');
@@ -77,7 +92,6 @@ export const load: PageServerLoad = async ({ url }) => {
 		const resultTable = groupMappedQleverResultsByPrefix(sparqlResult, resultColumns);
 		logger.debug({resultTable: resultTable}, 'grouped by campaign');
 
-		// Return results, selections and options
 		return {
 			results: resultTable,
 			picklists: pickListsMap,
@@ -85,11 +99,23 @@ export const load: PageServerLoad = async ({ url }) => {
 			resultColumns: resultColumns,
 			resultsTotal: resultsTotal,
 			sparqlQuery: sparqlQueries.displayQuery,
+			errorMessage: null, // <-- Add this on success
 		};
 	} catch (err: any) {
-		throw new Error(err)
+		logger.error({ originalError: err }, 'An expected error occurred in page load.');
+
+		// Return a data object with an error message
+		return {
+			results: [],
+			picklists: {},
+			initialFilters: {},
+			resultColumns: [],
+			resultsTotal: 0,
+			sparqlQuery: '',
+			errorMessage: 'We could not connect to the data service. Please try again later.', // <-- The error message for the UI
+		};
 	}
-};
+}
 
 export const actions: Actions = {
 	/**
@@ -105,9 +131,7 @@ export const actions: Actions = {
         const formDataObject = Object.fromEntries(formData);
         logger.debug({ formDataObject: formDataObject }, "data received on form submit");
 
-		const resultColumns: FilterCategory[] = FilterCategoriesSorted.filter(categoryKey =>
-			formData.has(`column_${categoryKey}`)
-		);
+		const resultColumns: FilterCategory[] = FilterCategoriesSorted;
         logger.debug({ resultColumns: resultColumns }, "result columns");
 
 		const searchParams = Object.fromEntries(
@@ -130,11 +154,6 @@ export const actions: Actions = {
 
 		const targetUrl = new URL(url.origin + url.pathname);
 		logger.debug({targetUrl: targetUrl.toString()}, "Target URL for search action");
-
-		// --- Append the `resultColumns` array as a single comma-separated list ---
-		if (resultColumns.length > 0) {
-			targetUrl.searchParams.set('columns', resultColumns.join(','));
-		}
 
 		// Append the processed values to the url as query parameters
 		for (const categoryKey of FilterCategoriesSorted) {

@@ -62,7 +62,7 @@
 
 {#snippet sidebar()}
 <SparqlSearchForm
-    picklists={picklists}
+	picklists={picklists}
 	initialFilters={initialFilters}
 	transformedPicklists={transformedPicklists}
 	resultColumns={resultColumns}
@@ -75,12 +75,19 @@
 		initialFilters={initialFilters}
 		resultColumns={resultColumns}
 		query={sparqlQuery}
+		error={data.errorMessage}
 	/>
-	<DisplayResults
-		results={results}
-		resultsTotal={resultsTotal}
-		tableHeaders={resultTableHeaders}
-	/>
+	{#if results.length === 0 && !data.errorMessage}
+		<div class="card w-full preset-filled-info-100-900 p-4 text-center">
+			<p>No results found for your query.</p>
+		</div>
+	{:else if !data.errorMessage}
+		<DisplayResults
+			results={results}
+			resultsTotal={resultsTotal}
+			tableHeaders={resultTableHeaders}
+		/>
+	{/if}
 {/snippet}
 
 <ContentLayout {sidebar} {main} />
