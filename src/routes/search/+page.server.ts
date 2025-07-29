@@ -105,11 +105,6 @@ export const actions: Actions = {
         const formDataObject = Object.fromEntries(formData);
         logger.debug({ formDataObject: formDataObject }, "data received on form submit");
 
-		const resultColumns: FilterCategory[] = FilterCategoriesSorted.filter(categoryKey =>
-			formData.has(`column_${categoryKey}`)
-		);
-        logger.debug({ resultColumns: resultColumns }, "result columns");
-
 		const searchParams = Object.fromEntries(
 			FilterCategoriesSorted.map((categoryKey) => {
 				const valuesFromForm = formData.getAll(categoryKey);
@@ -130,11 +125,6 @@ export const actions: Actions = {
 
 		const targetUrl = new URL(url.origin + url.pathname);
 		logger.debug({targetUrl: targetUrl.toString()}, "Target URL for search action");
-
-		// --- Append the `resultColumns` array as a single comma-separated list ---
-		if (resultColumns.length > 0) {
-			targetUrl.searchParams.set('columns', resultColumns.join(','));
-		}
 
 		// Append the processed values to the url as query parameters
 		for (const categoryKey of FilterCategoriesSorted) {
