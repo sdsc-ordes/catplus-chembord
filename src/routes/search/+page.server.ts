@@ -1,94 +1,90 @@
-import type { Actions } from '@sveltejs/kit';
-import type { PageServerLoad } from './$types'
-import { redirect } from '@sveltejs/kit';
+// lib/server/logger should be imported from your project structure
+import { logger } from '$lib/server/logger';
+// Make sure all these imports are correct for your project
+import type { PageServerLoad } from './$types';
 import { getSearchOptionsList, getSparqlQueryResult } from '$lib/server/qlever';
 import { type FilterCategory, SparqlFilterQueries, FilterCategoriesSorted } from '$lib/config';
-import { createSparqlQueries } from '$lib/utils/sparqlQueryBuilder';
-import { groupMappedQleverResultsByPrefix} from '$lib/utils/mapSparqlResults';
+//import { createSparqlQueries } from '$lib/utils/sparqlQueryBuilder';
+import { createSparqlQuery } from '$lib/server/qleverResult'; // Adjust the import path as necessary
+import type { SparqlPagination, SparqlFilters } from '$lib/server/qleverResult';
 import { publicConfig } from '$lib/config';
-import { logger } from '$lib/server/logger';
+import { page } from '$app/state';
+import { redirect } from '@sveltejs/kit';
+
 
 export const load: PageServerLoad = async ({ url }) => {
-	try {
-		//------------------------ Prepare the search form select options ------------------------
-		// Use Promise.all to fetch all select options in parallel
-		const picklistPromises = Object.entries(SparqlFilterQueries).map(async ([optionName, query]) => {
-			const picklist = await getSearchOptionsList(
-				query);
-			return {
-				key: optionName,
-				options: picklist,
-			};
-		});
+    try {
+        //------------------------ Prepare the search form select options ------------------------
+        const picklistPromises = Object.entries(SparqlFilterQueries).map(async ([optionName, query]) => {
+            const picklist = await getSearchOptionsList(query);
+            return { key: optionName, options: picklist };
+        });
 
-		// get picklists from Qlever as Array of objects with key and options as array of strings
-		const picklistsArray = await Promise.all(picklistPromises);
-		logger.debug({picklistsArray}, 'Fetched picklist data from Qlever.');
+        const picklistsArray = await Promise.all(picklistPromises);
+        const pickListsMap = picklistsArray.reduce<Record<string, string[]>>((acc, currentItem) => {
+            acc[currentItem.key] = currentItem.options;
+            return acc;
+        }, {});
 
-		// map to picklists dictionary with key: Array of options
-		const pickListsMap = picklistsArray.reduce<Record<string, string[]>>((acc, currentItem) => {
-			acc[currentItem.key] = currentItem.options;
-			return acc;
-		}, {});
-		logger.debug({pickListsMap}, 'Mapped picklist');
+        //------------------------ Get query parameters from search parameters ------------------------
+        const initialFilters = Object.fromEntries(
+            FilterCategoriesSorted.map((categoryKey) => [
+                categoryKey,
+                url.searchParams.getAll(categoryKey) || [],
+            ])
+        ) as Record<FilterCategory, string[]>;
 
-		//------------------------ Get query parameters from search parameters ------------------------
-		// get selections from the url
-		const initialFilters = Object.fromEntries(
-			FilterCategoriesSorted.map((categoryKey) => {
-				const categoryIntialFilters = url.searchParams.getAll(categoryKey) || [];
-				return [categoryKey, categoryIntialFilters];
-			})
-		) as Record<FilterCategory, string[]>;
-		logger.debug({initialFilters: initialFilters}, 'Filters from URL search params');
-		// get result columns from the url
-		const resultColumns = url.searchParams.get('columns')?.split(',') || [];
-		logger.debug({resultcolumns: resultColumns}, "Result columns from URL params")
+        const currentPage = Math.max(1, parseInt(url.searchParams.get('page') as string, 10) || 1);
+        const pageSize = publicConfig.PUBLIC_RESULTS_PER_PAGE;
+        const offset = (currentPage - 1) * pageSize;
 
-		// current page
-		const currentPage = Math.max(1, parseInt(url.searchParams.get('page') as string, 10) || 1);
-		const pageSize = publicConfig.PUBLIC_RESULTS_PER_PAGE;
-		const offset = (currentPage - 1)  * pageSize;
-		logger.debug({currentPage, pageSize, offset}, "calculating pagination");
-
-		// create the sparql query with selected filters
-		const sparqlQueries = createSparqlQueries(
-			initialFilters,
-			resultColumns as FilterCategory[],
-			pageSize,
-			offset,
-		);
-		logger.debug({ sparqlQueries }, "Generated SPARQL Queries");
-
-		// execute sparql search on Qlever
-		const sparqlResult: Record<string, string>[] = await getSparqlQueryResult(
-			sparqlQueries.resultsQuery
-		);
-		logger.debug({sparqlResult: sparqlResult}, 'Received sparqlResult from Qlever');
-
-		// execute sparql search on Qlever
-		const resultsCount: Record<string, string>[] = await getSparqlQueryResult(
-			sparqlQueries.countQuery
-		);
-		logger.debug({resultCount: resultsCount}, 'Received result count from Qlever');
-		const resultsTotal = parseInt(resultsCount[0].total, 0);
-
-		// map the sparql result in the result table (with s3 prefixes)
-		const resultTable = groupMappedQleverResultsByPrefix(sparqlResult, resultColumns);
-		logger.debug({resultTable: resultTable}, 'grouped by campaign');
-
-		// Return results, selections and options
-		return {
-			results: resultTable,
-			picklists: pickListsMap,
-			initialFilters: initialFilters,
-			resultColumns: resultColumns,
-			resultsTotal: resultsTotal,
-			sparqlQuery: sparqlQueries.displayQuery,
+        //------------------------ Create and Execute Queries ------------------------
+        // 1. Create the sparql query strings
+		const sparqlFilters = {}
+		const myPagination: SparqlPagination = {
+			limit: pageSize,
+			offset: offset,
 		};
-	} catch (err: any) {
-		throw new Error(err)
-	}
+		const generatedQueries = createSparqlQuery(sparqlFilters, myPagination);
+        logger.debug({ generatedQueries }, "Generated SPARQL Queries");
+
+        // 2. Execute the queries to get the actual data
+        // Use Promise.all to run the count and results queries in parallel
+        const [countResult, queryResult] = await Promise.all([
+            getSparqlQueryResult(generatedQueries.countQuery),
+            getSparqlQueryResult(generatedQueries.resultsQuery)
+        ]);
+		console.log('Count Result:', countResult);
+		console.log('Query Result:', queryResult);
+
+        // 3. Process the results to define your variables
+        const resultColumns = ["contentURL", "chemicals", "devices", "peaks"];
+
+		// Return the actual data
+        return {
+            results: queryResult,
+            picklists: pickListsMap,
+            initialFilters: initialFilters,
+            resultColumns: resultColumns,
+            resultsTotal: countResult,
+            sparqlQuery: generatedQueries.displayQuery, // Return the query for display/debugging
+            currentPage: currentPage,
+            pageSize: pageSize,
+        };
+
+    } catch (error) {
+        logger.error(error, "An error occurred in the search page load function.");
+        // Return a safe state in case of an error
+        return {
+            results: [],
+            picklists: {},
+            initialFilters: {},
+            resultColumns: [],
+            resultsTotal: 0,
+            sparqlQuery: "Error generating query.",
+            error: "Could not fetch results.",
+        };
+    }
 };
 
 export const actions: Actions = {
