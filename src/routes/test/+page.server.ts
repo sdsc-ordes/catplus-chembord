@@ -18,21 +18,20 @@ export const load: PageServerLoad = async ({ url }) => {
   };
 
   // 2. Generate the query
-  const generatedQuery = createSparqlQuery(myFilters, myPagination);
+  const generatedQueries = createSparqlQuery(myFilters, myPagination);
 
   // 3. Log the result to see the generated query
-  console.log(generatedQuery);
+  console.log(generatedQueries.resultsQuery);
 
   const sparqlResult: Record<string, string>[] = await getSparqlQueryResult(
-        generatedQuery
-  );
+        generatedQueries.resultsQuery);
   console.log(sparqlResult);
 
 }
 
-  // FILTER (?chemicalName = "methyl iodide")
-  //FILTER (?casNumber = "123-11-5")
-  //FILTER (?reactionName = "Caffeine synthesis")
-  //FILTER (?smiles = "[2H]C([2H])([2H])O[2H]" )
-  //FILTER (?reactionType = "N-methylation")
+// FILTER (?chemicalName = "methyl iodide")
+//FILTER (?casNumber = "123-11-5")
+//FILTER (?reactionName = "Caffeine synthesis")
+//FILTER (?smiles = "[2H]C([2H])([2H])O[2H]" )
+//FILTER (?reactionType = "N-methylation")
 
