@@ -141,23 +141,3 @@ ORDER BY ASC(?contenturl)
 
   return query;
 };
-
-// --- Example Usage ---
-
-// 1. Define your filters and pagination with arrays for values
-const myFilters: SparqlFilters = {
-  reactionName: ["Caffeine synthesis", "Another Reaction"],
-  chemicalName: ["methyl iodide"],
-  reactionType: ["N-methylation"],
-};
-
-const myPagination: SparqlPagination = {
-  limit: 25,
-  offset: 0,
-};
-
-// 2. Generate the query
-const generatedQuery = createSparqlQuery(myFilters, myPagination);
-
-// 3. Log the result to see the generated query
-console.log(generatedQuery);
