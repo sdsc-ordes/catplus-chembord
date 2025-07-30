@@ -12,6 +12,14 @@ export interface SparqlPagination {
   offset: number;
 }
 
+/* Interface for result query. */
+export interface ResultQueries {
+    resultsQuery: string;
+    countQuery: string;
+    displayQuery: string;
+};
+
+
 /**
  * Defines the available filter options for the SPARQL query.
  * Each property is an optional array of strings to allow for multiple values per filter.
@@ -61,7 +69,7 @@ const createFilterClause = (variableName: string, values?: string[]): string => 
 export const createSparqlQuery = (
   filters: SparqlFilters,
   pagination: SparqlPagination
-): string => {
+): ResultQueries => {
   // Start with the prefixes
   let query = SPARQL_PREFIXES;
 
@@ -139,5 +147,9 @@ WHERE {
 ORDER BY ASC(?contenturl)
 `;
 
-  return query;
+  return {
+    resultsQuery: query,
+    countQuery: query,
+    displayQuery: query,
+    };
 };
