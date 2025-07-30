@@ -38,6 +38,20 @@ PREFIX purl: <http://purl.allotrope.org/ontologies/>
 `;
 
 /**
+ * Helper function to generate a FILTER IN clause if values are present.
+ * @param variableName - The SPARQL variable to filter (e.g., "?reactionName").
+ * @param values - The array of string values to filter by.
+ * @returns A FILTER clause string or an empty string.
+ */
+const createFilterClause = (variableName: string, values?: string[]): string => {
+  if (values && values.length > 0) {
+    const formattedValues = values.map(v => `"${v}"`).join(', ');
+    return `FILTER (${variableName} IN (${formattedValues}))`;
+  }
+  return '';
+};
+
+/**
  * Creates a complete SPARQL query string with dynamic filters and pagination.
  *
  * @param filters - An object containing the filters to apply. Each filter can have multiple values.
@@ -68,7 +82,7 @@ WHERE {
     OFFSET ${pagination.offset}
   }
   OPTIONAL {
-    SELECT ?contenturl (GROUP_CONCAT(DISTINCT ?deviceType; separator=", ") AS ?deviceTypes )
+    SELECT ?contenturl (GROUP_CONCAT(DISTINCT ?deviceType; separator="; ") AS ?deviceTypes )
     WHERE {
       ?LiquidChromatographyAggregateDocument schema:contentUrl ?contenturl ;
         allo-res:AFR_0002526 ?DeviceSystemDocument ;
@@ -105,7 +119,7 @@ WHERE {
     GROUP BY ?contenturl
   }
   OPTIONAL {
-    SELECT ?contenturl (GROUP_CONCAT(DISTINCT ?peakIdentifier; separator=", ") AS ?peakIdentifiers)
+    SELECT ?contenturl (GROUP_CONCAT(DISTINCT ?peakIdentifier; separator="; ") AS ?peakIdentifiers)
     WHERE {
       ?LiquidChromatographyAggregateDocument schema:contentUrl ?contenturl ;
         cat:hasLiquidChromatography/allo-res:AFR_0002374 ?MeasurementAggregateDocument .
@@ -114,6 +128,13 @@ WHERE {
     }
     GROUP BY ?contenturl
   }
+  # Apply all filters here
+  ${createFilterClause('?deviceType', filters.deviceType)}
+  ${createFilterClause('?reactionType', filters.reactionType)}
+  ${createFilterClause('?reactionName', filters.reactionName)}
+  ${createFilterClause('?chemicalName', filters.chemicalName)}
+  ${createFilterClause('?casNumber', filters.casNumber)}
+  ${createFilterClause('?smiles', filters.smiles)}
 }
 ORDER BY ASC(?contenturl)
 `;
