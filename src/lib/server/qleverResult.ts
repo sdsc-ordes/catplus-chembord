@@ -146,10 +146,32 @@ WHERE {
 }
 ORDER BY ASC(?contenturl)
 `;
+   let countQuery = SPARQL_PREFIXES;
 
+  // Build the main query body using a template literal
+  countQuery += `
+SELECT (COUNT(DISTINCT ?contenturl) AS ?count) WHERE {
+  ?LiquidChromatographyAggregateDocument a allo-res:AFR_0002524 .
+  ?LiquidChromatographyAggregateDocument schema:contentUrl ?contenturl .
+  OPTIONAL {
+    ?LiquidChromatographyAggregateDocument cat:hasLiquidChromatography/allo-res:AFR_0002374/allo-res:AFR_0002083/cat:hasProduct/^cat:producesProduct/cat:hasBatch ?batch .
+    ?batch cat:reactionType ?reactionType ;
+           cat:reactionName ?reactionName .
+    FILTER (?reactionType IN ("N-methylation"))
+    FILTER (?reactionName IN ("Caffeine synthesis"))
+  }
+  OPTIONAL {
+    ?LiquidChromatographyAggregateDocument cat:hasLiquidChromatography/allo-res:AFR_0002374/allo-res:AFR_0002083/cat:hasSample* ?sample .
+    # This pattern was also fixed: ?sample is the subject of the properties.
+    ?sample allo-res:AFR_0002292 ?chemicalName ;
+            cat:casNumber ?casNumber ;
+            allo-res:AFR_0002295 ?smiles .
+    FILTER (?chemicalName IN ("methyl iodide", "Tetradeuteromethanol"))
+  }
+}`;
   return {
     resultsQuery: query,
-    countQuery: query,
+    countQuery: countQuery,
     displayQuery: query,
     };
 };
