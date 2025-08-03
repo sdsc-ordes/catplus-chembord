@@ -31,6 +31,7 @@ export interface SparqlFilters {
   reactionName?: string[];
   smiles?: string[];
   reactionType?: string[];
+  campaignName?: string[]; // Added for the new filter
 }
 
 /**
@@ -46,18 +47,43 @@ PREFIX purl: <http://purl.allotrope.org/ontologies/>
 `;
 
 /**
- * Helper function to generate a FILTER IN clause if values are present.
- * @param variableName - The SPARQL variable to filter (e.g., "?reactionName").
- * @param values - The array of string values to filter by.
+ * Creates a FILTER clause with CONTAINS for a single variable.
+ * @param variableName The SPARQL variable to filter.
+ * @param values The values to check for.
  * @returns A FILTER clause string or an empty string.
  */
-const createFilterClause = (variableName: string, values?: string[]): string => {
-  if (values && values.length > 0) {
-    const formattedValues = values.map(v => `"${v}"`).join(', ');
-    return `FILTER (${variableName} IN (${formattedValues}))`;
-  }
-  return '';
+const createInternalFilter = (variableName: string, values?: string[]): string => {
+  if (!values || values.length === 0) return '';
+  const conditions = values.map(value => `CONTAINS(${variableName}, "${value}")`).join(' && ');
+  return `FILTER(${conditions})`;
 };
+
+/**
+ * Creates the complex outer FILTER clause that checks across multiple aggregated strings.
+ * @param filters The filters object.
+ * @returns A single, combined FILTER clause string.
+ */
+const createOuterFilter = (filters: SparqlFilters): string => {
+  const variableMap: Record<string, string> = {
+    deviceType: '?deviceTypes',
+    chemicalName: '?chemicalNames',
+    casNumber: '?casNumbers',
+    smiles: '?smiless',
+  };
+
+  const allConditions = Object.entries(filters)
+    .filter(([key]) => variableMap[key]) // Only include filters that have a mapping
+    .flatMap(([key, values]) => {
+      const variable = variableMap[key];
+      // Create a CONTAINS check for each value provided for the filter
+      return values.map(value => `CONTAINS(${variable}, "${value}")`);
+    });
+
+  if (allConditions.length === 0) return '';
+
+  return `FILTER( ${allConditions.join(' && ')} )`;
+};
+
 
 /**
  * Creates a complete SPARQL query string with dynamic filters and pagination.
@@ -70,108 +96,119 @@ export const createSparqlQuery = (
   filters: SparqlFilters,
   pagination: SparqlPagination
 ): ResultQueries => {
-  // Start with the prefixes
-  let query = SPARQL_PREFIXES;
 
-  // Build the main query body using a template literal
-  query += `
-SELECT DISTINCT ?contenturl ?deviceTypes ?chemicals ?peakIdentifiers
-WHERE {
+  const outerFilterClause = createOuterFilter(filters);
+  const reactionTypeFilter = createInternalFilter('?reactionType', filters.reactionType);
+  const reactionNameFilter = createInternalFilter('?reactionName', filters.reactionName);
+  const campaignNameFilter = createInternalFilter('?campaignName', filters.campaignName);
 
-  # Step 1: Pagination of contenturl, incorporating dynamic limit and offset
-  {
-    SELECT DISTINCT ?contenturl
-    WHERE {
-      ?LiquidChromatographyAggregateDocument schema:contentUrl ?contenturl .
-      ?LiquidChromatographyAggregateDocument a allo-res:AFR_0002524 .
+  const coreSubQuery = `
+    {
+      SELECT DISTINCT
+        ?contenturl
+        ?deviceTypes
+        (GROUP_CONCAT(DISTINCT ?chemicalName; separator=" | ") AS ?chemicalNames)
+        (GROUP_CONCAT(DISTINCT ?casNumber; separator=" | ") AS ?casNumbers)
+        (GROUP_CONCAT(DISTINCT ?smiles; separator=" | ") AS ?smiless)
+        (GROUP_CONCAT(DISTINCT CONCAT(?chemicalName, " [", ?casNumber, "] <", ?smiles, ">"); separator=" | ") AS ?chemicals)
+        ?peakIdentifiers
+      WHERE {
+        # Step 1: Pagination of contenturl
+        {
+          SELECT DISTINCT ?contenturl
+          WHERE {
+            ?LiquidChromatographyAggregateDocument schema:contentUrl ?contenturl .
+            ?LiquidChromatographyAggregateDocument a allo-res:AFR_0002524 .
+          }
+          ORDER BY ?contenturl
+          LIMIT ${pagination.limit}
+          OFFSET ${pagination.offset}
+        }
+        # Step 2: Get deviceType per contenturl
+        {
+          SELECT ?contenturl (GROUP_CONCAT(DISTINCT ?deviceType; separator="; ") AS ?deviceTypes)
+          WHERE {
+            ?LiquidChromatographyAggregateDocument schema:contentUrl ?contenturl ;
+              allo-res:AFR_0002526 ?DeviceSystemDocument ;
+              cat:hasLiquidChromatography/allo-res:AFR_0002374 ?MeasurementAggregateDocument .
+            ?DeviceSystemDocument a cat:DeviceSystemDocument ;
+              allo-res:AFR_0002722/allo-res:AFR_0002568 ?deviceType .
+            ?MeasurementAggregateDocument allo-res:AFR_0002083 ?SampleDocument .
+            ?SampleDocument cat:hasProduct ?product .
+            ?synthAddAction cat:producesProduct ?product ;
+                            cat:hasBatch ?batch .
+            ?batch cat:reactionType ?reactionType ;
+                   cat:reactionName ?reactionName .
+            ${reactionTypeFilter}
+            ${reactionNameFilter}
+          }
+          GROUP BY ?contenturl
+        }
+        # Step 3: Chemical info coming from campaigns and samples
+        {
+          SELECT ?contenturl ?chemical ?casNumber ?smiles ?chemicalName
+          WHERE {
+            ?LiquidChromatographyAggregateDocument schema:contentUrl ?contenturl ;
+              cat:hasLiquidChromatography/allo-res:AFR_0002374 ?MeasurementAggregateDocument .
+            ?MeasurementAggregateDocument allo-res:AFR_0002083 ?SampleDocument .
+            ?SampleDocument cat:hasProduct ?product .
+            ?synthaddaction cat:producesProduct ?product .
+            ?synthaddaction cat:hasBatch ?batch .
+            ?campaign cat:hasBatch ?batch .
+            {
+              ?synthaddaction cat:hasSample+ ?sample .
+              ?sample cat:hasChemical ?chemical .
+            }
+            UNION {
+              ?campaign cat:hasChemical ?chemical .
+            }
+            ?campaign schema:name ?campaignName .
+            ${campaignNameFilter}
+            ?chemical
+              allo-res:AFR_0002292 ?chemicalName ;
+              cat:casNumber ?casNumber ;
+              allo-res:AFR_0002295 ?smiles .
+          }
+          GROUP BY ?contenturl ?chemical ?casNumber ?smiles ?chemicalName
+        }
+        # Step 4: Peak Identifiers
+        {
+          SELECT ?contenturl (GROUP_CONCAT(DISTINCT ?peakIdentifier; separator="; ") AS ?peakIdentifiers)
+          WHERE {
+            ?LiquidChromatographyAggregateDocument schema:contentUrl ?contenturl ;
+              cat:hasLiquidChromatography/allo-res:AFR_0002374 ?MeasurementAggregateDocument .
+            ?MeasurementAggregateDocument allo-res:AFR_0002659/allo-res:AFR_0000432/cat:peak/allo-res:AFR_0001164 ?peakIdentifier .
+          }
+          GROUP BY ?contenturl
+        }
+      }
+      GROUP BY ?contenturl ?deviceTypes ?peakIdentifiers
     }
-    ORDER BY ?contenturl
-    LIMIT ${pagination.limit}
-    OFFSET ${pagination.offset}
-  }
-  OPTIONAL {
-    SELECT ?contenturl (GROUP_CONCAT(DISTINCT ?deviceType; separator="; ") AS ?deviceTypes )
+  `;
+
+  const resultsQuery = `
+    ${SPARQL_PREFIXES}
+    SELECT
+      ?contenturl ?deviceTypes ?chemicals ?peakIdentifiers
     WHERE {
-      ?LiquidChromatographyAggregateDocument schema:contentUrl ?contenturl ;
-        allo-res:AFR_0002526 ?DeviceSystemDocument ;
-        cat:hasLiquidChromatography/allo-res:AFR_0002374 ?MeasurementAggregateDocument .
-
-      ?DeviceSystemDocument a cat:DeviceSystemDocument ;
-        allo-res:AFR_0002722/allo-res:AFR_0002568 ?deviceType .
-
-      ?MeasurementAggregateDocument allo-res:AFR_0002083 ?SampleDocument .
-
-      ?SampleDocument cat:hasProduct ?product .
-
-      ?synthAddAction cat:producesProduct ?product ;
-                      cat:hasBatch ?batch .
-
-      ?batch cat:reactionType ?reactionType ;
-             cat:reactionName ?reactionName .
+      ${outerFilterClause}
+      ${coreSubQuery}
     }
-    GROUP BY ?contenturl
-  }
-  OPTIONAL {
-    SELECT ?contenturl (GROUP_CONCAT(DISTINCT CONCAT(?chemicalName, " [", ?casNumber, "] <", ?smiles, ">"); separator=" | ") AS ?chemicals)
+    ORDER BY ASC(?contenturl)
+  `;
+
+  const countQuery = `
+    ${SPARQL_PREFIXES}
+    SELECT (COUNT(*) AS ?count)
     WHERE {
-      ?LiquidChromatographyAggregateDocument schema:contentUrl ?contenturl ;
-        cat:hasLiquidChromatography/allo-res:AFR_0002374 ?MeasurementAggregateDocument .
-
-      ?MeasurementAggregateDocument allo-res:AFR_0002083 ?SampleDocument .
-      ?SampleDocument cat:hasSample* ?sample .
-
-      ?chemical allo-res:AFR_0002292 ?chemicalName ;
-                cat:casNumber ?casNumber ;
-                allo-res:AFR_0002295 ?smiles .
+      ${outerFilterClause}
+      ${coreSubQuery}
     }
-    GROUP BY ?contenturl
-  }
-  OPTIONAL {
-    SELECT ?contenturl (GROUP_CONCAT(DISTINCT ?peakIdentifier; separator="; ") AS ?peakIdentifiers)
-    WHERE {
-      ?LiquidChromatographyAggregateDocument schema:contentUrl ?contenturl ;
-        cat:hasLiquidChromatography/allo-res:AFR_0002374 ?MeasurementAggregateDocument .
+  `;
 
-      ?MeasurementAggregateDocument allo-res:AFR_0002659/allo-res:AFR_0000432/cat:peak/allo-res:AFR_0001164 ?peakIdentifier .
-    }
-    GROUP BY ?contenturl
-  }
-  # Apply all filters here
-  ${createFilterClause('?deviceType', filters.deviceType)}
-  ${createFilterClause('?reactionType', filters.reactionType)}
-  ${createFilterClause('?reactionName', filters.reactionName)}
-  ${createFilterClause('?chemicalName', filters.chemicalName)}
-  ${createFilterClause('?casNumber', filters.casNumber)}
-  ${createFilterClause('?smiles', filters.smiles)}
-}
-ORDER BY ASC(?contenturl)
-`;
-   let countQuery = SPARQL_PREFIXES;
-
-  // Build the main query body using a template literal
-  countQuery += `
-SELECT (COUNT(DISTINCT ?contenturl) AS ?count) WHERE {
-  ?LiquidChromatographyAggregateDocument a allo-res:AFR_0002524 .
-  ?LiquidChromatographyAggregateDocument schema:contentUrl ?contenturl .
-  OPTIONAL {
-    ?LiquidChromatographyAggregateDocument cat:hasLiquidChromatography/allo-res:AFR_0002374/allo-res:AFR_0002083/cat:hasProduct/^cat:producesProduct/cat:hasBatch ?batch .
-    ?batch cat:reactionType ?reactionType ;
-           cat:reactionName ?reactionName .
-    FILTER (?reactionType IN ("N-methylation"))
-    FILTER (?reactionName IN ("Caffeine synthesis"))
-  }
-  OPTIONAL {
-    ?LiquidChromatographyAggregateDocument cat:hasLiquidChromatography/allo-res:AFR_0002374/allo-res:AFR_0002083/cat:hasSample* ?sample .
-    # This pattern was also fixed: ?sample is the subject of the properties.
-    ?sample allo-res:AFR_0002292 ?chemicalName ;
-            cat:casNumber ?casNumber ;
-            allo-res:AFR_0002295 ?smiles .
-    FILTER (?chemicalName IN ("methyl iodide", "Tetradeuteromethanol"))
-  }
-}`;
   return {
-    resultsQuery: query,
+    resultsQuery: resultsQuery,
     countQuery: countQuery,
-    displayQuery: query,
-    };
+    displayQuery: resultsQuery,
+  };
 };
