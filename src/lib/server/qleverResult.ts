@@ -1,3 +1,5 @@
+import { type FilterCategory, SparqlFilterQueries, FilterCategoriesSorted } from '$lib/config';
+
 /**
  * @file SPARQL query builder for fetching liquid chromatography results.
  * @description This file contains the necessary components to dynamically construct
@@ -23,16 +25,18 @@ export interface ResultQueries {
 /**
  * Defines the available filter options for the SPARQL query.
  * Each property is an optional array of strings to allow for multiple values per filter.
+ * The keys match the FilterCategory constants.
  */
 export interface SparqlFilters {
-  deviceType?: string[];
-  chemicalName?: string[];
-  casNumber?: string[];
-  reactionName?: string[];
-  smiles?: string[];
-  reactionType?: string[];
-  campaignName?: string[]; // Added for the new filter
+  DEVICES?: string[];
+  CHEMICAL_NAME?: string[];
+  CAS?: string[];
+  REACTION_NAME?: string[];
+  SMILES?: string[];
+  REACTION_TYPE?: string[];
+  CAMPAIGN_NAME?: string[];
 }
+
 
 /**
  * A constant holding all the required SPARQL prefixes.
@@ -65,10 +69,10 @@ const createInternalFilter = (variableName: string, values?: string[]): string =
  */
 const createOuterFilter = (filters: SparqlFilters): string => {
   const variableMap: Record<string, string> = {
-    deviceType: '?deviceTypes',
-    chemicalName: '?chemicalNames',
-    casNumber: '?casNumbers',
-    smiles: '?smiless',
+    DEVICES: '?deviceTypes',
+    CHEMICAL_NAME: '?chemicalNames',
+    CAS: '?casNumbers',
+    SMILES: '?smiless',
   };
 
   const allConditions = Object.entries(filters)
@@ -85,6 +89,7 @@ const createOuterFilter = (filters: SparqlFilters): string => {
 };
 
 
+
 /**
  * Creates a complete SPARQL query string with dynamic filters and pagination.
  *
@@ -96,12 +101,16 @@ export const createSparqlQuery = (
   filters: SparqlFilters,
   pagination: SparqlPagination
 ): ResultQueries => {
+  console.log('Creating SPARQL query with filters:', filters, 'and pagination:', pagination);
 
   const outerFilterClause = createOuterFilter(filters);
-  const reactionTypeFilter = createInternalFilter('?reactionType', filters.reactionType);
-  const reactionNameFilter = createInternalFilter('?reactionName', filters.reactionName);
-  const campaignNameFilter = createInternalFilter('?campaignName', filters.campaignName);
-
+  console.log('Outer filter clause:', outerFilterClause);
+  const reactionTypeFilter = createInternalFilter('?reactionType', filters.REACTION_TYPE);
+  console.log('Reaction type filter:', reactionTypeFilter);
+  const reactionNameFilter = createInternalFilter('?reactionName', filters.REACTION_NAME);
+  console.log('Reaction name filter:', reactionNameFilter);
+  const campaignNameFilter = createInternalFilter('?campaignName', filters.CAMPAIGN_NAME);
+  console.log('Campaign name filter:', campaignNameFilter);
   const coreSubQuery = `
     {
       SELECT DISTINCT
