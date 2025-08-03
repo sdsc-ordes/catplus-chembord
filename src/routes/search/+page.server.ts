@@ -5,7 +5,7 @@ import type { PageServerLoad } from './$types';
 import { getSearchOptionsList, getSparqlQueryResult } from '$lib/server/qlever';
 import { type FilterCategory, SparqlFilterQueries, FilterCategoriesSorted } from '$lib/config';
 //import { createSparqlQueries } from '$lib/utils/sparqlQueryBuilder';
-import { createSparqlQuery } from '$lib/server/qleverResult'; // Adjust the import path as necessary
+import { createSparqlQuery, transformToArray } from '$lib/server/qleverResult'; // Adjust the import path as necessary
 import type { SparqlPagination, SparqlFilters } from '$lib/server/qleverResult';
 import { publicConfig } from '$lib/config';
 import { page } from '$app/state';
@@ -40,7 +40,9 @@ export const load: PageServerLoad = async ({ url }) => {
 
         //------------------------ Create and Execute Queries ------------------------
         // 1. Create the sparql query strings
-		const sparqlFilters = {}
+		const sparqlFilters = initialFilters as SparqlFilters;
+		logger.debug({ sparqlFilters }, "Initial Filters for SPARQL Query");
+		logger.debug({ currentPage, pageSize, offset }, "Pagination Parameters");
 		const myPagination: SparqlPagination = {
 			limit: pageSize,
 			offset: offset,
@@ -54,15 +56,47 @@ export const load: PageServerLoad = async ({ url }) => {
             getSparqlQueryResult(generatedQueries.countQuery),
             getSparqlQueryResult(generatedQueries.resultsQuery)
         ]);
-		console.log('Count Result:', countResult);
-		console.log('Query Result:', queryResult);
+		logger.debug({ countResult }, "Count Result:");
+		logger.debug({ queryResult }, "Query Result:");
+
+		const keyMap: Record<string, string> = {
+			Product: "contenturl",
+			Devices: "deviceTypes",
+			Chemicals: "chemicals",
+			Peaks: "peakIdentifiers"
+		};
+
+		const columnSeparators: Record<string, string> = {
+			Devices: '; ',
+			Chemicals: ' | ',
+			Peaks: '; '
+		};
 
         // 3. Process the results to define your variables
-        const resultColumns = ["contentURL", "chemicals", "devices", "peaks"];
+        const resultColumns = ["Product", "Devices", "Chemicals", "Peaks"];
+
+		// Map over the simplified results array and apply transformations functionally
+		const results = queryResult.map(row => {
+			const newRow: Record<string, any> = {};
+			for (const displayKey of resultColumns) {
+				const dataKey = keyMap[displayKey]; // Get the key for the raw data
+
+				// Check if a separator is defined for the current display column
+				if (columnSeparators[displayKey]) {
+					// If so, split the string from the raw data into an array
+					newRow[displayKey] = row[dataKey] ? row[dataKey].split(columnSeparators[displayKey]) : [];
+				} else {
+					// Otherwise, just copy the value from the raw data
+					newRow[displayKey] = row[dataKey] || 'N/A';
+				}
+			}
+			return newRow;
+		});
+        logger.debug({ results }, "Processed SPARQL results into arrays");
 
 		// Return the actual data
         return {
-            results: queryResult,
+            results: results,
             picklists: pickListsMap,
             initialFilters: initialFilters,
             resultColumns: resultColumns,
