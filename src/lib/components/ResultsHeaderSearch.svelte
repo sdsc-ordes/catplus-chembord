@@ -18,7 +18,9 @@
 </script>
 
 <h1 class="mb-4 p-4 text-xl font-bold text-surface-800-200">
-    Results ({resultsTotal})
+    {#if resultsTotal}
+        Results ({resultsTotal})
+    {/if}
 </h1>
 <p>{initialFilers}</p>
 <p>{resultColumns}</p>
