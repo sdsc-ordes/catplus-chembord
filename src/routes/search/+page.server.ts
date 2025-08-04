@@ -1,15 +1,12 @@
-// lib/server/logger should be imported from your project structure
 import { logger } from '$lib/server/logger';
-// Make sure all these imports are correct for your project
 import type { PageServerLoad } from './$types';
 import { getSearchOptionsList, getSparqlQueryResult } from '$lib/server/qlever';
 import { type FilterCategory, SparqlFilterQueries, FilterCategoriesSorted } from '$lib/config';
-//import { createSparqlQueries } from '$lib/utils/sparqlQueryBuilder';
-import { createSparqlQuery, transformToArray } from '$lib/server/qleverResult'; // Adjust the import path as necessary
+import { createSparqlQuery } from '$lib/server/qleverResult';
 import type { SparqlPagination, SparqlFilters } from '$lib/server/qleverResult';
 import { publicConfig } from '$lib/config';
-import { page } from '$app/state';
 import { redirect } from '@sveltejs/kit';
+import { transformQueryResultRow } from '$lib/utils/resultTransformer';
 
 
 export const load: PageServerLoad = async ({ url }) => {
@@ -56,43 +53,16 @@ export const load: PageServerLoad = async ({ url }) => {
             getSparqlQueryResult(generatedQueries.countQuery),
             getSparqlQueryResult(generatedQueries.resultsQuery)
         ]);
-		logger.debug({ countResult }, "Count Result:");
+		logger.info({ countResult }, "Count Result:");
 		logger.debug({ queryResult }, "Query Result:");
 
-		const keyMap: Record<string, string> = {
-			Product: "contenturl",
-			Devices: "deviceTypes",
-			Chemicals: "chemicals",
-			Peaks: "peakIdentifiers"
-		};
-
-		const columnSeparators: Record<string, string> = {
-			Devices: '; ',
-			Chemicals: ' | ',
-			Peaks: '; '
-		};
-
         // 3. Process the results to define your variables
-        const resultColumns = ["Product", "Devices", "Chemicals", "Peaks"];
+		const resultColumns = ["Campaign", "Product", "Devices", "Chemicals"];
 
-		// Map over the simplified results array and apply transformations functionally
-		const results = queryResult.map(row => {
-			const newRow: Record<string, any> = {};
-			for (const displayKey of resultColumns) {
-				const dataKey = keyMap[displayKey]; // Get the key for the raw data
+		const results = queryResult.map(transformQueryResultRow);
 
-				// Check if a separator is defined for the current display column
-				if (columnSeparators[displayKey]) {
-					// If so, split the string from the raw data into an array
-					newRow[displayKey] = row[dataKey] ? row[dataKey].split(columnSeparators[displayKey]) : [];
-				} else {
-					// Otherwise, just copy the value from the raw data
-					newRow[displayKey] = row[dataKey] || 'N/A';
-				}
-			}
-			return newRow;
-		});
-        logger.debug({ results }, "Processed SPARQL results into arrays");
+		// The 'results' variable now holds your array of transformed dictionaries.
+		logger.info({ results }, "Processed and transformed SPARQL results");
 
 		// Return the actual data
         return {
