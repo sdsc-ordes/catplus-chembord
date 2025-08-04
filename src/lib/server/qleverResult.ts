@@ -1,4 +1,5 @@
 import { type FilterCategory, SparqlFilterQueries, FilterCategoriesSorted } from '$lib/config';
+import { logger } from '$lib/server/logger';
 
 /**
  * @file SPARQL query builder for fetching liquid chromatography results.
@@ -88,30 +89,33 @@ const createOuterFilter = (filters: SparqlFilters): string => {
   return `FILTER( ${allConditions.join(' && ')} )`;
 };
 
-
-
 /**
- * Creates a complete SPARQL query string with dynamic filters and pagination.
- *
- * @param filters - An object containing the filters to apply. Each filter can have multiple values.
- * @param pagination - An object containing limit and offset for pagination.
- * @returns A complete SPARQL query as a string.
+ * Builds the core subquery, optionally including pagination.
+ * This avoids duplicating the large query block for the count.
+ * @param pagination Optional pagination object. If not provided, LIMIT and OFFSET are omitted.
+ * @returns The core subquery string.
  */
-export const createSparqlQuery = (
-  filters: SparqlFilters,
-  pagination: SparqlPagination
-): ResultQueries => {
-  console.log('Creating SPARQL query with filters:', filters, 'and pagination:', pagination);
+const buildCoreSubQuery = (
+  filters: SparqlFilters, // Pass filters to it
+  pagination?: SparqlPagination 
+): string => {
+  
+  // Dynamically create the pagination part of the query
+  const paginationClause = pagination
+    ? `
+      ORDER BY ?contenturl
+      LIMIT ${pagination.limit}
+      OFFSET ${pagination.offset}
+    `
+    : '';
 
-  const outerFilterClause = createOuterFilter(filters);
-  console.log('Outer filter clause:', outerFilterClause);
+  // Generate internal filters
   const reactionTypeFilter = createInternalFilter('?reactionType', filters.REACTION_TYPE);
-  console.log('Reaction type filter:', reactionTypeFilter);
   const reactionNameFilter = createInternalFilter('?reactionName', filters.REACTION_NAME);
-  console.log('Reaction name filter:', reactionNameFilter);
   const campaignNameFilter = createInternalFilter('?campaignName', filters.CAMPAIGN_NAME);
-  console.log('Campaign name filter:', campaignNameFilter);
-  const coreSubQuery = `
+
+  // Return the complete subquery template
+  return `
     {
       SELECT DISTINCT
         ?contenturl
@@ -122,16 +126,14 @@ export const createSparqlQuery = (
         (GROUP_CONCAT(DISTINCT CONCAT(?chemicalName, " [", ?casNumber, "] <", ?smiles, ">"); separator=" | ") AS ?chemicals)
         ?peakIdentifiers
       WHERE {
-        # Step 1: Pagination of contenturl
+        # Step 1: Pagination (conditionally applied)
         {
           SELECT DISTINCT ?contenturl
           WHERE {
             ?LiquidChromatographyAggregateDocument schema:contentUrl ?contenturl .
             ?LiquidChromatographyAggregateDocument a allo-res:AFR_0002524 .
           }
-          ORDER BY ?contenturl
-          LIMIT ${pagination.limit}
-          OFFSET ${pagination.offset}
+          ${paginationClause}
         }
         # Step 2: Get deviceType per contenturl
         {
@@ -194,6 +196,22 @@ export const createSparqlQuery = (
       GROUP BY ?contenturl ?deviceTypes ?peakIdentifiers
     }
   `;
+};
+
+export const createSparqlQuery = (
+  filters: SparqlFilters,
+  pagination: SparqlPagination
+): ResultQueries => {
+  logger.debug({filters, pagination}, 'Creating SPARQL query with filters and pagination:');
+
+  const outerFilterClause = createOuterFilter(filters);
+  logger.debug({outerFilterClause}, 'Outer filter clause:');
+
+  // Build the subquery WITH pagination for fetching results
+  const coreSubQueryForResults = buildCoreSubQuery(filters, pagination);
+
+  // Build the subquery WITHOUT pagination for the count
+  const coreSubQueryForCount = buildCoreSubQuery(filters);
 
   const resultsQuery = `
     ${SPARQL_PREFIXES}
@@ -201,7 +219,7 @@ export const createSparqlQuery = (
       ?contenturl ?deviceTypes ?chemicals ?peakIdentifiers
     WHERE {
       ${outerFilterClause}
-      ${coreSubQuery}
+      ${coreSubQueryForResults}
     }
     ORDER BY ASC(?contenturl)
   `;
@@ -211,9 +229,11 @@ export const createSparqlQuery = (
     SELECT (COUNT(*) AS ?count)
     WHERE {
       ${outerFilterClause}
-      ${coreSubQuery}
+      ${coreSubQueryForCount}
     }
   `;
+  logger.debug({resultsQuery}, 'Generated results query:');
+  logger.debug({countQuery}, 'Generated count query:');
 
   return {
     resultsQuery: resultsQuery,
