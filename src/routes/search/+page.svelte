@@ -1,6 +1,6 @@
 <script lang="ts">
 	import ContentLayout from '$lib/components/ContentLayout.svelte';
-	import DisplayResults from '$lib/components/DisplayQleverResults.svelte';
+	import DisplayQleverResults from '$lib/components/DisplayQleverResults.svelte';
 	import ResultsHeaderSearch from '$lib/components/ResultsHeaderSearch.svelte';
 	import SparqlSearchForm from '$lib/components/SparqlSearchForm.svelte';
 	import { createDynamicTableHeaders } from '$lib/utils/mapSparqlResults'
@@ -8,26 +8,14 @@
 	import Error from '../+error.svelte';
 
 	let { data } = $props();
+	console.log("page data", data);
     // make sure the data is reladed after a page change
 	const results = $derived(data.results);
 	const picklists: Record<FilterCategory, string[]> = data.picklists;
 	const initialFilters: Record<FilterCategory, string[]> = data.initialFilters;
-	const resultColumns: FilterCategory[] = data.resultColumns as FilterCategory[];
-	const resultsTotal: number = data.resultsTotal;
+	const resultColumns: string[] = data.resultColumns;
+	const resultsTotal: number = data.resultsTotal && data.resultsTotal[0]?.count ? data.resultsTotal[0].count : 0;
 	const sparqlQuery: string = data.sparqlQuery;
-
-	// Table Headers of Qlever Results
-	const columnHeaders: Record<FilterCategory, string> = {
-		CAMPAIGN_NAME: "Campaign Name",
-		REACTION_TYPE: "Reaction Type",
-		REACTION_NAME: "Reaction Name",
-		CHEMICAL_NAME: "Chemical Name",
-		CAS: "CAS",
-		SMILES: "Smiles",
-		DEVICES: "Devices",
-	}
-
-	export const resultTableHeaders = createDynamicTableHeaders(resultColumns, columnHeaders);
 
 	interface LabelValueOption {
 		label: string;
@@ -76,10 +64,10 @@
 		resultColumns={resultColumns}
 		query={sparqlQuery}
 	/>
-	<DisplayResults
+	<DisplayQleverResults
 		results={results}
 		resultsTotal={resultsTotal}
-		tableHeaders={resultTableHeaders}
+		tableHeaders={resultColumns}
 	/>
 {/snippet}
 
