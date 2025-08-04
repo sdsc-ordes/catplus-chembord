@@ -31,6 +31,7 @@
         isLoadingDetails = true;
         detailError = null;
         detailedContent = null;
+		console.log('Fetching details for campaign:', campaignPath);
         try {
             // Adjust the URL to your actual API endpoint structure
             const response = await fetch(`${base}/api/${campaignPath}`);
@@ -39,6 +40,7 @@
                 throw new Error(errorData.message || `Failed to fetch details. Status: ${response.status}`);
             }
             const fetchedDetails: S3FileInfo[] = await response.json();
+			console.log('Fetched details:', fetchedDetails);
             detailedContent = fetchedDetails;
         } catch (err: any) {
             console.error('Error fetching details:', err);
