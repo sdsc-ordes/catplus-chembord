@@ -1,13 +1,14 @@
-<script lang="ts" generics="ResultItemType extends ResultItemBase">
+<script lang="ts">
 	import Campaign from '$lib/components/Campaign.svelte';
 	import { publicConfig } from '$lib/config';
 	import type { S3FileInfo } from '$lib/server/s3';
 	import { Pagination } from '@skeletonlabs/skeleton-svelte';
 	import { base } from '$app/paths';
-
-	interface ResultItemBase {
-		prefix: string;
-	}
+	import { page } from '$app/state';
+	import { goto } from '$app/navigation';
+	let currentPage = $derived(page.url.searchParams.get("page") || 1);
+	console.log("Current Page:", currentPage);
+	let activeRow = $state(1);
 
 	// get props from data loader
 	let {
@@ -16,10 +17,9 @@
 		tableHeaders,
 	} = $props();
 
-	const headers = ["Campaign"].concat(Object.values(tableHeaders));
+	const headers = Object.values(tableHeaders);
 
 	// Pagination of Campaigns
-	let currentPage = $state(1);
 	let pageSize = publicConfig.PUBLIC_RESULTS_PER_PAGE;
 
 	// State for the fetched detailed data for the main content
@@ -61,11 +61,15 @@
         }
 	}
 
-	async function handlePageChange(e: CustomEvent<{ page: number }>) {
-		const searchParams = new URLSearchParams(page.url.search);
-		searchParams.set('page', e.page);
-
-		await goto(`?${searchParams.toString()}`, {invalidateAll: true});
+	async function handlePageChange(e) {
+		console.log("handlePageChange", e.page);
+		console.log("currentPage", currentPage);
+		const nextPage = e.page;
+		const queryString = new URLSearchParams(page.url.searchParams.get('query') || '');
+		queryString.set('page', nextPage);
+		const location = `?${queryString.toString()}`;
+		console.log('Navigating to:', location);
+		await goto(location, {invalidateAll: true});
 	}
 
     $effect(() => {
@@ -99,18 +103,20 @@
 						class="cursor-pointer"
 						class:bg-tertiary-200-800={activeResultItem?.prefix === result.prefix}
 					>
-					{#each Object.values(result) as value, key}
-						<td>
-							{#if Array.isArray(value)}
-								<ul class="list-disc pl-5">
-									{#each value as item}
-										<li>{item}</li>
-									{/each}
-								</ul>
-							{:else}
-								{value}
-							{/if}
-						</td>
+					{#each Object.entries(result) as [key, item]: [string, unknown]}
+						{#if item.display}
+							<td>
+								{#if Array.isArray(item.value)}
+									<ul class="list-disc pl-5">
+										{#each item.value as v}
+											<li>{v}</li>
+										{/each}
+									</ul>
+								{:else}
+									{item.value}
+								{/if}
+							</td>
+						{/if}
 					{/each}
 					</tr>
 				{/each}

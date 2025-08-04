@@ -77,10 +77,10 @@ export const load: PageServerLoad = async ({ locals, url }) => {
         const day = rawDay ? rawDay.padStart(2, '0') : undefined;
         const pathParts = ['batch', year, month, day, number].filter(part => part);
         const prefix = pathParts.join('/');
-        logger.info({prefix}, `Search campaigns with prefix ${prefix}`)
+        logger.debug({prefix}, `Search campaigns with prefix ${prefix}`)
 
         const { prefixes, count } = await findLeafPrefixes(prefix, 5);
-        logger.info({prefixes, count}, `got campaign prefixes for start prefix ${prefix}`)
+        logger.debug({prefixes, count}, `got campaign prefixes for start prefix ${prefix}`)
 
         // transform the result into object
         const campaignResults: CampaignResult[] = prefixesToCampaignResults(prefixes)
@@ -110,7 +110,7 @@ export const actions = {
             });
         }
 
-        logger.info('Validation successful! Applying filter with:', result.data);
+        logger.debug('Validation successful! Applying filter with:', result.data);
 
         const targetUrl = new URL(url.origin + url.pathname)
         logger.debug(result.data, 'result.data');
@@ -120,7 +120,7 @@ export const actions = {
                 targetUrl.searchParams.set(key, value as string);
             }
         }
-        logger.info(`Redirecting to ${targetUrl}`);
+        logger.debug(`Redirecting to ${targetUrl}`);
 
         // Use status 303
 		throw redirect(303, targetUrl);

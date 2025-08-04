@@ -32,8 +32,10 @@ export const load: PageServerLoad = async ({ url }) => {
         ) as Record<FilterCategory, string[]>;
 
         const currentPage = Math.max(1, parseInt(url.searchParams.get('page') as string, 10) || 1);
+        logger.info(currentPage, "Current Page from URL Search Params");
         const pageSize = publicConfig.PUBLIC_RESULTS_PER_PAGE;
         const offset = (currentPage - 1) * pageSize;
+        logger.info({ pageSize, offset }, "Page Size and Offset for Pagination");
 
         //------------------------ Create and Execute Queries ------------------------
         // 1. Create the sparql query strings
@@ -62,7 +64,7 @@ export const load: PageServerLoad = async ({ url }) => {
 		const results = queryResult.map(transformQueryResultRow);
 
 		// The 'results' variable now holds your array of transformed dictionaries.
-		logger.info({ results }, "Processed and transformed SPARQL results");
+		logger.debug({ results }, "Processed and transformed SPARQL results");
 
 		// Return the actual data
         return {
