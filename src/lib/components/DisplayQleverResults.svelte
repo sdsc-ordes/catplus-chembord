@@ -1,5 +1,5 @@
 <script lang="ts">
-	import Campaign from '$lib/components/Campaign.svelte';
+	import Product from '$lib/components/Product.svelte';
 	import { publicConfig } from '$lib/config';
 	import type { S3FileInfo } from '$lib/server/s3';
 	import { Pagination } from '@skeletonlabs/skeleton-svelte';
@@ -8,7 +8,6 @@
 	import { goto } from '$app/navigation';
 	let currentPage = $derived(page.url.searchParams.get("page") || 1);
 	console.log("Current Page:", currentPage);
-	let activeRow = $state(1);
 
 	// get props from data loader
 	let {
@@ -26,7 +25,11 @@
 	let detailedContent = $state<S3FileInfo[] | null>(null);
 	let isLoadingDetails = $state(false);
 	let detailError = $state<string | null>(null);
-	let activeResultItem = $state<ResultItemType | null>(null);
+	//let activeResultItem = $state<ResultItemType | null>(null);
+	let selectedRowIndex = $state<number | null>(null);
+	const activeResultItem = $derived(
+		selectedRowIndex === null ? null : results[selectedRowIndex]
+	);
 
     async function fetchDetails(campaignPath: string) {
         isLoadingDetails = true;
@@ -49,21 +52,7 @@
         }
     }
 
-    function handleRowClick(result: ResultItemType) {
-        activeResultItem = result;
-        if (result && result.prefix) {
-            fetchDetails(result.prefix);
-        } else {
-            // Reset main content if row is invalid or deselected (if implementing deselection)
-            detailedContent = null;
-            isLoadingDetails = false;
-            detailError = null;
-        }
-	}
-
 	async function handlePageChange(e) {
-		console.log("handlePageChange", e.page);
-		console.log("currentPage", currentPage);
 		const nextPage = e.page;
 		const queryString = new URLSearchParams(page.url.searchParams.get('query') || '');
 		queryString.set('page', nextPage);
@@ -72,18 +61,23 @@
 		await goto(location, {invalidateAll: true});
 	}
 
-    $effect(() => {
-		// This effect runs whenever the `results` array changes
-		if (results && results.length > 0) {
-			// Automatically select the first item of the list
-			const firstItem = results[0];
-			handleRowClick(firstItem);
+	// EFFECT: This runs ONLY when the active item changes.
+	$effect(() => {
+		if (activeResultItem) {
+			// Fetch details for the newly active item
+			fetchDetails(activeResultItem.Campaign.value);
 		} else {
-			// If the new page has no results, clear the details view
-			activeResultItem = null;
+			// Clear details if no item is selected
 			detailedContent = null;
+			detailError = null;
 		}
-    });
+	});
+
+	// EFFECT: Automatically select the first row when results change (e.g., on page load/navigation)
+	$effect(() => {
+		selectedRowIndex = results.length > 0 ? 0 : null;
+	});
+
 </script>
 
 <div class="bg-tertiary-50-800 space-y-4 rounded p-4">
@@ -99,9 +93,9 @@
 			<tbody class="[&>tr]:hover:bg-tertiary-100-900">
 				{#each results as result, i}
 					<tr
-						onclick={() => handleRowClick(result)}
+						onclick={() => selectedRowIndex = i}
 						class="cursor-pointer"
-						class:bg-tertiary-200-800={activeResultItem?.prefix === result.prefix}
+						class:bg-tertiary-200-800={activeResultItem?.Product === result.Product}
 					>
 					{#each Object.entries(result) as [key, item]: [string, unknown]}
 						{#if item.display}
@@ -135,10 +129,12 @@
 		/>
 	</footer>
 </div>
-<Campaign
+<Product
 	isLoading={isLoadingDetails}
 	error={detailError}
 	campaignFiles={detailedContent?.files}
-	activeCampaign={activeResultItem?.prefix}
+	activeCampaign={activeResultItem?.Campaign.value}
+	activeProduct={activeResultItem?.Product.value}
+	activePeaks={activeResultItem?.Peaks.value}
 	title={activeResultItem?.prefix}
 />
