@@ -97,9 +97,9 @@ const createOuterFilter = (filters: SparqlFilters): string => {
  */
 const buildCoreSubQuery = (
   filters: SparqlFilters, // Pass filters to it
-  pagination?: SparqlPagination 
+  pagination?: SparqlPagination
 ): string => {
-  
+
   // Dynamically create the pagination part of the query
   const paginationClause = pagination
     ? `

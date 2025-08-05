@@ -15,19 +15,15 @@
 	};
 	let { picklists, initialFilters, transformedPicklists, resultColumns }: Props = $props();
 
-	// type used in the configuration of search filters
 	interface FilterDisplayConfig {
 		label: string,
 		nameAttr: string;
 	}
 
 	FilterCategoriesSorted.forEach(categoryKey => {
-		// Use the value from initialFilters if it exists for this categoryKey,
-		// otherwise default to an empty array.
 		selectedItems[categoryKey] = initialFilters[categoryKey] || [];
 	});
 
-    // mapping of filter categories to lables and form attribute names
 	export const FilterDisplays: Record<FilterCategory, FilterDisplayConfig> = {
 		CAMPAIGN_NAME: {
 			label: 'Campaign Name',
@@ -59,12 +55,10 @@
 		}
 	}
 
-	// type of the accordion search form
 	interface AccordionItemConfig extends FilterDisplayConfig {
 		options: string[];
 	}
 
-	// merge accordion with picklists that were retrieved from Qlever per FilterCategory
 	const accordionItemsConfig = Object.fromEntries(
 		FilterCategoriesSorted.map((categoryKey) => {
 			const categorySpecificPicklist = picklists?.[categoryKey] ?? [];
@@ -80,9 +74,6 @@
 	// initially accordion is closed
 	let accordionValue = $state<string[]>([]);
 
-	/**
-	 * Resets the selected items for all categories to an empty array.
-	 */
 	function handleReset() {
 		for (const key of Object.keys(selectedItems)) {
 			selectedItems[key] = [];
