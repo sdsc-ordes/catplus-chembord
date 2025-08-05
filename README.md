@@ -2,7 +2,7 @@
 
 ## Technology
 
-The catplus chemboard uses the following technologies:
+The catplus chembord uses the following technologies:
 
 - [Sveltekit](https://svelte.dev/) as Frontend Framework
 - [pnpm](https://pnpm.io/) for node setup
@@ -41,6 +41,8 @@ just install
 just build
 just local
 ```
+
+`just local` serves the chembord at `http://localhost:5173/chembord`
 
 ### Docker
 
