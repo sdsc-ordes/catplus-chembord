@@ -32,10 +32,10 @@ export const load: PageServerLoad = async ({ url }) => {
         ) as Record<FilterCategory, string[]>;
 
         const currentPage = Math.max(1, parseInt(url.searchParams.get('page') as string, 10) || 1);
-        logger.info(currentPage, "Current Page from URL Search Params");
+        logger.debug(currentPage, "Current Page from URL Search Params");
         const pageSize = publicConfig.PUBLIC_RESULTS_PER_PAGE;
         const offset = (currentPage - 1) * pageSize;
-        logger.info({ pageSize, offset }, "Page Size and Offset for Pagination");
+        logger.debug({ pageSize, offset }, "Page Size and Offset for Pagination");
 
         //------------------------ Create and Execute Queries ------------------------
         // 1. Create the sparql query strings
@@ -55,7 +55,7 @@ export const load: PageServerLoad = async ({ url }) => {
             getSparqlQueryResult(generatedQueries.countQuery),
             getSparqlQueryResult(generatedQueries.resultsQuery)
         ]);
-		logger.info({ countResult }, "Count Result:");
+		logger.debug({ countResult }, "Count Result:");
 		logger.debug({ queryResult }, "Query Result:");
 
         // 3. Process the results to define your variables
