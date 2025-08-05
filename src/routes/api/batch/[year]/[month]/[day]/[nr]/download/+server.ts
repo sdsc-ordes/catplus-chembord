@@ -1,16 +1,28 @@
 import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { getZipFileName } from '$lib/utils/zipFileName';
-import { createZipStreamForPrefix } from '$lib/server/s3';
+import { createZipStreamFromKeys, listFilesInBucket } from '$lib/server/s3';
 
 export const GET: RequestHandler = async ({ params, request }) => {
 	const path = `batch/${params.year}/${params.month}/${params.day}/${params.nr}/`
+	const url = new URL(request.url);
+	const product = url.searchParams.get('product') || null;
+	const peaks = url.searchParams.get('peaks')?.split(',') || [];
+	console.log(url.searchParams.get('product'));
+	console.log(url.searchParams.get('peaks'));
 	try {
-		// Call the utility function from locals
-		const zipStream = await createZipStreamForPrefix(path);
+		// Call the utility function from local
+		const normalizedPrefix = path.endsWith('/') ? path : `${path}/`;
+		//const zipStream = await createZipStreamForPrefix(normalizedPrefix);
+		const objectsToZip = await listFilesInBucket(normalizedPrefix);
+
+		 const zipStream = await createZipStreamFromKeys(
+            objectsToZip.map(obj => obj.Key!),
+            normalizedPrefix
+        );
 
 		// Generate a filename for the download
-		const zipFileName = getZipFileName(path);
+		const zipFileName = getZipFileName(path, product);
 
 		// Return the stream directly in the Response
 		return new Response(zipStream as ReadableStream<any>, {

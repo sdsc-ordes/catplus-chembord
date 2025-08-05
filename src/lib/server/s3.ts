@@ -53,68 +53,50 @@ async function getObjectStream(key: string): Promise<NodeJS.ReadableStream | und
     }
 }
 
-// create a Zip stream for a s3 prefix
-export async function createZipStreamForPrefix(prefix: string): Promise<PassThrough> {
-    // Ensure prefix ends with '/' for accurate relative path calculation and listing
-    const normalizedPrefix = prefix.endsWith('/') ? prefix : `${prefix}/`;
-
-    // Use the helper function to list all objects recursively under the prefix
-    const objectsToZip = await listFilesInBucket(normalizedPrefix);
-
-    if (objectsToZip.length === 0) {
-        // Throw an error that the API route can catch and convert to a 404
-        throw new Error(`No files found under prefix: ${normalizedPrefix}`);
+/**
+ * Creates a zip stream from a specific list of S3 object keys.
+ * @param s3ObjectKeys The array of S3 object keys (strings) to include in the zip.
+ * @param basePrefix The S3 prefix to use for calculating relative paths inside the zip.
+ * @returns A PassThrough stream of the generated zip archive.
+ */
+export async function createZipStreamFromKeys(s3ObjectKeys: string[], basePrefix: string): Promise<PassThrough> {
+    if (s3ObjectKeys.length === 0) {
+        throw new Error(`No file keys provided to create a zip stream.`);
     }
 
-    const archive = archiver('zip', {
-        zlib: { level: 9 }, // Set compression level
-    });
+    // Ensure the base prefix ends with a slash for consistent relative path calculation
+    const normalizedBasePrefix = basePrefix.endsWith('/') ? basePrefix : `${basePrefix}/`;
+
+    const archive = archiver('zip', { zlib: { level: 9 } });
     const passThrough = new PassThrough();
 
-    // Pipe archive to passthrough FIRST, before adding files
     archive.pipe(passThrough);
 
-    // Handle archive errors and propagate them to the passthrough stream
-    archive.on('warning', (err) => {
-        console.warn(`Archiver warning for prefix ${normalizedPrefix}:`, err);
-    });
+    archive.on('warning', (err) => console.warn(`Archiver warning:`, err));
     archive.on('error', (err) => {
-        console.error(`Archiver fatal error for prefix ${normalizedPrefix}:`, err);
-        passThrough.destroy(err); // Destroy the output stream
+        console.error(`Archiver fatal error:`, err);
+        passThrough.destroy(err);
     });
 
-    // Asynchronously add files to the archive
-    const appendPromises = objectsToZip.map(async (s3Object) => {
-        if (!s3Object.Key) return; // Skip if key is somehow missing
+    const appendPromises = s3ObjectKeys.map(async (key) => {
+        // The loop variable 'key' is now the S3 object key string
+        if (!key) return;
 
-        const objectStream = await getObjectStream(s3Object.Key); // Use the stream helper
+        const objectStream = await getObjectStream(key);
         if (objectStream) {
-            try {
-                // Extract relative path for the zip entry
-                const relativePath = s3Object.Key.substring(normalizedPrefix.length);
-                // Only append if relativePath is not empty (don't add the folder itself)
-                if (relativePath) {
-                    archive.append(objectStream, { name: relativePath });
-                }
-            } catch (appendError) {
-                console.error(`S3 Util (Zip Prefix): Error appending ${s3Object.Key} to archive:`, appendError);
-                // Optionally add an error file to the zip
-                archive.append(`Error processing ${s3Object.Key}`, { name: `${s3Object.Key}.error.txt` });
+            // Calculate the path inside the zip file
+            const relativePath = key.substring(normalizedBasePrefix.length);
+            if (relativePath) {
+                archive.append(objectStream, { name: relativePath });
             }
         } else {
-             console.warn(`S3 Util (Zip Prefix): Could not get stream for ${s3Object.Key}, skipping.`);
-             // Optionally add an error file
-             archive.append(`Could not fetch ${s3Object.Key}`, { name: `${path.basename(s3Object.Key)}.error.txt` });
+             console.warn(`Could not get stream for ${key}, skipping.`);
+             archive.append(`Could not fetch ${key}`, { name: `${path.basename(key)}.error.txt` });
         }
     });
 
-    // Wait for all append operations to be *initiated*
     await Promise.all(appendPromises);
-
-    // Finalize the archive *after* initiating all appends
     archive.finalize();
-
-    // Return the stream that the archive is piping to
     return passThrough;
 }
 

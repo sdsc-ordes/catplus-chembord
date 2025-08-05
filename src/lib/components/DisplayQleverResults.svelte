@@ -45,6 +45,7 @@
 				activeResultItem.Product.value,
 				activeResultItem.Peaks.value
 			);
+			console.log('Filtered files:', filteredList);
 			detailedContent = filteredList;
 		} catch (err: any) {
 			console.error('Error fetching details:', err);
@@ -179,5 +180,6 @@
 	filteredFiles={detailedContent}
 	activeCampaign={activeResultItem?.Campaign.value}
 	activeProduct={activeResultItem?.Product.value}
+	activePeaks={activeResultItem?.Peaks.value}
 	title={activeResultItem?.prefix}
 />

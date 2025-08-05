@@ -11,6 +11,7 @@
         filteredFiles = [],
         activeCampaign = null,
         activeProduct = null,
+        activePeaks = [],
         title = "",
     }: {
         isLoading?: boolean;
@@ -18,6 +19,7 @@
         filteredFiles?: S3FileInfoWithUrl[] | [];
         activeCampaign?: string | null;
         activeProduct?: string | null;
+        activePeaks?: string[] | [];
         title: string | "";
     } = $props();
 
@@ -31,7 +33,9 @@
         {title: "Size", widthInPercent: 20},
         {title: "Last modified", widthInPercent: 25},
         {title: "Download", widthInPercent: 10},
-    ]
+    ];
+    const downloadUrl = $derived(`${base}/api/${activeCampaign}/download?product=${activeProduct}`);
+    console.log('Download URL:', downloadUrl);
 </script>
 
 {#if isLoading}
@@ -49,8 +53,9 @@
         <Archive />
         <span>{activeCampaign}</span>
         <span>{activeProduct}</span>
+        <span>{`${base}/api/${activeCampaign}download?product=${activeProduct}`}</span>
 		<a
-			href={`${base}/api/${activeCampaign}download`}
+			href={`${base}/api/${activeCampaign}download?product=${activeProduct}&peaks=${activePeaks.join(',')}`}
 			class="btn btn-sm variant-outline-secondary hover:text-primary-500"
 			title="Download all files in this folder as ZIP"
 			download={getZipFileName(activeCampaign)}
