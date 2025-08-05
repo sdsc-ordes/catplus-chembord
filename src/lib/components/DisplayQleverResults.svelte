@@ -44,7 +44,6 @@
 	let detailedContent = $state<S3FileInfo[] | null>(null);
 	let rawCampaignFiles = $state<S3FileInfo[] | null>(null);
 	let fetchedCampaignPath = $state<string | null>(null);
-	let fetchedCampaign = $state<string | null>(null);
 	let isLoadingDetails = $state(false);
 	let detailError = $state<string | null>(null);
 	let selectedRowIndex = $state<number | null>(null);
