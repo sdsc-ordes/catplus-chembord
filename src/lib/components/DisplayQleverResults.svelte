@@ -8,7 +8,29 @@
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 
-	let currentPage = $derived(page.url.searchParams.get('page') || 1);
+	/**
+	 * A generic interface for a value that can be toggled for display.
+	 * T represents the type of the 'value'.
+	 */
+	interface DisplayValue<T> {
+		value: T;
+		display: boolean;
+	}
+
+	/**
+	 * Represents the main data structure for a single result item.
+	 */
+	interface ResultItemType {
+		Campaign: DisplayValue<string>;
+		Product: DisplayValue<string>;
+		Devices: DisplayValue<string[]>;
+		Chemicals: DisplayValue<string[]>;
+		Peaks: DisplayValue<string[]>;
+		ContentURL: DisplayValue<string>;
+		ProductFile: DisplayValue<string>;
+	}
+
+	let currentPage = $derived(Number(page.url.searchParams.get('page')) || 1);
 
 	// get props from data loader
 	let { results, resultsTotal, tableHeaders } = $props();
@@ -20,9 +42,10 @@
 
 	// State for the fetched detailed data for the main content
 	let detailedContent = $state<S3FileInfo[] | null>(null);
+	let campaignFiles = $state<S3FileInfo[] | null>(null);
+	let productFiles = $state<S3FileInfo[] | null>(null);
 	let isLoadingDetails = $state(false);
 	let detailError = $state<string | null>(null);
-	//let activeResultItem = $state<ResultItemType | null>(null);
 	let selectedRowIndex = $state<number | null>(null);
 	const activeResultItem = $derived(selectedRowIndex === null ? null : results[selectedRowIndex]);
 
@@ -31,6 +54,7 @@
 		detailError = null;
 		detailedContent = null;
 		const campaignPath = activeResultItem.Campaign.value;
+		console.log(activeResultItem);
 		try {
 			// Adjust the URL to your actual API endpoint structure
 			const response = await fetch(`${base}/api/${campaignPath}`);
@@ -121,7 +145,7 @@
 	<footer class="">
 		<Pagination
 			data={results}
-			{currentPage}
+			page={currentPage}
 			onPageChange={(e) => handlePageChange(e)}
 			{pageSize}
 			siblingCount={4}
@@ -133,7 +157,7 @@
 <Product
 	isLoading={isLoadingDetails}
 	error={detailError}
-	filteredFiles={detailedContent}
+	filteredFiles={detailedContent ?? undefined}
 	activeCampaign={activeResultItem?.Campaign.value}
 	activeProduct={activeResultItem?.Product.value}
 	activePeaks={activeResultItem?.Peaks.value}
