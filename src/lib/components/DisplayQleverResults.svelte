@@ -47,7 +47,6 @@
 				activeResultItem.Product.value,
 				activeResultItem.Peaks.value
 			);
-			console.log('Filtered files:', filteredList);
 			detailedContent = filteredList;
 		} catch (err: any) {
 			console.error('Error fetching details:', err);

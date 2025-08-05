@@ -9,8 +9,6 @@ export const GET: RequestHandler = async ({ params, request }) => {
 	const url = new URL(request.url);
 	const product = url.searchParams.get('product') || null;
 	const peaks = url.searchParams.get('peaks')?.split(',') || [];
-	console.log(url.searchParams.get('product'));
-	console.log(url.searchParams.get('peaks'));
 	try {
 		// Call the utility function from local
 		const normalizedPrefix = path.endsWith('/') ? path : `${path}/`;
@@ -24,7 +22,6 @@ export const GET: RequestHandler = async ({ params, request }) => {
 			// If no product is specified, include all files
 			filteredFiles = campaignFiles;
 		}
-		console.log(`Filtered files for prefix ${normalizedPrefix}:`, filteredFiles);
 
 		const zipStream = await createZipStreamFromKeys(
 			filteredFiles.map(obj => obj.Key!),

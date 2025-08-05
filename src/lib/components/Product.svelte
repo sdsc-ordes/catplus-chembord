@@ -35,7 +35,6 @@
         {title: "Download", widthInPercent: 10},
     ];
     const downloadUrl = $derived(`${base}/api/${activeCampaign}/download?product=${activeProduct}`);
-    console.log('Download URL:', downloadUrl);
 </script>
 
 {#if isLoading}
