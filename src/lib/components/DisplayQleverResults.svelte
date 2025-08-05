@@ -85,10 +85,10 @@
 			isLoadingDetails = false;
 		}
 	}
-	async function handlePageChange(e) {
+	async function handlePageChange(e: { page: number }) {
 		const nextPage = e.page;
 		const queryString = new URLSearchParams(page.url.searchParams.get('query') || '');
-		queryString.set('page', nextPage);
+		queryString.set('page', String(nextPage));
 		const location = `?${queryString.toString()}`;
 		await goto(location, { invalidateAll: true });
 	}
@@ -141,17 +141,17 @@
 						class="cursor-pointer"
 						class:bg-tertiary-200-800={activeResultItem?.Product === result.Product}
 					>
-						{#each Object.entries(result) as [key, item]: [string, ResultItemType]}
-							{#if item.display}
+						{#each Object.entries(result) as [key, item]}
+							{#if (item as DisplayValue<any>).display}
 								<td>
-									{#if Array.isArray(item.value)}
+									{#if Array.isArray((item as DisplayValue<any>).value)}
 										<ul class="list-disc pl-5">
-											{#each item.value as v}
+											{#each (item as DisplayValue<any>).value as v}
 												<li>{v}</li>
 											{/each}
 										</ul>
 									{:else}
-										{item.value}
+										{(item as DisplayValue<any>).value}
 									{/if}
 								</td>
 							{/if}
