@@ -1,85 +1,124 @@
-<script lang="ts" generics="ResultItemType extends ResultItemBase">
-	import Campaign from '$lib/components/Campaign.svelte';
+<script lang="ts">
+	import Product from '$lib/components/Product.svelte';
+	import { filterCampaignFiles } from '$lib/utils/filterCampaign';
 	import { publicConfig } from '$lib/config';
 	import type { S3FileInfo } from '$lib/server/s3';
 	import { Pagination } from '@skeletonlabs/skeleton-svelte';
 	import { base } from '$app/paths';
+	import { page } from '$app/state';
+	import { goto } from '$app/navigation';
 
-	interface ResultItemBase {
-		prefix: string;
+	/**
+	 * A generic interface for a value that can be toggled for display.
+	 * T represents the type of the 'value'.
+	 */
+	interface DisplayValue<T> {
+		value: T;
+		display: boolean;
 	}
 
-	// get props from data loader
-	let {
-		results,
-		resultsTotal,
-		tableHeaders,
-	} = $props();
+	/**
+	 * Represents the main data structure for a single result item.
+	 */
+	interface ResultItemType {
+		Campaign: DisplayValue<string>;
+		Product: DisplayValue<string>;
+		Devices: DisplayValue<string[]>;
+		Chemicals: DisplayValue<string[]>;
+		Peaks: DisplayValue<string[]>;
+		ContentURL: DisplayValue<string>;
+		ProductFile: DisplayValue<string>;
+	}
 
-	const headers = ["Campaign"].concat(Object.values(tableHeaders));
+	let currentPage = $derived(Number(page.url.searchParams.get('page')) || 1);
+
+	// get props from data loader
+	let { results, resultsTotal, tableHeaders } = $props();
+
+	const headers = Object.values(tableHeaders);
 
 	// Pagination of Campaigns
-	let currentPage = $state(1);
 	let pageSize = publicConfig.PUBLIC_RESULTS_PER_PAGE;
 
 	// State for the fetched detailed data for the main content
 	let detailedContent = $state<S3FileInfo[] | null>(null);
+	let rawCampaignFiles = $state<S3FileInfo[] | null>(null);
+	let fetchedCampaignPath = $state<string | null>(null);
 	let isLoadingDetails = $state(false);
 	let detailError = $state<string | null>(null);
-	let activeResultItem = $state<ResultItemType | null>(null);
+	let selectedRowIndex = $state<number | null>(null);
+	const activeResultItem = $derived(selectedRowIndex === null ? null : results[selectedRowIndex]);
 
-    async function fetchDetails(campaignPath: string) {
-        isLoadingDetails = true;
-        detailError = null;
-        detailedContent = null;
-        try {
-            // Adjust the URL to your actual API endpoint structure
-            const response = await fetch(`${base}/api/${campaignPath}`);
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({ message: `HTTP error! status: ${response.status}` }));
-                throw new Error(errorData.message || `Failed to fetch details. Status: ${response.status}`);
-            }
-            const fetchedDetails: S3FileInfo[] = await response.json();
-            detailedContent = fetchedDetails;
-        } catch (err: any) {
-            console.error('Error fetching details:', err);
-            detailError = err.message || 'An unknown error occurred.';
-        } finally {
-            isLoadingDetails = false;
-        }
-    }
+	async function fetchDetails(activeResultItem: ResultItemType) {
+		const campaignPath = activeResultItem.Campaign.value;
 
-    function handleRowClick(result: ResultItemType) {
-        activeResultItem = result;
-        if (result && result.prefix) {
-            fetchDetails(result.prefix);
-        } else {
-            // Reset main content if row is invalid or deselected (if implementing deselection)
-            detailedContent = null;
-            isLoadingDetails = false;
-            detailError = null;
-        }
+		// If the requested campaign is the one we already have, do nothing.
+		// The reactive effect below will handle re-filtering.
+		if (!campaignPath || campaignPath === fetchedCampaignPath) {
+			return;
+		}
+
+		isLoadingDetails = true;
+		detailError = null;
+		rawCampaignFiles = null; // Clear old raw data
+
+		try {
+			const response = await fetch(`${base}/api/${campaignPath}`);
+			if (!response.ok) {
+				const errorData = await response.json().catch(() => ({ message: `HTTP error! status: ${response.status}` }));
+				throw new Error(errorData.message || `Failed to fetch details. Status: ${response.status}`);
+			}
+
+			const fetchedData = await response.json();
+			// Store the full, unfiltered list of files
+			rawCampaignFiles = fetchedData?.files || [];
+			// Remember the campaign we just successfully fetched
+			fetchedCampaignPath = campaignPath;
+
+		} catch (err: any) {
+			console.error('Error fetching details:', err);
+			detailError = err.message || 'An unknown error occurred.';
+		} finally {
+			isLoadingDetails = false;
+		}
+	}
+	async function handlePageChange(e: { page: number }) {
+		const nextPage = e.page;
+		const queryString = new URLSearchParams(page.url.searchParams.get('query') || '');
+		queryString.set('page', String(nextPage));
+		const location = `?${queryString.toString()}`;
+		await goto(location, { invalidateAll: true });
 	}
 
-	async function handlePageChange(e: CustomEvent<{ page: number }>) {
-		const searchParams = new URLSearchParams(page.url.search);
-		searchParams.set('page', e.page);
-
-		await goto(`?${searchParams.toString()}`, {invalidateAll: true});
-	}
-
-    $effect(() => {
-		// This effect runs whenever the `results` array changes
-		if (results && results.length > 0) {
-			// Automatically select the first item of the list
-			const firstItem = results[0];
-			handleRowClick(firstItem);
+	// EFFECT: This runs ONLY when the active item changes.
+	$effect(() => {
+		if (rawCampaignFiles && activeResultItem) {
+			// Run your existing filter function on the raw data
+			const filteredList = filterCampaignFiles(
+				rawCampaignFiles,
+				activeResultItem.Product.value,
+				activeResultItem.Peaks.value
+			);
+			// Update the final list that gets displayed
+			detailedContent = filteredList;
 		} else {
-			// If the new page has no results, clear the details view
-			activeResultItem = null;
+			// Clear the list if there's no data or no selection
 			detailedContent = null;
 		}
-    });
+	});
+
+	// EFFECT: Automatically select the first row when results change (e.g., on page load/navigation)
+	$effect(() => {
+		selectedRowIndex = results.length > 0 ? 0 : null;
+	});
+
+	// EFFECT: Fetch data whenever the active item changes.
+	$effect(() => {
+		if (activeResultItem) {
+			fetchDetails(activeResultItem);
+		}
+	});
+
 </script>
 
 <div class="bg-tertiary-50-800 space-y-4 rounded p-4">
@@ -88,30 +127,32 @@
 			<thead>
 				<tr>
 					{#each headers as header}
-					<th>{header}</th>
+						<th>{header}</th>
 					{/each}
 				</tr>
 			</thead>
 			<tbody class="[&>tr]:hover:bg-tertiary-100-900">
 				{#each results as result, i}
 					<tr
-						onclick={() => handleRowClick(result)}
+						onclick={() => (selectedRowIndex = i)}
 						class="cursor-pointer"
-						class:bg-tertiary-200-800={activeResultItem?.prefix === result.prefix}
+						class:bg-tertiary-200-800={activeResultItem?.Product === result.Product}
 					>
-					{#each Object.values(result) as value, key}
-						<td>
-							{#if Array.isArray(value)}
-								<ul class="list-disc pl-5">
-									{#each value as item}
-										<li>{item}</li>
-									{/each}
-								</ul>
-							{:else}
-								{value}
+						{#each Object.entries(result) as [key, item]}
+							{#if (item as DisplayValue<any>).display}
+								<td>
+									{#if Array.isArray((item as DisplayValue<any>).value)}
+										<ul class="list-disc pl-5">
+											{#each (item as DisplayValue<any>).value as v}
+												<li>{v}</li>
+											{/each}
+										</ul>
+									{:else}
+										{(item as DisplayValue<any>).value}
+									{/if}
+								</td>
 							{/if}
-						</td>
-					{/each}
+						{/each}
 					</tr>
 				{/each}
 			</tbody>
@@ -120,19 +161,21 @@
 	<footer class="">
 		<Pagination
 			data={results}
-			{currentPage}
+			page={currentPage}
 			onPageChange={(e) => handlePageChange(e)}
-			pageSize={pageSize}
+			{pageSize}
 			siblingCount={4}
 			count={resultsTotal}
 			alternative
 		/>
 	</footer>
 </div>
-<Campaign
+<Product
 	isLoading={isLoadingDetails}
 	error={detailError}
-	campaignFiles={detailedContent?.files}
-	activeCampaign={activeResultItem?.prefix}
+	filteredFiles={detailedContent ?? undefined}
+	activeCampaign={activeResultItem?.Campaign.value}
+	activeProduct={activeResultItem?.Product.value}
+	activePeaks={activeResultItem?.Peaks.value}
 	title={activeResultItem?.prefix}
 />

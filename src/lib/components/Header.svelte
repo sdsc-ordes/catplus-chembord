@@ -7,7 +7,7 @@
 	import { publicConfig } from '$lib/config';
 </script>
 
-<AppBar 
+<AppBar
     classes="flex items-left"
 	gridColumns="grid-cols-3"
     slotLead="place-self-start"

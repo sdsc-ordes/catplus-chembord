@@ -3,11 +3,7 @@
     import { invalidateAll } from '$app/navigation';
     import Database from '@lucide/svelte/icons/database';
 
-    // 1. Receive initial props from the parent page.
     let { form, year, month, day, number } = $props();
-
-    // 2. Create local, mutable state for each input, initialized by the props.
-    //    This allows the user's typing to be tracked reactively.
     let yearValue = $state(year ?? '');
     let monthValue = $state(month ?? '');
     let dayValue = $state(day ?? '');
@@ -15,7 +11,6 @@
 
     function handleSubmit() {
         return async ({ result }: { result: any }) => {
-            console.log('handleSubmit', result);
             if (result.type === 'redirect') {
                 await invalidateAll();
             }

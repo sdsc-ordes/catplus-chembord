@@ -1,94 +1,96 @@
-import type { Actions } from '@sveltejs/kit';
-import type { PageServerLoad } from './$types'
-import { redirect } from '@sveltejs/kit';
+import { logger } from '$lib/server/logger';
+import type { PageServerLoad } from './$types';
 import { getSearchOptionsList, getSparqlQueryResult } from '$lib/server/qlever';
 import { type FilterCategory, SparqlFilterQueries, FilterCategoriesSorted } from '$lib/config';
-import { createSparqlQueries } from '$lib/utils/sparqlQueryBuilder';
-import { groupMappedQleverResultsByPrefix} from '$lib/utils/mapSparqlResults';
+import { createSparqlQuery } from '$lib/server/qleverResult';
+import type { SparqlPagination, SparqlFilters } from '$lib/server/qleverResult';
 import { publicConfig } from '$lib/config';
-import { logger } from '$lib/server/logger';
+import { redirect } from '@sveltejs/kit';
+import { transformQueryResultRow } from '$lib/utils/resultTransformer';
+
 
 export const load: PageServerLoad = async ({ url }) => {
-	try {
-		//------------------------ Prepare the search form select options ------------------------
-		// Use Promise.all to fetch all select options in parallel
-		const picklistPromises = Object.entries(SparqlFilterQueries).map(async ([optionName, query]) => {
-			const picklist = await getSearchOptionsList(
-				query);
-			return {
-				key: optionName,
-				options: picklist,
-			};
-		});
+    try {
+        //------------------------ Prepare the search form select options ------------------------
+        const picklistPromises = Object.entries(SparqlFilterQueries).map(async ([optionName, query]) => {
+            const picklist = await getSearchOptionsList(query);
+            return { key: optionName, options: picklist };
+        });
 
-		// get picklists from Qlever as Array of objects with key and options as array of strings
-		const picklistsArray = await Promise.all(picklistPromises);
-		logger.debug({picklistsArray}, 'Fetched picklist data from Qlever.');
+        const picklistsArray = await Promise.all(picklistPromises);
+        const pickListsMap = picklistsArray.reduce<Record<string, string[]>>((acc, currentItem) => {
+            acc[currentItem.key] = currentItem.options;
+            return acc;
+        }, {});
 
-		// map to picklists dictionary with key: Array of options
-		const pickListsMap = picklistsArray.reduce<Record<string, string[]>>((acc, currentItem) => {
-			acc[currentItem.key] = currentItem.options;
-			return acc;
-		}, {});
-		logger.debug({pickListsMap}, 'Mapped picklist');
+        //------------------------ Get query parameters from search parameters ------------------------
+        const initialFilters = Object.fromEntries(
+            FilterCategoriesSorted.map((categoryKey) => [
+                categoryKey,
+                url.searchParams.getAll(categoryKey) || [],
+            ])
+        ) as Record<FilterCategory, string[]>;
 
-		//------------------------ Get query parameters from search parameters ------------------------
-		// get selections from the url
-		const initialFilters = Object.fromEntries(
-			FilterCategoriesSorted.map((categoryKey) => {
-				const categoryIntialFilters = url.searchParams.getAll(categoryKey) || [];
-				return [categoryKey, categoryIntialFilters];
-			})
-		) as Record<FilterCategory, string[]>;
-		logger.debug({initialFilters: initialFilters}, 'Filters from URL search params');
-		// get result columns from the url
-		const resultColumns = url.searchParams.get('columns')?.split(',') || [];
-		logger.debug({resultcolumns: resultColumns}, "Result columns from URL params")
+        const currentPage = Math.max(1, parseInt(url.searchParams.get('page') as string, 10) || 1);
+        logger.info(currentPage, "Current Page from URL Search Params");
+        const pageSize = publicConfig.PUBLIC_RESULTS_PER_PAGE;
+        const offset = (currentPage - 1) * pageSize;
+        logger.info({ pageSize, offset }, "Page Size and Offset for Pagination");
 
-		// current page
-		const currentPage = Math.max(1, parseInt(url.searchParams.get('page') as string, 10) || 1);
-		const pageSize = publicConfig.PUBLIC_RESULTS_PER_PAGE;
-		const offset = (currentPage - 1)  * pageSize;
-		logger.debug({currentPage, pageSize, offset}, "calculating pagination");
-
-		// create the sparql query with selected filters
-		const sparqlQueries = createSparqlQueries(
-			initialFilters,
-			resultColumns as FilterCategory[],
-			pageSize,
-			offset,
-		);
-		logger.debug({ sparqlQueries }, "Generated SPARQL Queries");
-
-		// execute sparql search on Qlever
-		const sparqlResult: Record<string, string>[] = await getSparqlQueryResult(
-			sparqlQueries.resultsQuery
-		);
-		logger.debug({sparqlResult: sparqlResult}, 'Received sparqlResult from Qlever');
-
-		// execute sparql search on Qlever
-		const resultsCount: Record<string, string>[] = await getSparqlQueryResult(
-			sparqlQueries.countQuery
-		);
-		logger.debug({resultCount: resultsCount}, 'Received result count from Qlever');
-		const resultsTotal = parseInt(resultsCount[0].total, 0);
-
-		// map the sparql result in the result table (with s3 prefixes)
-		const resultTable = groupMappedQleverResultsByPrefix(sparqlResult, resultColumns);
-		logger.debug({resultTable: resultTable}, 'grouped by campaign');
-
-		// Return results, selections and options
-		return {
-			results: resultTable,
-			picklists: pickListsMap,
-			initialFilters: initialFilters,
-			resultColumns: resultColumns,
-			resultsTotal: resultsTotal,
-			sparqlQuery: sparqlQueries.displayQuery,
+        //------------------------ Create and Execute Queries ------------------------
+        // 1. Create the sparql query strings
+		const sparqlFilters = initialFilters as SparqlFilters;
+		logger.debug({ sparqlFilters }, "Initial Filters for SPARQL Query");
+		logger.debug({ currentPage, pageSize, offset }, "Pagination Parameters");
+		const myPagination: SparqlPagination = {
+			limit: pageSize,
+			offset: offset,
 		};
-	} catch (err: any) {
-		throw new Error(err)
-	}
+		const generatedQueries = createSparqlQuery(sparqlFilters, myPagination);
+        logger.debug({ generatedQueries }, "Generated SPARQL Queries");
+
+        // 2. Execute the queries to get the actual data
+        // Use Promise.all to run the count and results queries in parallel
+        const [countResult, queryResult] = await Promise.all([
+            getSparqlQueryResult(generatedQueries.countQuery),
+            getSparqlQueryResult(generatedQueries.resultsQuery)
+        ]);
+		logger.info({ countResult }, "Count Result:");
+		logger.debug({ queryResult }, "Query Result:");
+
+        // 3. Process the results to define your variables
+		const resultColumns = ["Campaign", "Product", "Devices", "Chemicals"];
+
+		const results = queryResult.map(transformQueryResultRow);
+
+		// The 'results' variable now holds your array of transformed dictionaries.
+		logger.debug({ results }, "Processed and transformed SPARQL results");
+
+		// Return the actual data
+        return {
+            results: results,
+            picklists: pickListsMap,
+            initialFilters: initialFilters,
+            resultColumns: resultColumns,
+            resultsTotal: countResult,
+            sparqlQuery: generatedQueries.displayQuery, // Return the query for display/debugging
+            currentPage: currentPage,
+            pageSize: pageSize,
+        };
+
+    } catch (error) {
+        logger.error(error, "An error occurred in the search page load function.");
+        // Return a safe state in case of an error
+        return {
+            results: [],
+            picklists: {},
+            initialFilters: {},
+            resultColumns: [],
+            resultsTotal: 0,
+            sparqlQuery: "Error generating query.",
+            error: "Could not fetch results.",
+        };
+    }
 };
 
 export const actions: Actions = {
@@ -104,11 +106,6 @@ export const actions: Actions = {
         // Convert the FormData to a plain object before logging
         const formDataObject = Object.fromEntries(formData);
         logger.debug({ formDataObject: formDataObject }, "data received on form submit");
-
-		const resultColumns: FilterCategory[] = FilterCategoriesSorted.filter(categoryKey =>
-			formData.has(`column_${categoryKey}`)
-		);
-        logger.debug({ resultColumns: resultColumns }, "result columns");
 
 		const searchParams = Object.fromEntries(
 			FilterCategoriesSorted.map((categoryKey) => {
@@ -130,11 +127,6 @@ export const actions: Actions = {
 
 		const targetUrl = new URL(url.origin + url.pathname);
 		logger.debug({targetUrl: targetUrl.toString()}, "Target URL for search action");
-
-		// --- Append the `resultColumns` array as a single comma-separated list ---
-		if (resultColumns.length > 0) {
-			targetUrl.searchParams.set('columns', resultColumns.join(','));
-		}
 
 		// Append the processed values to the url as query parameters
 		for (const categoryKey of FilterCategoriesSorted) {

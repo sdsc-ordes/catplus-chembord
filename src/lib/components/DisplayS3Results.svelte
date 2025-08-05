@@ -1,11 +1,12 @@
-<script lang="ts" generics="ResultItemType extends ResultItemBase">
+<script lang="ts">
 	import Campaign from '$lib/components/Campaign.svelte';
 	import { publicConfig } from '$lib/config';
 	import type { S3FileInfo } from '$lib/server/s3';
 	import { Pagination } from '@skeletonlabs/skeleton-svelte';
 	import { base } from '$app/paths';
 
-	interface ResultItemBase {
+	interface ResultItemType {
+		date: string;
 		prefix: string;
 	}
 
@@ -49,11 +50,11 @@
     }
 
     function handleRowClick(result: ResultItemType) {
-        activeResultItem = result; // Visually mark as active in sidebar
+        activeResultItem = result;
+		console.log(result);
         if (result && result.prefix) {
-            fetchDetails(result.prefix); // Fetch full details for the main content
+            fetchDetails(result.prefix);
         } else {
-            // Reset main content if row is invalid or deselected (if implementing deselection)
             detailedContent = null;
             isLoadingDetails = false;
             detailError = null;

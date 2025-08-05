@@ -1,33 +1,100 @@
-PREFIX allores: <http://purl.allotrope.org/ontologies/result#>
-PREFIX cat: <http://example.org/catplus/ontology/>
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX res: <http://dbpedia.org/resource/>
+PREFIX allo-res: <http://purl.allotrope.org/ontologies/result#>
 PREFIX schema: <https://schema.org/>
-
+PREFIX cat: <http://example.org/catplus/ontology/>
+PREFIX purl: <http://purl.allotrope.org/ontologies/>
 SELECT
-    ?contentUrl
-    ?reactionType
-    ?chemicalName
+?contenturl	?deviceTypes ?chemicals	?peakIdentifiers
 WHERE {
-    ?s schema:contentUrl ?contentUrl .
-    ?s cat:hasBatch ?batch .
-    {?s cat:hasChemical ?chemical . ?s a cat:Campaign}
-    UNION {?action cat:hasBatch ?batch . ?action cat:hasSample* ?sample . ?sample cat:hasChemical ?chemical .}
-    ?batch cat:reactionType ?reactionType .
-    ?chemical allores:AFR_0002292 ?chemicalName .
-    {
-        SELECT DISTINCT ?s WHERE {
-            ?batch cat:reactionType ?reactionType .
-            ?s rdf:type cat:Campaign .
-            ?s cat:hasBatch ?batch .
-            {?s cat:hasChemical ?chemical . ?s a cat:Campaign}
-            UNION {?action cat:hasBatch ?batch . ?action cat:hasSample* ?sample . ?sample cat:hasChemical ?chemical .}
-            ?s schema:contentUrl ?contentUrl .
-            FILTER (?reactionType IN ('N-methylation'))
-        }
-        ORDER BY ASC(?contentUrl)
-        LIMIT 3
-        OFFSET 0
+  FILTER(
+    CONTAINS(?chemicalNames, "Styrene") && CONTAINS(?chemicalNames, "methanol")
+	&&
+CONTAINS(?casNumbers, "1") && CONTAINS(?casNumbers, "73")
+&&
+ CONTAINS(?smiless, "O") && CONTAINS(?smiless, "OC")
+ &&
+ CONTAINS(?deviceTypes, "Oven")
+  )
+{
+SELECT DISTINCT
+?contenturl
+?deviceTypes
+(GROUP_CONCAT(DISTINCT CONCAT(?chemicalName); separator=" | ") AS ?chemicalNames)
+(GROUP_CONCAT(DISTINCT CONCAT(?casNumber); separator=" | ") AS ?casNumbers)
+(GROUP_CONCAT(DISTINCT CONCAT(?smiles); separator=" | ") AS ?smiless)
+(GROUP_CONCAT(DISTINCT CONCAT(?chemicalName, " [", ?casNumber, "] <", ?smiles, ">"); separator=" | ") AS ?chemicals)
+?peakIdentifiers
+WHERE {
+  # Step 1: Pagination of contenturl
+  {
+    SELECT DISTINCT ?contenturl
+    WHERE {
+      ?LiquidChromatographyAggregateDocument schema:contentUrl ?contenturl .
+      ?LiquidChromatographyAggregateDocument a allo-res:AFR_0002524 .
     }
+    ORDER BY ?contenturl
+    LIMIT 10
+    OFFSET 0
+  }
+  # Step 2: Get deviceType per contenturl
+    {
+    SELECT ?contenturl (GROUP_CONCAT(DISTINCT ?deviceType; separator=", ") AS ?deviceTypes )
+    WHERE {
+      ?LiquidChromatographyAggregateDocument schema:contentUrl ?contenturl ;
+        allo-res:AFR_0002526 ?DeviceSystemDocument ;
+        cat:hasLiquidChromatography/allo-res:AFR_0002374 ?MeasurementAggregateDocument .
+      ?DeviceSystemDocument a cat:DeviceSystemDocument ;
+        allo-res:AFR_0002722/allo-res:AFR_0002568 ?deviceType .
+      ?MeasurementAggregateDocument allo-res:AFR_0002083 ?SampleDocument .
+      ?SampleDocument cat:hasProduct ?product .
+      ?synthAddAction cat:producesProduct ?product ;
+                      cat:hasBatch ?batch .
+      ?batch cat:reactionType ?reactionType ;
+             cat:reactionName ?reactionName .
+			 FILTER(CONTAINS(?reactionType, "N-methylation"))
+			 FILTER(CONTAINS(?reactionName, "Caffeine synthesis"))
+	}
+    GROUP BY ?contenturl
+
+    }
+   # Step 3: Chemical info coming from campaigns and samples
+   {
+    SELECT ?contenturl ?chemical ?casNumber ?smiles ?chemicalName
+    WHERE {
+      ?LiquidChromatographyAggregateDocument schema:contentUrl ?contenturl ;
+        cat:hasLiquidChromatography/allo-res:AFR_0002374 ?MeasurementAggregateDocument .
+      ?MeasurementAggregateDocument allo-res:AFR_0002083 ?SampleDocument .
+      ?SampleDocument cat:hasProduct ?product .
+	  ?synthaddaction cat:producesProduct ?product .
+	  ?synthaddaction cat:hasBatch ?batch .
+      ?campaign cat:hasBatch ?batch .
+      {?synthaddaction cat:hasSample+ ?sample .
+	   ?sample cat:hasChemical ?chemical .
+      }
+      UNION {
+        ?campaign cat:hasChemical ?chemical .
+      }
+	  ?campaign schema:name ?campaignName .
+	FILTER(CONTAINS(?campaignName, "Caffeine Synthesis"))
+
+      ?chemical
+        allo-res:AFR_0002292 ?chemicalName ;
+        cat:casNumber ?casNumber ;
+        allo-res:AFR_0002295 ?smiles .
+  }
+    GROUP BY ?contenturl ?chemical ?casNumber ?smiles ?chemicalName
+  }
+  # Step 4: Peak Identifiers
+   {
+    SELECT ?contenturl (GROUP_CONCAT(DISTINCT ?peakIdentifier; separator=", ") AS ?peakIdentifiers)
+    WHERE {
+      ?LiquidChromatographyAggregateDocument schema:contentUrl ?contenturl ;
+        cat:hasLiquidChromatography/allo-res:AFR_0002374 ?MeasurementAggregateDocument .
+      ?MeasurementAggregateDocument allo-res:AFR_0002659/allo-res:AFR_0000432/cat:peak/allo-res:AFR_0001164 ?peakIdentifier .
+    }
+    GROUP BY ?contenturl
+  }
 }
-GROUP BY ?contentUrl ?reactionType ?chemicalName
-ORDER BY ASC(?contentUrl)
+GROUP BY ?contenturl ?deviceTypes ?peakIdentifiers
+}}
+ORDER BY ASC(?contenturl)
