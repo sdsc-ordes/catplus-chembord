@@ -8,18 +8,16 @@
     let {
         isLoading = false,
         error = null,
-        campaignFiles = [],
+        filteredFiles = [],
         activeCampaign = null,
         activeProduct = null,
-        activePeaks = [],
         title = "",
     }: {
         isLoading?: boolean;
         error?: string | null;
-        campaignFiles?: S3FileInfoWithUrl[] | [];
+        filteredFiles?: S3FileInfoWithUrl[] | [];
         activeCampaign?: string | null;
         activeProduct?: string | null;
-        activePeaks?: string[] | null;
         title: string | "";
     } = $props();
 
@@ -45,18 +43,12 @@
         <h2 class="text-xl font-semibold mb-2">Error Fetching Details</h2>
         <p>{error}</p>
     </div>
-{:else if campaignFiles && activeCampaign}
+{:else if filteredFiles && activeCampaign}
     <div class="hover:bg-tertiary-100-900">
     <h1 class="mb-6 flex items-center gap-x-2 text-2xl text-surface-800-200">
         <Archive />
-        <span>{title}</span>
         <span>{activeCampaign}</span>
         <span>{activeProduct}</span>
-        <ul>
-            {#each activePeaks as peak}
-            <li>{peak}</li>
-            {/each}
-        </ul>
 		<a
 			href={`${base}/api/${activeCampaign}download`}
 			class="btn btn-sm variant-outline-secondary hover:text-primary-500"
@@ -82,7 +74,7 @@
                 </tr>
             </thead>
             <tbody class="[&>tr]:hover:bg-tertiary-100-900">
-                {#each campaignFiles as file}
+                {#each filteredFiles as file}
                     <tr>
                         <td>{file.name}</td>
                         <td>{formatBytes(file.Size)}</td>
