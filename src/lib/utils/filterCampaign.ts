@@ -1,11 +1,15 @@
+import type { S3FileInfo } from '$lib/server/s3';
+
 /**
  * Filters a list of files based on specific product and peak criteria.
- * @param {Array<{name: string}>} files - The array of file objects, each with a 'name' property.
+ * @param {Array<S3FileInfo>} files - The array of file objects.
  * @param {string | null} activeProduct - The product prefix for filtering 'Agilent' files.
  * @param {Array<string> | null} activePeaks - An array of peak prefixes for filtering 'IV' or 'MNR' files.
- * @returns {Array<{name: string}>} The new, filtered array of files.
+ * @returns {Array<S3FileInfo>} The new, filtered array of files.
  */
-export function filterCampaignFiles(files: { name: string }[], activeProduct: string | null, activePeaks: string[] | null) {
+export function filterCampaignFiles(
+    files: S3FileInfo[], activeProduct: string | null, activePeaks: string[] | null
+): S3FileInfo[] {
     // If there are no files to filter, return an empty array.
     if (!files || files.length === 0) {
         return [];
