@@ -1,7 +1,12 @@
 # Catplus Chembord
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+## Technology
 
+The catplus chembord uses the following technologies:
+
+- [Sveltekit](https://svelte.dev/) as Frontend Framework
+- [pnpm](https://pnpm.io/) for node setup
+- [Skeleton UI](https://www.skeleton.dev/) for the styles
 
 ## Quickstart
 
@@ -11,16 +16,9 @@ First, define your .env file by copying the example:
 
 ```bash
 cp .env.example .env
-
-# Edit .env
 ```
 
-> NOTE: changing the BASE_PATH requires rebuilding the image
-
-Then let docker run the container with variables loaded from the env file:
-```bash
-docker run -p 3000:3000 --env-file .env ghcr.io/sdsc-ordes/catplus-chembord:latest
-```
+Edit .env
 
 ## Development Environment
 
@@ -41,8 +39,10 @@ Then use just to install, build and run the project:
 ```bash
 just install
 just build
-just run # this also installs and builds the project
+just local
 ```
+
+`just local` serves the chembord at `http://localhost:5173/chembord`
 
 ### Docker
 
