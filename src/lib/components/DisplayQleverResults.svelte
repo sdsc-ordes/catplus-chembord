@@ -49,8 +49,6 @@
 	let detailError = $state<string | null>(null);
 	let selectedRowIndex = $state<number | null>(null);
 	const activeResultItem = $derived(selectedRowIndex === null ? null : results[selectedRowIndex]);
-	$inspect(fetchedCampaign, 'fetchedCampaign');
-	$inspect(activeResultItem, 'activeResultItem');
 
 	async function fetchDetails(activeResultItem: ResultItemType) {
 		const campaignPath = activeResultItem.Campaign.value;
