@@ -42,36 +42,42 @@
 
 	// State for the fetched detailed data for the main content
 	let detailedContent = $state<S3FileInfo[] | null>(null);
-	let campaignFiles = $state<S3FileInfo[] | null>(null);
-	let productFiles = $state<S3FileInfo[] | null>(null);
+	let rawCampaignFiles = $state<S3FileInfo[] | null>(null);
+	let fetchedCampaignPath = $state<string | null>(null);
+	let fetchedCampaign = $state<string | null>(null);
 	let isLoadingDetails = $state(false);
 	let detailError = $state<string | null>(null);
 	let selectedRowIndex = $state<number | null>(null);
 	const activeResultItem = $derived(selectedRowIndex === null ? null : results[selectedRowIndex]);
+	$inspect(fetchedCampaign, 'fetchedCampaign');
+	$inspect(activeResultItem, 'activeResultItem');
 
 	async function fetchDetails(activeResultItem: ResultItemType) {
+		const campaignPath = activeResultItem.Campaign.value;
+
+		// If the requested campaign is the one we already have, do nothing.
+		// The reactive effect below will handle re-filtering.
+		if (!campaignPath || campaignPath === fetchedCampaignPath) {
+			return;
+		}
+
 		isLoadingDetails = true;
 		detailError = null;
-		detailedContent = null;
-		const campaignPath = activeResultItem.Campaign.value;
-		console.log(activeResultItem);
+		rawCampaignFiles = null; // Clear old raw data
+
 		try {
-			// Adjust the URL to your actual API endpoint structure
 			const response = await fetch(`${base}/api/${campaignPath}`);
 			if (!response.ok) {
-				const errorData = await response
-					.json()
-					.catch(() => ({ message: `HTTP error! status: ${response.status}` }));
+				const errorData = await response.json().catch(() => ({ message: `HTTP error! status: ${response.status}` }));
 				throw new Error(errorData.message || `Failed to fetch details. Status: ${response.status}`);
 			}
-			const fetchedDetails: S3FileInfo[] = await response.json();
-			const files = fetchedDetails?.files || [];
-			const filteredList = filterCampaignFiles(
-				files,
-				activeResultItem.Product.value,
-				activeResultItem.Peaks.value
-			);
-			detailedContent = filteredList;
+
+			const fetchedData = await response.json();
+			// Store the full, unfiltered list of files
+			rawCampaignFiles = fetchedData?.files || [];
+			// Remember the campaign we just successfully fetched
+			fetchedCampaignPath = campaignPath;
+
 		} catch (err: any) {
 			console.error('Error fetching details:', err);
 			detailError = err.message || 'An unknown error occurred.';
@@ -79,7 +85,6 @@
 			isLoadingDetails = false;
 		}
 	}
-
 	async function handlePageChange(e) {
 		const nextPage = e.page;
 		const queryString = new URLSearchParams(page.url.searchParams.get('query') || '');
@@ -90,12 +95,18 @@
 
 	// EFFECT: This runs ONLY when the active item changes.
 	$effect(() => {
-		if (activeResultItem) {
-			fetchDetails(activeResultItem);
-		} else if (selectedRowIndex === null) {
+		if (rawCampaignFiles && activeResultItem) {
+			// Run your existing filter function on the raw data
+			const filteredList = filterCampaignFiles(
+				rawCampaignFiles,
+				activeResultItem.Product.value,
+				activeResultItem.Peaks.value
+			);
+			// Update the final list that gets displayed
+			detailedContent = filteredList;
 		} else {
+			// Clear the list if there's no data or no selection
 			detailedContent = null;
-			detailError = null;
 		}
 	});
 
@@ -103,6 +114,14 @@
 	$effect(() => {
 		selectedRowIndex = results.length > 0 ? 0 : null;
 	});
+
+	// EFFECT: Fetch data whenever the active item changes.
+	$effect(() => {
+		if (activeResultItem) {
+			fetchDetails(activeResultItem);
+		}
+	});
+
 </script>
 
 <div class="bg-tertiary-50-800 space-y-4 rounded p-4">
@@ -122,7 +141,7 @@
 						class="cursor-pointer"
 						class:bg-tertiary-200-800={activeResultItem?.Product === result.Product}
 					>
-						{#each Object.entries(result) as [key, item]: [string, unknown]}
+						{#each Object.entries(result) as [key, item]: [string, ResultItemType]}
 							{#if item.display}
 								<td>
 									{#if Array.isArray(item.value)}
