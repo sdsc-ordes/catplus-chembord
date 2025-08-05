@@ -3,9 +3,7 @@
 	import DisplayQleverResults from '$lib/components/DisplayQleverResults.svelte';
 	import ResultsHeaderSearch from '$lib/components/ResultsHeaderSearch.svelte';
 	import SparqlSearchForm from '$lib/components/SparqlSearchForm.svelte';
-	import { createDynamicTableHeaders } from '$lib/utils/mapSparqlResults'
 	import { type FilterCategory } from '$lib/config';
-	import Error from '../+error.svelte';
 
 	let { data } = $props();
     // make sure the data is reladed after a page change
