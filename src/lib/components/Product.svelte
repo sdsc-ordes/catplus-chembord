@@ -22,15 +22,6 @@
         activePeaks?: string[] | null;
         title: string | "";
     } = $props();
-    $inspect({
-        isLoading,
-        error,
-        campaignFiles,
-        activeCampaign,
-        activeProduct,
-        activePeaks,
-        title
-    });
 
     interface FileTableColumns {
         title: string; // Column title
@@ -43,38 +34,6 @@
         {title: "Last modified", widthInPercent: 25},
         {title: "Download", widthInPercent: 10},
     ]
-
-    let filteredFiles = $derived(() => {
-        console.log(activeProduct, activePeaks);
-        // If there are no files to filter, return an empty array
-        if (!campaignFiles || campaignFiles.length === 0) {
-            return [];
-        }
-
-        const otherFileTypes = ['-Bravo-', '-IR-', '-MNR-', '-UV-'];
-        console.log("Filtering files with activeProduct:", activeProduct, "and activePeaks:", activePeaks);
-
-        return campaignFiles.filter(file => {
-            const fileName = file.name;
-
-            // Condition 1: Handle '-Agilent-' files
-            if (fileName.includes('-Agilent-')) {
-                // Keep the file ONLY if activeProduct is defined and is a prefix of the file name
-                return activeProduct && fileName.startsWith(activeProduct);
-            }
-
-            // Condition 2: Handle other special file types
-            if (otherFileTypes.some(type => fileName.includes(type))) {
-                // Keep the file ONLY if activePeaks has items and one of them is a prefix
-                return Array.isArray(activePeaks) && activePeaks.length > 0 && activePeaks.some(peak => fileName.startsWith(peak));
-            }
-
-            // Condition 3: If it's not a special file type, always display it
-            return true;
-        });
-    });
-
-    $inspect("filtered files", { filteredFiles });
 </script>
 
 {#if isLoading}
@@ -123,7 +82,7 @@
                 </tr>
             </thead>
             <tbody class="[&>tr]:hover:bg-tertiary-100-900">
-                {#each filteredFiles as file}
+                {#each campaignFiles as file}
                     <tr>
                         <td>{file.name}</td>
                         <td>{formatBytes(file.Size)}</td>
