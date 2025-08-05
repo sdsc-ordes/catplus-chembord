@@ -14,7 +14,7 @@
 	const initialFilters: Record<FilterCategory, string[]> = data.initialFilters;
 	const resultColumns: string[] = data.resultColumns;
 	const resultsTotal: number = data.resultsTotal && data.resultsTotal[0]?.count ? data.resultsTotal[0].count : 0;
-	const sparqlQuery: string = data.sparqlQuery;
+	const sparqlQuery: string = $derived(data.sparqlQuery);
 
 	interface LabelValueOption {
 		label: string;
