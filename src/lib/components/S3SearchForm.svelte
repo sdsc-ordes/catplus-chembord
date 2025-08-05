@@ -15,7 +15,6 @@
 
     function handleSubmit() {
         return async ({ result }: { result: any }) => {
-            console.log('handleSubmit', result);
             if (result.type === 'redirect') {
                 await invalidateAll();
             }
