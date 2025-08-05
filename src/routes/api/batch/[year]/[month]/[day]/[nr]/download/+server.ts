@@ -2,6 +2,7 @@ import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { getZipFileName } from '$lib/utils/zipFileName';
 import { createZipStreamFromKeys, listFilesInBucket } from '$lib/server/s3';
+import { filterCampaignFiles } from '$lib/utils/filterCampaign';
 
 export const GET: RequestHandler = async ({ params, request }) => {
 	const path = `batch/${params.year}/${params.month}/${params.day}/${params.nr}/`
@@ -14,12 +15,21 @@ export const GET: RequestHandler = async ({ params, request }) => {
 		// Call the utility function from local
 		const normalizedPrefix = path.endsWith('/') ? path : `${path}/`;
 		//const zipStream = await createZipStreamForPrefix(normalizedPrefix);
-		const objectsToZip = await listFilesInBucket(normalizedPrefix);
+		const campaignFiles = await listFilesInBucket(normalizedPrefix);
+		let filteredFiles;
+		if (product) {
+			// Filter files based on product and peaks
+			filteredFiles = filterCampaignFiles(campaignFiles, product, peaks);
+		} else {
+			// If no product is specified, include all files
+			filteredFiles = campaignFiles;
+		}
+		console.log(`Filtered files for prefix ${normalizedPrefix}:`, filteredFiles);
 
-		 const zipStream = await createZipStreamFromKeys(
-            objectsToZip.map(obj => obj.Key!),
-            normalizedPrefix
-        );
+		const zipStream = await createZipStreamFromKeys(
+			filteredFiles.map(obj => obj.Key!),
+			normalizedPrefix
+		);
 
 		// Generate a filename for the download
 		const zipFileName = getZipFileName(path, product);

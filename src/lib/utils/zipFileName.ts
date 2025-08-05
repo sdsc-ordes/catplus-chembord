@@ -6,9 +6,9 @@
  */
 export function getZipFileName(prefix: String, product: String | null): string {
     const parts = prefix.split('/').filter(Boolean);
-    const filename = `${parts.join("-")}.zip`;
+    const filename = `${parts.join("-")}`;
     if (product) {
         return `${filename}-${product}.zip`;
     }
-    return filename;
+    return `${filename}.zip`;
 }

@@ -53,17 +53,16 @@
         <Archive />
         <span>{activeCampaign}</span>
         <span>{activeProduct}</span>
-        <span>{`${base}/api/${activeCampaign}download?product=${activeProduct}`}</span>
 		<a
 			href={`${base}/api/${activeCampaign}download?product=${activeProduct}&peaks=${activePeaks.join(',')}`}
 			class="btn btn-sm variant-outline-secondary hover:text-primary-500"
 			title="Download all files in this folder as ZIP"
-			download={getZipFileName(activeCampaign)}
+			download={getZipFileName(activeCampaign, activeProduct)}
 			target="_blank"
 			rel="noopener noreferrer"
 		>
 			<FolderDown />
-			<span>Download ZIP {getZipFileName(title)}</span>
+			<span>Download ZIP {getZipFileName(activeCampaign, activeProduct)}</span>
 		</a>
     </h1>
     </div>
