@@ -8,7 +8,6 @@
 	import Error from '../+error.svelte';
 
 	let { data } = $props();
-	console.log("page data", data);
     // make sure the data is reladed after a page change
 	const results = $derived(data.results);
 	const picklists: Record<FilterCategory, string[]> = data.picklists;
