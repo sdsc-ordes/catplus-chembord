@@ -7,7 +7,7 @@
 	import { base } from '$app/paths';
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
-	import type { util } from 'zod/v4/core';
+
 	let currentPage = $derived(page.url.searchParams.get('page') || 1);
 
 	// get props from data loader
