@@ -59,12 +59,12 @@ export const load: PageServerLoad = async ({ url }) => {
 		logger.debug({ queryResult }, "Query Result:");
 
         // 3. Process the results to define your variables
-		const resultColumns = ["Campaign", "Product", "Devices", "Chemicals"];
+        const resultColumns = ["Campaign", "Product", "Devices", "Chemicals"];
 
-		const results = queryResult.map(transformQueryResultRow);
+        const results = queryResult ? queryResult.map(transformQueryResultRow) : [];
 
-		// The 'results' variable now holds your array of transformed dictionaries.
-		logger.debug({ results }, "Processed and transformed SPARQL results");
+        // The 'results' variable now holds your array of transformed dictionaries.
+        logger.debug({ results }, "Processed and transformed SPARQL results");
 
 		// Return the actual data
         return {
