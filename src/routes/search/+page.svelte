@@ -61,11 +61,18 @@
 		resultColumns={resultColumns}
 		query={sparqlQuery}
 	/>
-	<DisplayQleverResults
-		results={results}
-		resultsTotal={resultsTotal}
-		tableHeaders={resultColumns}
-	/>
+    {#if resultsTotal > 0}
+        <DisplayQleverResults
+            {results}
+            {resultsTotal}
+            tableHeaders={resultColumns}
+        />
+    {:else}
+        <div class="bg-tertiary-50-800 space-y-4 rounded p-4">
+            <h3 class="h3">No Results Found</h3>
+            <p>Please try adjusting your filters or starting a new search.</p>
+        </div>
+    {/if}
 {/snippet}
 
 <ContentLayout {sidebar} {main} />
