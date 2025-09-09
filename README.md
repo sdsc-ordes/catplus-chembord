@@ -1,5 +1,10 @@
 # Catplus Chembord
 
+> [!IMPORTANT]  
+> This repository is **archived** and no longer maintained.  
+> The project has been migrated to our collaborators at [SwissCAT+](https://github.com/swisscatplus).  
+> 👉 Development continues at [swisscatplus/catplus-chembord](https://github.com/swisscatplus/catplus-chembord)
+
 ## Technology
 
 The catplus chembord uses the following technologies:
